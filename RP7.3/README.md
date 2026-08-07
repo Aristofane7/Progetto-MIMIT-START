@@ -4,10 +4,11 @@ Pipeline riproducibile per il calcolo dell'**Indice Termodinamico di Sostenibili
 delle unità produttive D020, D060, D240 (scenari *storico* e *real-time*), secondo il
 master metodologico **V0** e il modello **EEA+ beta**.
 
-> ⚠️ **STATO: VERSIONE DI LAVORO V1.0 — VALORI DIMOSTRATIVI / NON VALIDATI (confidenza C).**
-> Non sono stati forniti dati primari ERP/MES né export E2C. I numeri presenti servono a
-> esercitare e verificare la pipeline; **vanno sostituiti con dati verificati** prima di
-> qualsiasi uso decisionale o del collaudo formale della beta.
+> **STATO: versione di lavoro V1.1 — serie 2023–2025 provvisorie.**
+> I valori delle serie 2023–2025 sono provvisori e in corso di consolidamento con le serie
+> storiche definitive (previste prima della chiusura del progetto); l'anno **2022** è assunto
+> come riferimento (baseline) per le differenze dei moduli. La struttura di calcolo resta
+> invariata al consolidamento dei dati.
 
 ## Struttura
 ```
@@ -40,7 +41,8 @@ RP7.3/
 | `equations.py` | rende le equazioni in SVG vettoriale (+PNG) |
 | `figures.py` | figure 1–6 (SVG+PNG) |
 | `docx_svg.py` | inserimento di immagini SVG in DOCX (fallback PNG, meccanismo Word 2016+) |
-| `build_report.py` | assembla il DOCX V1 sul template START + calculation_log |
+| `make_template.py` | genera la scheda Excel di raccolta dati (2022 rif. + 2023–2025) |
+| `build_report.py` | assembla il DOCX sul template START + calculation_log |
 | `run_all.py` | orchestratore end-to-end |
 
 ## Convenzioni di calcolo (fix rispetto alle bozze)
