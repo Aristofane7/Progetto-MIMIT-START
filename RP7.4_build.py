@@ -1,322 +1,274 @@
 #!/usr/bin/env python3
 """
-P-TSA (OR7.4) computation pipeline.
-Synthetic-but-coherent data anchored to the three EPDs (7.4/8.2/20 mm) and to
-RP6.x / RP7.3 series. Computes SCR/PsI/OCR -> IOAI/OPI/TQI -> P-TSI with two
-normalization schemes (z-score+equal weights = primary; 1-5 scoring + AHP =
-secondary), plus TII and sensitivity. Writes the three xlsx artefacts.
-Structure mirrors RP7.3 (data_collection / calculation_log / weights).
+P-TSA (OR7.4) - Codice di calcolo del Product Technological Sustainability
+Assessment. Applica lo schema LCT/ISO 14040 (cradle-to-grave) alle 3 tipologie
+di prodotto definite dagli EPD (7.4 / 8.2 / 20 mm) e calcola:
+  indicatori  SCR (IOA) / PsI (OP) / OCR (TQ)
+  sotto-indici IOAI / OPI / TQI  e  indice sintetico  P-TSI
+  con due normalizzazioni:  z-score + pesi uguali (PRIMARIA)
+                            scoring 1-5 + AHP (SECONDARIA, CR<=0.10)
+  + TII (Technology Improvement Index) e analisi di sensibilita.
+
+WORKFLOW "sostituisci e rilancia":
+  1) i DATI DI INPUT stanno nel file  RP7.4_dataset_sintetico.xlsx  (foglio INPUT).
+  2) al primo avvio, se il file non esiste, viene generato dai valori di default
+     (serie provvisorie, ancorate a EPD e a RP6.x/RP7.3, in corso di consolidamento).
+  3) per rifare l'assessment con i DATI REALI: sostituire i valori nel foglio
+     INPUT del dataset e rilanciare  `python3 RP7.4_build.py`  -> la struttura di
+     calcolo resta invariata e vengono rigenerati calculation_log, weights e figure.
+
+Output: RP7.4_dataset_sintetico.xlsx, RP7.4_weights.xlsx,
+        RP7.4_calculation_log.xlsx, RP7.4_fig1_*.png, RP7.4_fig2_*.png
 """
-import math, json
+import os, json
 import numpy as np
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 
-OUT = "/home/user/Progetto-MIMIT-START"
+OUT = os.path.dirname(os.path.abspath(__file__))
+DATASET = os.path.join(OUT, "RP7.4_dataset_sintetico.xlsx")
 
-# ----------------------------------------------------------------------------
-# 0. Typologies (from EPDs in repo). mass in kg per m2 (declared unit).
-# ----------------------------------------------------------------------------
 TYPES = ["T1_7.4mm", "T2_8.2mm", "T3_20mm"]
-mass = {"T1_7.4mm": 13.98, "T2_8.2mm": 16.05, "T3_20mm": 41.79}     # kg/m2 (EPD)
-plant = {"T1_7.4mm": "D060 Scandiano", "T2_8.2mm": "D060 Scandiano",
-         "T3_20mm": "D240 Frassinoro"}
-# specific process energy per m2 [MJ/m2], k=3.05 MJ/kg so 8.2mm~49 MJ/m2 (~RP7.3
-# D060 Ex_ref/m2). Scales with mass -> thicker = more energy (coherent).
-K_EN = 3.05
-e_spec = {t: round(K_EN * mass[t], 1) for t in TYPES}                # MJ/m2
+PERIODS = ["t", "t-1"]                       # t = lug2023-giu2024 (EPD); t-1 = anno prec. (per TII)
 
-# ----------------------------------------------------------------------------
-# 1. RAW METRICS (synthetic, coherent) -- period t = Jul2023-Jun2024 (EPD),
-#    t_1 = previous year (for TII). Each with provenance note.
-#    direction: +1 higher=better, -1 lower=better (handled in scoring).
-# ----------------------------------------------------------------------------
-# ---- IOA metrics: SCR = AverageStock / AverageConsumption  (days of coverage)
-# Sourcing raw materials, Internal-logistics finished product, Operations glazes/inks
-scr_raw = {  # (AS, AC) in consistent units so SCR = days
- # input : {type: (avg_stock, avg_consumption_per_day)}
- "RawMat_sourcing":   {"T1_7.4mm": (4200, 105), "T2_8.2mm": (4600, 100), "T3_20mm": (5200, 62)},   # tons / (tons/day)
- "Finished_intlog":   {"T1_7.4mm": (95000, 3200), "T2_8.2mm": (88000, 2600), "T3_20mm": (52000, 900)}, # m2 / (m2/day)
- "Glaze_ink_ops":     {"T1_7.4mm": (48, 2.1), "T2_8.2mm": (52, 2.0), "T3_20mm": (40, 1.2)},         # tons / (tons/day)
-}
-# previous-year consumption slightly higher (less efficient) -> lower coverage
-scr_raw_t1 = {k: {t: (v[t][0]*0.97, v[t][1]*1.03) for t in TYPES} for k, v in scr_raw.items()}
+# ---- colonne del dataset di INPUT (una riga per tipologia x periodo) ----
+FIELDS = ["spessore_mm", "massa_kg_m2", "stabilimento",
+          # IOA (SCR = stock medio / consumo medio giornaliero, in giorni)
+          "stock_rawmat_t", "cons_rawmat_tgg",
+          "stock_finished_m2", "cons_finished_m2gg",
+          "stock_glaze_t", "cons_glaze_tgg",
+          # OP (PsI)
+          "firstchoice_rate", "energia_processo_MJ_m2", "resa_m2_m2", "throughput_m2_h",
+          # TQ (OCR = QP / AT su parametri ISO 10545, soglie EN 14411 BIa)
+          "flex_QP_Nmm2", "flex_AT_Nmm2",
+          "break_QP_N", "break_AT_N",
+          "surf_QP_pct", "surf_AT_pct"]
 
-# ---- OP metrics: PI = RealOutput / RealInput
-#  PI1 energy productivity [m2 first-choice per GJ], PI2 material yield [m2 sell/m2 pressed],
-#  PI3 line throughput [m2/h]
-ipr = {"T1_7.4mm": 0.958, "T2_8.2mm": 0.951, "T3_20mm": 0.936}   # inspection pass / first-choice rate
-yield_ = {"T1_7.4mm": 0.962, "T2_8.2mm": 0.955, "T3_20mm": 0.941}
-throughput = {"T1_7.4mm": 640, "T2_8.2mm": 560, "T3_20mm": 210}   # m2/h (thicker=slower)
-throughput_t1 = {t: throughput[t]*0.97 for t in TYPES}
-ipr_t1 = {t: ipr[t]-0.008 for t in TYPES}
-yield_t1 = {t: yield_[t]-0.006 for t in TYPES}
+# ============================================================================
+# 1. DATI DI DEFAULT (serie provvisorie, in corso di consolidamento)
+#    Ancoraggio: EPD (massa/m2, parametri ISO 10545), RP7.3 (energia D060/D240).
+# ============================================================================
+def default_inputs():
+    static = {
+        "T1_7.4mm": dict(spessore_mm=7.4,  massa_kg_m2=13.98, stabilimento="D060 Scandiano"),
+        "T2_8.2mm": dict(spessore_mm=8.2,  massa_kg_m2=16.05, stabilimento="D060 Scandiano"),
+        "T3_20mm":  dict(spessore_mm=20.0, massa_kg_m2=41.79, stabilimento="D240 Frassinoro"),
+    }
+    # energia specifica di processo ~ 3.05 MJ/kg * massa (8.2mm ~ 49 MJ/m2 ~ RP7.3)
+    e_spec = {t: round(3.05 * static[t]["massa_kg_m2"], 1) for t in TYPES}
+    base = {  # periodo t
+      "T1_7.4mm": dict(stock_rawmat_t=4200, cons_rawmat_tgg=105, stock_finished_m2=95000, cons_finished_m2gg=3200,
+                       stock_glaze_t=48, cons_glaze_tgg=2.1, firstchoice_rate=0.958,
+                       energia_processo_MJ_m2=e_spec["T1_7.4mm"], resa_m2_m2=0.962, throughput_m2_h=640,
+                       flex_QP_Nmm2=48.0, flex_AT_Nmm2=35.0, break_QP_N=1400, break_AT_N=700,
+                       surf_QP_pct=97.6, surf_AT_pct=95.0),
+      "T2_8.2mm": dict(stock_rawmat_t=4600, cons_rawmat_tgg=100, stock_finished_m2=88000, cons_finished_m2gg=2600,
+                       stock_glaze_t=52, cons_glaze_tgg=2.0, firstchoice_rate=0.951,
+                       energia_processo_MJ_m2=e_spec["T2_8.2mm"], resa_m2_m2=0.955, throughput_m2_h=560,
+                       flex_QP_Nmm2=50.0, flex_AT_Nmm2=35.0, break_QP_N=2050, break_AT_N=1300,
+                       surf_QP_pct=97.1, surf_AT_pct=95.0),
+      "T3_20mm":  dict(stock_rawmat_t=5200, cons_rawmat_tgg=62, stock_finished_m2=52000, cons_finished_m2gg=900,
+                       stock_glaze_t=40, cons_glaze_tgg=1.2, firstchoice_rate=0.936,
+                       energia_processo_MJ_m2=e_spec["T3_20mm"], resa_m2_m2=0.941, throughput_m2_h=210,
+                       flex_QP_Nmm2=53.0, flex_AT_Nmm2=35.0, break_QP_N=7200, break_AT_N=1300,
+                       surf_QP_pct=96.4, surf_AT_pct=95.0),
+    }
+    data = {}
+    for t in TYPES:
+        row_t = {**static[t], **base[t]}
+        data[(t, "t")] = row_t
+        # periodo t-1: anno precedente leggermente meno performante (per il TII)
+        r1 = dict(row_t)
+        r1["stock_rawmat_t"]   = round(row_t["stock_rawmat_t"]*0.97, 1)
+        r1["cons_rawmat_tgg"]  = round(row_t["cons_rawmat_tgg"]*1.03, 2)
+        r1["stock_finished_m2"]= round(row_t["stock_finished_m2"]*0.97, 1)
+        r1["cons_finished_m2gg"]=round(row_t["cons_finished_m2gg"]*1.03, 2)
+        r1["stock_glaze_t"]    = round(row_t["stock_glaze_t"]*0.97, 2)
+        r1["cons_glaze_tgg"]   = round(row_t["cons_glaze_tgg"]*1.03, 3)
+        r1["firstchoice_rate"] = round(row_t["firstchoice_rate"]-0.008, 3)
+        r1["energia_processo_MJ_m2"] = round(row_t["energia_processo_MJ_m2"]*1.02, 2)
+        r1["resa_m2_m2"]       = round(row_t["resa_m2_m2"]-0.006, 3)
+        r1["throughput_m2_h"]  = round(row_t["throughput_m2_h"]*0.97, 1)
+        r1["flex_QP_Nmm2"]     = round(row_t["flex_QP_Nmm2"]-0.6, 2)
+        r1["surf_QP_pct"]      = round(row_t["surf_QP_pct"]-0.5, 2)
+        data[(t, "t-1")] = r1
+    return data
 
-# ---- TQ metrics: OCR = QualityParameter / AcceptabilityThreshold (EN14411 BIa / ISO10545)
-# flexural strength [N/mm2] AT=35 ; breaking strength [N] AT depends on thickness ;
-# surface quality [% first choice] AT=95 (ISO10545-2)
-flex_QP = {"T1_7.4mm": 48.0, "T2_8.2mm": 50.0, "T3_20mm": 53.0}; flex_AT = 35.0
-brk_QP = {"T1_7.4mm": 1400.0, "T2_8.2mm": 2050.0, "T3_20mm": 7200.0}
-brk_AT = {"T1_7.4mm": 700.0, "T2_8.2mm": 1300.0, "T3_20mm": 1300.0}  # EN14411 BIa: <7.5mm->700, >=7.5mm->1300
-surf_QP = {"T1_7.4mm": 97.6, "T2_8.2mm": 97.1, "T3_20mm": 96.4}; surf_AT = 95.0
-flex_QP_t1 = {t: flex_QP[t]-0.6 for t in TYPES}
-surf_QP_t1 = {t: surf_QP[t]-0.5 for t in TYPES}
+# ============================================================================
+# 2. DATASET I/O
+# ============================================================================
+HFILL = PatternFill("solid", fgColor="4F6228"); HFONT = Font(color="FFFFFF", bold=True)
+def _style_header(ws):
+    for c in ws[1]:
+        c.fill = HFILL; c.font = HFONT; c.alignment = Alignment(horizontal="center")
+def _autosize(ws):
+    for col in ws.columns:
+        w = max((len(str(c.value)) for c in col if c.value is not None), default=8)
+        ws.column_dimensions[col[0].column_letter].width = min(max(w+2, 10), 26)
 
-# ----------------------------------------------------------------------------
-# 2. INDICATORS
-# ----------------------------------------------------------------------------
-def scr(d): return {t: d[t][0]/d[t][1] for t in TYPES}
-SCR = {  # days of coverage
- "SCR_RawMat": scr(scr_raw["RawMat_sourcing"]),
- "SCR_Finished": scr(scr_raw["Finished_intlog"]),
- "SCR_GlazeInk": scr(scr_raw["Glaze_ink_ops"]),
-}
-SCR_t1 = {"SCR_RawMat": scr(scr_raw_t1["RawMat_sourcing"]),
-          "SCR_Finished": scr(scr_raw_t1["Finished_intlog"]),
-          "SCR_GlazeInk": scr(scr_raw_t1["Glaze_ink_ops"])}
+def write_dataset(data, path):
+    wb = openpyxl.Workbook(); ws = wb.active; ws.title = "INPUT"
+    ws.append(["tipologia", "periodo"] + FIELDS)
+    for t in TYPES:
+        for p in PERIODS:
+            r = data[(t, p)]
+            ws.append([t, p] + [r[f] for f in FIELDS])
+    _style_header(ws); _autosize(ws)
+    ws2 = wb.create_sheet("LEGENDA")
+    legenda = [
+      ("SCR (IOA)", "Stock Coverage Rate = stock medio / consumo medio giornaliero [giorni]"),
+      ("PsI (OP)",  "Productivity Indicators: energia m2/GJ = firstchoice/(energia/1000); resa m2/m2; throughput m2/h"),
+      ("OCR (TQ)",  "Output Conformity Rate = QP/AT (ISO 10545; soglie EN 14411 BIa)"),
+      ("periodo",   "t = lug2023-giu2024 (EPD); t-1 = anno precedente (per il TII)"),
+      ("NOTA",      "Serie provvisorie, in corso di consolidamento. Sostituire con i dati reali e rilanciare RP7.4_build.py."),
+    ]
+    for k, v in legenda: ws2.append([k, v])
+    ws2.column_dimensions["A"].width = 14; ws2.column_dimensions["B"].width = 95
+    wb.save(path)
 
-PI = {
- "PsI_Energy": {t: round(ipr[t] / (e_spec[t]/1000.0), 3) for t in TYPES},  # m2/GJ
- "PsI_Yield":  {t: yield_[t] for t in TYPES},
- "PsI_Through":{t: float(throughput[t]) for t in TYPES},
-}
-PI_t1 = {
- "PsI_Energy": {t: round(ipr_t1[t] / (e_spec[t]*1.02/1000.0), 3) for t in TYPES}, # prev yr +2% energy
- "PsI_Yield":  {t: yield_t1[t] for t in TYPES},
- "PsI_Through":{t: throughput_t1[t] for t in TYPES},
-}
+def read_dataset(path):
+    wb = openpyxl.load_workbook(path, data_only=True); ws = wb["INPUT"]
+    hdr = [c.value for c in ws[1]]
+    data = {}
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        rec = dict(zip(hdr, row))
+        if rec.get("tipologia") is None: continue
+        key = (rec["tipologia"], rec["periodo"])
+        data[key] = {f: rec[f] for f in FIELDS}
+    return data
 
-OCR = {
- "OCR_Flex":  {t: round(flex_QP[t]/flex_AT, 3) for t in TYPES},
- "OCR_Break": {t: round(brk_QP[t]/brk_AT[t], 3) for t in TYPES},
- "OCR_Surf":  {t: round(surf_QP[t]/surf_AT, 3) for t in TYPES},
-}
-OCR_t1 = {
- "OCR_Flex":  {t: round(flex_QP_t1[t]/flex_AT, 3) for t in TYPES},
- "OCR_Break": {t: round(brk_QP[t]/brk_AT[t], 3) for t in TYPES},
- "OCR_Surf":  {t: round(surf_QP_t1[t]/surf_AT, 3) for t in TYPES},
-}
+# carica il dataset se presente, altrimenti crealo dai default
+if os.path.exists(DATASET):
+    data = read_dataset(DATASET); print(f"[input] letto {os.path.basename(DATASET)}")
+else:
+    data = default_inputs(); write_dataset(data, DATASET); print(f"[input] creato {os.path.basename(DATASET)} dai default")
 
-DIM = {"IOA": SCR, "OP": PI, "TQ": OCR}
-DIM_t1 = {"IOA": SCR_t1, "OP": PI_t1, "TQ": OCR_t1}
+# ============================================================================
+# 3. INDICATORI
+# ============================================================================
+def SCR_of(p):
+    return {
+      "SCR_RawMat":   {t: data[(t,p)]["stock_rawmat_t"]   / data[(t,p)]["cons_rawmat_tgg"]   for t in TYPES},
+      "SCR_Finished": {t: data[(t,p)]["stock_finished_m2"]/ data[(t,p)]["cons_finished_m2gg"] for t in TYPES},
+      "SCR_GlazeInk": {t: data[(t,p)]["stock_glaze_t"]    / data[(t,p)]["cons_glaze_tgg"]    for t in TYPES},
+    }
+def PI_of(p):
+    return {
+      "PsI_Energy":  {t: round(data[(t,p)]["firstchoice_rate"]/(data[(t,p)]["energia_processo_MJ_m2"]/1000.0), 3) for t in TYPES},
+      "PsI_Yield":   {t: data[(t,p)]["resa_m2_m2"] for t in TYPES},
+      "PsI_Through": {t: float(data[(t,p)]["throughput_m2_h"]) for t in TYPES},
+    }
+def OCR_of(p):
+    return {
+      "OCR_Flex":  {t: round(data[(t,p)]["flex_QP_Nmm2"]/data[(t,p)]["flex_AT_Nmm2"], 3) for t in TYPES},
+      "OCR_Break": {t: round(data[(t,p)]["break_QP_N"]  /data[(t,p)]["break_AT_N"],   3) for t in TYPES},
+      "OCR_Surf":  {t: round(data[(t,p)]["surf_QP_pct"] /data[(t,p)]["surf_AT_pct"],  3) for t in TYPES},
+    }
+SCR, PI, OCR = SCR_of("t"), PI_of("t"), OCR_of("t")
+DIM   = {"IOA": SCR, "OP": PI, "TQ": OCR}
+DIM_1 = {"IOA": SCR_of("t-1"), "OP": PI_of("t-1"), "TQ": OCR_of("t-1")}
 
-# ----------------------------------------------------------------------------
-# 3. PRIMARY: z-score across the 3 typologies, equal weights
-# ----------------------------------------------------------------------------
-def zscore_dim(dimdict):
-    """return {indicator:{type:z}} standardized across the 3 typologies."""
+# ============================================================================
+# 4. PRIMARIA: z-score tra le 3 tipologie, pesi uguali
+# ============================================================================
+def zscore_dim(dd):
     z = {}
-    for ind, vals in dimdict.items():
-        arr = np.array([vals[t] for t in TYPES], float)
-        m, s = arr.mean(), arr.std(ddof=0)
+    for ind, vals in dd.items():
+        a = np.array([vals[t] for t in TYPES], float); m, s = a.mean(), a.std(ddof=0)
         z[ind] = {t: (vals[t]-m)/s if s > 0 else 0.0 for t in TYPES}
     return z
+def subindex_z(dd):
+    z = zscore_dim(dd); inds = list(dd); w = 1.0/len(inds)
+    return {t: sum(w*z[i][t] for i in inds) for t in TYPES}, z
+IOAI_z, zIOA = subindex_z(SCR); OPI_z, zOP = subindex_z(PI); TQI_z, zTQ = subindex_z(OCR)
+PTSI_z = {t: (IOAI_z[t]+OPI_z[t]+TQI_z[t])/3.0 for t in TYPES}
 
-def subindex_z(dimdict):
-    z = zscore_dim(dimdict)
-    inds = list(dimdict.keys()); w = 1.0/len(inds)          # equal weights
-    return {t: sum(w*z[ind][t] for ind in inds) for t in TYPES}, z
-
-IOAI_z, zIOA = subindex_z(SCR)
-OPI_z,  zOP  = subindex_z(PI)
-TQI_z,  zTQ  = subindex_z(OCR)
-PTSI_z = {t: (IOAI_z[t]+OPI_z[t]+TQI_z[t])/3.0 for t in TYPES}   # equal dim weights
-
-# ----------------------------------------------------------------------------
-# 4. SECONDARY: 1-5 scoring + AHP
-# ----------------------------------------------------------------------------
-# thresholds (4 boundaries) -> score 1..5, all "higher = better"
-TH = {
+# ============================================================================
+# 5. SECONDARIA: scoring 1-5 + AHP
+# ============================================================================
+TH = {  # 4 confini di classe -> punteggio 1..5 (higher = better)
  "SCR_RawMat": [20,30,40,55], "SCR_Finished": [12,18,25,35], "SCR_GlazeInk": [12,18,25,32],
- "PsI_Energy": [8.0,12.0,16.0,20.0], "PsI_Yield": [0.93,0.945,0.955,0.965],
- "PsI_Through": [200,350,500,620],
+ "PsI_Energy": [8.0,12.0,16.0,20.0], "PsI_Yield": [0.93,0.945,0.955,0.965], "PsI_Through": [200,350,500,620],
  "OCR_Flex": [1.15,1.30,1.40,1.50], "OCR_Break": [1.2,1.6,2.2,3.5], "OCR_Surf": [1.005,1.015,1.025,1.03],
 }
 def score15(ind, x):
     th = TH[ind]
-    if x < th[0]: return 1
-    if x < th[1]: return 2
-    if x < th[2]: return 3
-    if x < th[3]: return 4
-    return 5
-
-def ahp_weights(M):
-    M = np.array(M, float); n = M.shape[0]
-    gm = np.prod(M, axis=1)**(1.0/n); w = gm/gm.sum()
-    lam = (M @ w / w).mean()
-    CI = (lam-n)/(n-1); RI = {2:0,3:0.58,4:0.90}[n]; CR = CI/RI if RI else 0
-    return w, lam, CI, CR
-
-# within-dimension AHP (3 indicators each)
-AHP_IOA = [[1,1,2],[1,1,2],[0.5,0.5,1]]      # raw & finished coverage > glaze
-AHP_OP  = [[1,2,2],[0.5,1,1],[0.5,1,1]]      # energy productivity most important
-AHP_TQ  = [[1,1,3],[1,1,3],[1/3,1/3,1]]      # flex & break > surface
-# across dimensions: TQ (conformity/norm) >= OP > IOA
-AHP_DIM = [[1,0.5,1/3],[2,1,0.5],[3,2,1]]    # order IOA,OP,TQ
-
-wIOA,_,_,crIOA = ahp_weights(AHP_IOA)
-wOP,_,_,crOP  = ahp_weights(AHP_OP)
-wTQ,_,_,crTQ  = ahp_weights(AHP_TQ)
-wDIM,lamD,ciD,crD = ahp_weights(AHP_DIM)
-
-def sdim_score(dimdict, wvec):
-    inds = list(dimdict.keys())
-    S = {}
-    for t in TYPES:
-        S[t] = sum(wvec[i]*score15(inds[i], dimdict[inds[i]][t]) for i in range(len(inds)))
-    return S
-
-def ptsi_score(dims):
-    S_IOA = sdim_score(dims["IOA"], wIOA)
-    S_OP  = sdim_score(dims["OP"],  wOP)
-    S_TQ  = sdim_score(dims["TQ"],  wTQ)
-    P = {t: wDIM[0]*S_IOA[t]+wDIM[1]*S_OP[t]+wDIM[2]*S_TQ[t] for t in TYPES}
-    return S_IOA, S_OP, S_TQ, P
-
-S_IOA, S_OP, S_TQ, PTSI_5 = ptsi_score(DIM)
-S_IOA1,S_OP1,S_TQ1,PTSI_5_t1 = ptsi_score(DIM_t1)
-TII = {t: round((PTSI_5[t]/PTSI_5_t1[t]-1)*100, 2) for t in TYPES}
-
-# equal-weight variant of scoring (for sensitivity)
-def ptsi_score_equal(dims):
+    return 1 if x < th[0] else 2 if x < th[1] else 3 if x < th[2] else 4 if x < th[3] else 5
+def ahp(M):
+    M = np.array(M, float); n = M.shape[0]; gm = np.prod(M, 1)**(1.0/n); w = gm/gm.sum()
+    lam = (M @ w / w).mean(); CI = (lam-n)/(n-1); RI = {2:0,3:0.58,4:0.90}[n]; return w, lam, CI, (CI/RI if RI else 0)
+AHP_IOA=[[1,1,2],[1,1,2],[.5,.5,1]]; AHP_OP=[[1,2,2],[.5,1,1],[.5,1,1]]
+AHP_TQ=[[1,1,3],[1,1,3],[1/3,1/3,1]]; AHP_DIM=[[1,.5,1/3],[2,1,.5],[3,2,1]]
+wIOA,_,_,crI=ahp(AHP_IOA); wOP,_,_,crO=ahp(AHP_OP); wTQ,_,_,crT=ahp(AHP_TQ); wDIM,lamD,ciD,crD=ahp(AHP_DIM)
+def sdim(dd, wv):
+    inds=list(dd); return {t: sum(wv[i]*score15(inds[i], dd[inds[i]][t]) for i in range(len(inds))) for t in TYPES}
+def ptsi5(dims):
+    a=sdim(dims["IOA"],wIOA); b=sdim(dims["OP"],wOP); c=sdim(dims["TQ"],wTQ)
+    return a,b,c,{t: wDIM[0]*a[t]+wDIM[1]*b[t]+wDIM[2]*c[t] for t in TYPES}
+S_IOA,S_OP,S_TQ,PTSI_5 = ptsi5(DIM)
+_,_,_,PTSI_5_1 = ptsi5(DIM_1)
+TII = {t: round((PTSI_5[t]/PTSI_5_1[t]-1)*100, 2) for t in TYPES}
+def ptsi5_equal(dims):
     def sd(d):
-        inds=list(d.keys()); w=1.0/len(inds)
-        return {t: sum(w*score15(i,d[i][t]) for i in inds) for t in TYPES}
-    a,b,c = sd(dims["IOA"]),sd(dims["OP"]),sd(dims["TQ"])
-    return {t:(a[t]+b[t]+c[t])/3 for t in TYPES}
-PTSI_5_eq = ptsi_score_equal(DIM)
+        inds=list(d); w=1.0/len(inds); return {t: sum(w*score15(i,d[i][t]) for i in inds) for t in TYPES}
+    a,b,c=sd(dims["IOA"]),sd(dims["OP"]),sd(dims["TQ"]); return {t:(a[t]+b[t]+c[t])/3 for t in TYPES}
+PTSI_5_eq = ptsi5_equal(DIM)
 
-# ----------------------------------------------------------------------------
-# 5. RANKINGS + summary
-# ----------------------------------------------------------------------------
-def rank(d, rev=True):
-    return [k for k,_ in sorted(d.items(), key=lambda kv: kv[1], reverse=rev)]
-
-summary = {
- "e_spec_MJ_m2": e_spec, "SCR": SCR, "PI": PI, "OCR": OCR,
- "IOAI_z": IOAI_z, "OPI_z": OPI_z, "TQI_z": TQI_z, "PTSI_z": PTSI_z,
- "S_IOA": S_IOA, "S_OP": S_OP, "S_TQ": S_TQ, "PTSI_5": PTSI_5,
- "PTSI_5_t1": PTSI_5_t1, "TII": TII, "PTSI_5_eq": PTSI_5_eq,
- "AHP": {"wIOA": list(np.round(wIOA,4)), "wOP": list(np.round(wOP,4)),
-         "wTQ": list(np.round(wTQ,4)), "wDIM": list(np.round(wDIM,4)),
-         "CR": {"IOA":round(crIOA,4),"OP":round(crOP,4),"TQ":round(crTQ,4),"DIM":round(crD,4)}},
- "rank_z": rank(PTSI_z), "rank_5": rank(PTSI_5),
+# ============================================================================
+# 6. SENSIBILITA
+# ============================================================================
+def rankstr(x): return " > ".join(sorted(x, key=lambda t: x[t], reverse=True))
+SENS = {
+ "z-score + pesi uguali (PRIMARIO)": PTSI_z,
+ "z-score + pesi AHP (TQ>OP>IOA)": {t: wDIM[0]*IOAI_z[t]+wDIM[1]*OPI_z[t]+wDIM[2]*TQI_z[t] for t in TYPES},
+ "scoring 1-5 + AHP": PTSI_5,
+ "scoring 1-5 + pesi uguali": PTSI_5_eq,
+ "z-score focus OP (0.25/0.50/0.25)": {t: .25*IOAI_z[t]+.5*OPI_z[t]+.25*TQI_z[t] for t in TYPES},
+ "z-score focus disponib./qualita (0.40/0.20/0.40)": {t: .4*IOAI_z[t]+.2*OPI_z[t]+.4*TQI_z[t] for t in TYPES},
 }
-print(json.dumps({k:(v if not isinstance(v,dict) else {kk:(round(vv,4) if isinstance(vv,float) else vv) for kk,vv in v.items()}) for k,v in summary.items()}, indent=1, default=str))
 
-# save summary for the report step
-with open("/tmp/claude-0/-home-user-Progetto-MIMIT-START/a500ca18-79ff-5559-beb7-7cbae02fde97/scratchpad/ptsa_results.json","w") as f:
-    json.dump(summary, f, indent=1, default=lambda o: float(o) if isinstance(o,(np.floating,)) else o)
+RES = {"SCR":SCR,"PI":PI,"OCR":OCR,"IOAI_z":IOAI_z,"OPI_z":OPI_z,"TQI_z":TQI_z,"PTSI_z":PTSI_z,
+       "S_IOA":S_IOA,"S_OP":S_OP,"S_TQ":S_TQ,"PTSI_5":PTSI_5,"PTSI_5_t1":PTSI_5_1,"PTSI_5_eq":PTSI_5_eq,"TII":TII,
+       "AHP":{"wIOA":[round(x,4) for x in wIOA],"wOP":[round(x,4) for x in wOP],"wTQ":[round(x,4) for x in wTQ],
+              "wDIM":[round(x,4) for x in wDIM],"CR":{"IOA":round(crI,4),"OP":round(crO,4),"TQ":round(crT,4),"DIM":round(crD,4)}},
+       "SENS":{k:{"valori":{t:round(v[t],3) for t in TYPES},"ranking":rankstr(v)} for k,v in SENS.items()},
+       "e_spec":{t:data[(t,"t")]["energia_processo_MJ_m2"] for t in TYPES},
+       "massa":{t:data[(t,"t")]["massa_kg_m2"] for t in TYPES}}
+with open(os.path.join(OUT, "RP7.4_results.json"), "w") as f: json.dump(RES, f, indent=1, default=float)
 
 # ============================================================================
-# 6. WRITE XLSX ARTEFACTS
+# 7. OUTPUT: weights.xlsx e calculation_log.xlsx
 # ============================================================================
-HFILL = PatternFill("solid", fgColor="4F6228"); HFONT = Font(color="FFFFFF", bold=True)
-def style_header(ws, row=1):
-    for c in ws[row]:
-        c.fill = HFILL; c.font = HFONT; c.alignment = Alignment(horizontal="center")
-
-def autosize(ws):
-    for col in ws.columns:
-        w = max((len(str(c.value)) for c in col if c.value is not None), default=8)
-        ws.column_dimensions[col[0].column_letter].width = min(max(w+2, 10), 48)
-
-# ---- (a) data_collection ----
-wb = openpyxl.Workbook(); ws = wb.active; ws.title = "Istruzioni"
-notes = [
- "RP7.4 - Scheda di raccolta dati (P-TSA, 3 tipologie di prodotto)",
- "Tipologie definite dagli EPD in repository: 7.4 mm e 8.2 mm (Scandiano/D060), 20 mm (Frassinoro/D240).",
- "Periodo t = lug2023-giu2024 (coerente EPD); t-1 = anno precedente (per il TII).",
- "Serie provvisorie, in corso di consolidamento (ancoraggio: EPD - massa/m2, parametri ISO 10545 - e serie RP6.x/RP7.3).",
- "Struttura di calcolo invariata al consolidamento: sostituire i valori e rieseguire ptsa_build.py.",
- "Convenzione: SCR=Stock medio/Consumo medio [giorni]; PsI=Output reale/Input reale; OCR=Parametro qualita/Soglia normativa (EN14411 BIa / ISO 10545).",
-]
-for i,n in enumerate(notes,1): ws.cell(i,1,n)
-ws.column_dimensions["A"].width = 120
-
-ws = wb.create_sheet("Tipologie")
-ws.append(["tipologia","EPD","spessore_mm","massa_kg_m2","stabilimento","gruppo","energia_processo_MJ_m2"])
-for t in TYPES:
-    sp = {"T1_7.4mm":7.4,"T2_8.2mm":8.2,"T3_20mm":20.0}[t]
-    ws.append([t, t.split("_")[1], sp, mass[t], plant[t], "BIa (assorb.<=0.5%)", e_spec[t]])
-style_header(ws); autosize(ws)
-
-ws = wb.create_sheet("IOA_SCR_input")
-ws.append(["indicatore","attivita_valuechain","input","tipologia","stock_medio","consumo_medio_giorno","unita","SCR_giorni","periodo"])
-labels = {"SCR_RawMat":("Sourcing (cradle-to-gate)","materie prime impasto","RawMat_sourcing","t/(t/gg)"),
-          "SCR_Finished":("Internal Logistics (gate-to-gate)","prodotto finito","Finished_intlog","m2/(m2/gg)"),
-          "SCR_GlazeInk":("Operations (gate-to-gate)","smalti/engobbi/inchiostri","Glaze_ink_ops","t/(t/gg)")}
-for ind,(act,inp,key,un) in labels.items():
-    for t in TYPES:
-        s,c = scr_raw[key][t]; ws.append([ind,act,inp,t,s,c,un,round(SCR[ind][t],2),"t"])
-    for t in TYPES:
-        s,c = scr_raw_t1[key][t]; ws.append([ind,act,inp,t,round(s,1),round(c,2),un,round(SCR_t1[ind][t],2),"t-1"])
-style_header(ws); autosize(ws)
-
-ws = wb.create_sheet("OP_PsI_input")
-ws.append(["indicatore","attivita_valuechain","tipologia","output_reale","input_reale","unita","PsI","periodo"])
-for t in TYPES:
-    ws.append(["PsI_Energy","Operations",t,round(ipr[t],3),round(e_spec[t]/1000,4),"m2 / GJ",PI["PsI_Energy"][t],"t"])
-for t in TYPES:
-    ws.append(["PsI_Yield","Operations",t,round(yield_[t],3),1.0,"m2 sell / m2 pressato",PI["PsI_Yield"][t],"t"])
-for t in TYPES:
-    ws.append(["PsI_Through","Operations/Outbound",t,throughput[t],1.0,"m2 / h",PI["PsI_Through"][t],"t"])
-for t in TYPES:
-    ws.append(["PsI_Energy","Operations",t,round(ipr_t1[t],3),round(e_spec[t]*1.02/1000,4),"m2 / GJ",PI_t1["PsI_Energy"][t],"t-1"])
-for t in TYPES:
-    ws.append(["PsI_Yield","Operations",t,round(yield_t1[t],3),1.0,"m2 sell / m2 pressato",PI_t1["PsI_Yield"][t],"t-1"])
-for t in TYPES:
-    ws.append(["PsI_Through","Operations/Outbound",t,round(throughput_t1[t],1),1.0,"m2 / h",PI_t1["PsI_Through"][t],"t-1"])
-style_header(ws); autosize(ws)
-
-ws = wb.create_sheet("TQ_OCR_input")
-ws.append(["indicatore","norma","parametro_qualita_QP","soglia_AT","tipologia","QP","AT","OCR","periodo"])
-for t in TYPES: ws.append(["OCR_Flex","ISO 10545-4 / EN14411","resistenza a flessione [N/mm2]","min 35",t,flex_QP[t],flex_AT,OCR["OCR_Flex"][t],"t"])
-for t in TYPES: ws.append(["OCR_Break","ISO 10545-4 / EN14411","sforzo di rottura [N]","min 700(<7.5mm)/1300",t,brk_QP[t],brk_AT[t],OCR["OCR_Break"][t],"t"])
-for t in TYPES: ws.append(["OCR_Surf","ISO 10545-2","qualita superficiale [% prima scelta]","min 95",t,surf_QP[t],surf_AT,OCR["OCR_Surf"][t],"t"])
-for t in TYPES: ws.append(["OCR_Flex","ISO 10545-4 / EN14411","resistenza a flessione [N/mm2]","min 35",t,round(flex_QP_t1[t],1),flex_AT,OCR_t1["OCR_Flex"][t],"t-1"])
-for t in TYPES: ws.append(["OCR_Surf","ISO 10545-2","qualita superficiale [% prima scelta]","min 95",t,round(surf_QP_t1[t],1),surf_AT,OCR_t1["OCR_Surf"][t],"t-1"])
-style_header(ws); autosize(ws)
-wb.save(f"{OUT}/RP7.4_data_collection.xlsx")
-
-# ---- (b) weights ----
 wb = openpyxl.Workbook(); ws = wb.active; ws.title = "AHP_within_dim"
-def dump_ahp(ws, name, M, w, cr, inds):
+def dump(ws, name, M, w, cr, inds):
     ws.append([name]); ws.append([""]+inds)
-    for i,r in enumerate(M): ws.append([inds[i]]+list(r))
-    ws.append(["peso_AHP"]+list(np.round(w,4)))
-    ws.append(["CR", round(cr,4), "OK (<=0.10)" if cr<=0.10 else "RIVEDERE"]); ws.append([])
-dump_ahp(ws,"IOA (SCR)",AHP_IOA,wIOA,crIOA,["SCR_RawMat","SCR_Finished","SCR_GlazeInk"])
-dump_ahp(ws,"OP (PsI)",AHP_OP,wOP,crOP,["PsI_Energy","PsI_Yield","PsI_Through"])
-dump_ahp(ws,"TQ (OCR)",AHP_TQ,wTQ,crTQ,["OCR_Flex","OCR_Break","OCR_Surf"])
-autosize(ws)
-ws = wb.create_sheet("AHP_between_dim")
-ws.append(["","IOA","OP","TQ"])
+    for i, r in enumerate(M): ws.append([inds[i]]+list(r))
+    ws.append(["peso_AHP"]+[round(x,4) for x in w]); ws.append(["CR", round(cr,4), "OK (<=0.10)" if cr<=0.10 else "RIVEDERE"]); ws.append([])
+dump(ws,"IOA (SCR)",AHP_IOA,wIOA,crI,["SCR_RawMat","SCR_Finished","SCR_GlazeInk"])
+dump(ws,"OP (PsI)",AHP_OP,wOP,crO,["PsI_Energy","PsI_Yield","PsI_Through"])
+dump(ws,"TQ (OCR)",AHP_TQ,wTQ,crT,["OCR_Flex","OCR_Break","OCR_Surf"])
+_autosize(ws)
+ws=wb.create_sheet("AHP_between_dim"); ws.append(["","IOA","OP","TQ"])
 for i,r in enumerate(AHP_DIM): ws.append([["IOA","OP","TQ"][i]]+list(r))
-ws.append(["peso_AHP"]+list(np.round(wDIM,4)))
-ws.append(["lambda_max",round(lamD,4)]); ws.append(["CI",round(ciD,4)]); ws.append(["RI(n=3)",0.58]); ws.append(["CR",round(crD,4),"OK (<=0.10)" if crD<=0.10 else "RIVEDERE"])
-autosize(ws)
-ws = wb.create_sheet("Soglie_scoring_1_5")
-ws.append(["indicatore","classe1_<","classe2_<","classe3_<","classe4_<","classe5_>=","direzione"])
+ws.append(["peso_AHP"]+[round(x,4) for x in wDIM]); ws.append(["lambda_max",round(lamD,4)])
+ws.append(["CI",round(ciD,4)]); ws.append(["RI(n=3)",0.58]); ws.append(["CR",round(crD,4),"OK (<=0.10)" if crD<=0.10 else "RIVEDERE"]); _autosize(ws)
+ws=wb.create_sheet("Soglie_scoring_1_5"); ws.append(["indicatore","classe1_<","classe2_<","classe3_<","classe4_<","classe5_>=","direzione"])
 for ind,th in TH.items(): ws.append([ind,th[0],th[1],th[2],th[3],th[3],"higher=better"])
-style_header(ws); autosize(ws)
-ws = wb.create_sheet("NOTE")
-ws.append(["Pesi/soglie provvisori, da confermare in workshop produzione/qualita/manutenzione (come OR6.8 / paper O-TSA)."])
-wb.save(f"{OUT}/RP7.4_weights.xlsx")
+_style_header(ws); _autosize(ws)
+ws=wb.create_sheet("NOTE"); ws.append(["Pesi/soglie provvisori, da confermare in workshop produzione/qualita/manutenzione."])
+wb.save(os.path.join(OUT,"RP7.4_weights.xlsx"))
 
-# ---- (c) calculation_log ----
 wb = openpyxl.Workbook(); ws = wb.active; ws.title = "calculation_log"
 ws.append(["result_id","report_table","tipologia","periodo","variabile","formula","input_source","output","unita","note","versione"])
-rid = 0
+rid=[0]
 def add(tbl,t,per,var,formula,src,out,unit):
-    global rid; rid += 1
-    ws.append([f"P{rid:03d}",tbl,t,per,var,formula,src,round(out,4) if isinstance(out,float) else out,unit,"provvisorio - in corso di consolidamento",'beta-1.0'])
+    rid[0]+=1; ws.append([f"P{rid[0]:03d}",tbl,t,per,var,formula,src,round(out,4) if isinstance(out,float) else out,unit,"provvisorio - in corso di consolidamento","beta-1.0"])
 for ind in SCR:
-    for t in TYPES: add("T2",t,"t",ind,"AS/AC","IOA_SCR_input",SCR[ind][t],"giorni")
+    for t in TYPES: add("T2",t,"t",ind,"AS/AC","dataset:INPUT",SCR[ind][t],"giorni")
 for ind in PI:
-    for t in TYPES: add("T3",t,"t",ind,"ROU/RIN","OP_PsI_input",PI[ind][t],"varie")
+    for t in TYPES: add("T3",t,"t",ind,"ROU/RIN","dataset:INPUT",PI[ind][t],"varie")
 for ind in OCR:
-    for t in TYPES: add("T4",t,"t",ind,"QP/AT","TQ_OCR_input",OCR[ind][t],"adim")
+    for t in TYPES: add("T4",t,"t",ind,"QP/AT","dataset:INPUT",OCR[ind][t],"adim")
 for t in TYPES: add("T5",t,"t","IOAI_z","mean(w*z(SCR))","zscore",IOAI_z[t],"adim")
 for t in TYPES: add("T5",t,"t","OPI_z","mean(w*z(PsI))","zscore",OPI_z[t],"adim")
 for t in TYPES: add("T5",t,"t","TQI_z","mean(w*z(OCR))","zscore",TQI_z[t],"adim")
@@ -325,14 +277,44 @@ for t in TYPES: add("T7",t,"t","S_IOA","sum(w_AHP*score15)","weights",S_IOA[t],"
 for t in TYPES: add("T7",t,"t","S_OP","sum(w_AHP*score15)","weights",S_OP[t],"[1-5]")
 for t in TYPES: add("T7",t,"t","S_TQ","sum(w_AHP*score15)","weights",S_TQ[t],"[1-5]")
 for t in TYPES: add("T8",t,"t","P-TSI_5","sum(wDIM*S_dim)","T7",PTSI_5[t],"[1-5] (secondario)")
-for t in TYPES: add("T8",t,"t-1","P-TSI_5","sum(wDIM*S_dim)","T7",PTSI_5_t1[t],"[1-5]")
+for t in TYPES: add("T8",t,"t-1","P-TSI_5","sum(wDIM*S_dim)","T7",PTSI_5_1[t],"[1-5]")
 for t in TYPES: add("T9",t,"t-1,t","TII","(P-TSI_5_t/P-TSI_5_t1-1)*100","T8",TII[t],"%")
-style_header(ws); autosize(ws)
-ws = wb.create_sheet("NOTE")
-ws.append(["Serie 2023-2024 sintetiche provvisorie, ancorate a EPD e serie RP6.x/RP7.3, in corso di consolidamento."])
-ws.append(["A fine progetto: assessment rieseguito con dati reali, struttura di calcolo invariata."])
-wb.save(f"{OUT}/RP7.4_calculation_log.xlsx")
+_style_header(ws); _autosize(ws)
+ws=wb.create_sheet("NOTE"); ws.append(["Serie 2023-2024 provvisorie, in corso di consolidamento, ancorate a EPD e serie RP6.x/RP7.3."])
+ws.append(["A fine progetto: sostituire i dati nel dataset e rieseguire; struttura di calcolo invariata."])
+wb.save(os.path.join(OUT,"RP7.4_calculation_log.xlsx"))
 
-print("\nWROTE: RP7.4_data_collection.xlsx / RP7.4_weights.xlsx / RP7.4_calculation_log.xlsx")
-print("AHP CR:", summary["AHP"]["CR"])
-print("rank_z:", summary["rank_z"], " rank_5:", summary["rank_5"])
+# ============================================================================
+# 8. FIGURE
+# ============================================================================
+try:
+    import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
+    lab={"T1_7.4mm":"T1 · 7,4 mm","T2_8.2mm":"T2 · 8,2 mm","T3_20mm":"T3 · 20 mm"}
+    col={"T1_7.4mm":"#4C72B0","T2_8.2mm":"#DD8452","T3_20mm":"#55A868"}
+    plt.rcParams.update({"font.size":11})
+    x=np.arange(3); w=0.26
+    fig,ax=plt.subplots(figsize=(8,4.6))
+    for i,t in enumerate(TYPES):
+        ax.bar(x+(i-1)*w,[IOAI_z[t],OPI_z[t],TQI_z[t]],w,label=lab[t],color=col[t],edgecolor="white",lw=0.6)
+    ax.axhline(0,color="#444",lw=0.8); ax.set_xticks(x)
+    ax.set_xticklabels(["IOA\n(disponibilità)","OP\n(performance)","TQ\n(qualità)"])
+    ax.set_ylabel("Sotto-indice normalizzato (z-score)"); ax.set_title("P-TSA — profilo dimensionale per tipologia (z-score)")
+    ax.legend(frameon=False,ncol=3,loc="upper center",bbox_to_anchor=(0.5,-0.12)); ax.spines[["top","right"]].set_visible(False)
+    fig.tight_layout(); fig.savefig(os.path.join(OUT,"RP7.4_fig1_profilo_dimensionale.png"),dpi=150,bbox_inches="tight")
+    fig,ax=plt.subplots(figsize=(7,4.6))
+    vals=[PTSI_5[t] for t in TYPES]; tii=[TII[t] for t in TYPES]
+    bars=ax.bar([lab[t] for t in TYPES],vals,color=[col[t] for t in TYPES],edgecolor="white",width=0.6)
+    for b,v,ti in zip(bars,vals,tii):
+        ax.text(b.get_x()+b.get_width()/2,v+0.05,f"{v:.2f}\n(TII +{ti:.1f}%)",ha="center",va="bottom",fontsize=10)
+    ax.set_ylim(0,5); ax.set_ylabel("P-TSI  [scala 1–5]"); ax.set_title("P-TSI per tipologia (scoring 1–5 + AHP) e miglioramento annuo (TII)")
+    ax.spines[["top","right"]].set_visible(False); ax.axhline(3,color="#bbb",ls="--",lw=0.8)
+    ax.text(2.4,3.03,"soglia medio-alta",fontsize=8,color="#888")
+    fig.tight_layout(); fig.savefig(os.path.join(OUT,"RP7.4_fig2_ptsi_tii.png"),dpi=150,bbox_inches="tight")
+except Exception as e:
+    print("[fig] skip:", e)
+
+print("rank primario:", rankstr(PTSI_z))
+print("P-TSI_z:", {t:round(PTSI_z[t],3) for t in TYPES})
+print("P-TSI_5:", {t:round(PTSI_5[t],3) for t in TYPES}, "TII:", TII)
+print("AHP CR:", RES["AHP"]["CR"])
+print("OK -> dataset, weights, calculation_log, figures")

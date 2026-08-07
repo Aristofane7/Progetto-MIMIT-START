@@ -278,8 +278,10 @@ P-TSI come variabile di controllo nel Digital Twin di prodotto.
 ---
 
 ### Allegati
-- `RP7.4_data_collection.xlsx` — schede di raccolta dati per tipologia/attività/periodo.
+- `RP7.4_dataset_sintetico.xlsx` — dataset di input per tipologia/periodo (serie in
+  corso di consolidamento, da sostituire con i dati reali).
 - `RP7.4_weights.xlsx` — soglie di scoring e matrici AHP (pesi + CR).
 - `RP7.4_calculation_log.xlsx` — log di calcolo versionato (formula → input → output).
+- `RP7.4_build.py` — codice di calcolo (legge il dataset, ricostruisce indici e figure).
 - `RP7.4_Impostazione_e_Background_P-TSA.md` — documento di impostazione e background.
 - Figure: `RP7.4_fig1_profilo_dimensionale.png`, `RP7.4_fig2_ptsi_tii.png`.
