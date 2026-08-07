@@ -1,0 +1,4 @@
+kpi,baseline,obiettivo,valore,dettaglio
+Matrice / modello input-output (Leontief) impostato,0,1,1,"modello a 6 settori, inversa di Leontief e moltiplicatori Tipo I/II"
+Analisi input-output eseguita in simulazione,0,1,1,"simulazione applicata a 4 regioni (Emilia-Romagna, Provincia di Bolzano, Sardegna, Calabria)"
+Protocollo di applicazione ex-post,0,1,1,dati ISTAT + consuntivi via RP 8.5; confronto previsione/consuntivo (scostamenti)
