@@ -1,12 +1,12 @@
-**SusTainable dAta-dRiven manufacTuring**
-
-Accordo Innovazione DM 31/12/2021 — Prog. n. F/310087/01-05/X56 — www.start-innovability.it
-
 # Product Technological Sustainability Assessment (P-TSA)
 
-**Relazione Parziale N°:** RP7.4 &nbsp;•&nbsp; **Versione del Documento:** RV.1 &nbsp;•&nbsp; **Data di Revisione del Documento:** 07.08.2026 &nbsp;•&nbsp; **Responsabilità:** Gresmalt — Capofila
+**Relazione Parziale N°:** RP7.4
 
----
+**Versione del Documento:** RV.1
+
+**Data di Revisione del Documento:** 07.08.2026
+
+**Responsabilità:** Gresmalt — Capofila
 
 ## 1. INTRODUZIONE
 
