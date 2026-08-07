@@ -250,19 +250,27 @@ con la richiesta "per 3 tipologie"), riportando **1 m²** come unità di
 normalizzazione secondaria per la comparabilità con OR7.3/7.5/7.8. La scelta va
 formalizzata dopo le prove ed è essa stessa oggetto dell'analisi di sensibilità.
 
-### 6.2 Le 3 tipologie produttive
-Selezionarle dalla segmentazione **OR6.8** privilegiando rappresentatività e
-disponibilità dati. Proposta operativa: i **3 poli produttivi dominanti** per
-volume e coerenza interna, es.:
-- **T1** — Cluster 21: rettangolare, formato medio, spessore 8 mm, effetto cemento;
-- **T2** — Cluster 3: formato medio, spessore 9 mm, prestazione ANTISLIP, chiaro;
-- **T3** — un terzo polo (es. Cluster 14) o, in alternativa, una tipologia che
-  copra la fascia **gres spessorato 20 mm** (outdoor) per estendere il gradiente
-  tecnico-normativo.
-Criterio: coprire un **gradiente di formato/spessore/prestazione antiscivolo**
-(le variabili risultate più discriminanti in OR6.8), così da rendere le 3 letture
-informative e non ridondanti. La scelta finale va concordata con
-produzione/qualità.
+### 6.2 Le 3 tipologie produttive — **definite dagli EPD in repository**
+Le tre categorie di prodotto su cui condurre il P-TSA sono fissate dai tre
+**Environmental Product Declaration (EPD, ISO 14025 / EN 15804+A2, EPDItaly)**
+caricati in repository, che coprono un gradiente di **spessore** (la variabile
+tra le più discriminanti in OR6.8) e due dei tre stabilimenti del gruppo:
+
+| Tipologia | EPD | Spessore | Massa unità dichiarata | Stabilimento | Uso tipico |
+|---|---|---|---|---|---|
+| **T1** | 7,4 mm | 7,4 mm | 13,98 kg/m² | Scandiano (D060) | pavimenti/rivestimenti interni, alleggerito |
+| **T2** | 8,2 mm | 8,2 mm | 16,05 kg/m² | Scandiano (D060) | pavimenti interni/esterni, standard |
+| **T3** | 20 mm | 20,0 mm | 41,79 kg/m² | Frassinoro (D240) | esterni/outdoor, gres spessorato |
+
+Tutte e tre sono **gres porcellanato smaltato, gruppo BIa** (assorbimento
+d'acqua ≤ 0,5 % ISO 10545-3), conformi a EN 14411 (ISO 13006), cottura
+1210–1230 °C, perdita ceramica in A5 6,5 %, contenuto riciclato > 30 %. Gli EPD
+sono *cradle-to-grave* (moduli A1–A3, A4, A5, B1–B7, C1–C4, D) con **unità
+dichiarata 1 m² per 1 anno** e periodo dati **lug 2023 – giu 2024**: forniscono
+quindi sia i **parametri tecnici** (serie ISO 10545) per gli OCR (TQ), sia i
+**flussi di energia/materia per m²** utilizzabili come metriche di inventario per
+SCR (IOA) e PsI (OP). Il gradiente di spessore/massa (13,98 → 16,05 → 41,79 kg/m²)
+rende le tre letture del P-TSI informative e non ridondanti.
 
 ### 6.3 Set di metriche e indicatori per il ceramico (bozza da validare in workshop)
 Da confermare in workshop con produzione, manutenzione e qualità (come in OR6.8 e
@@ -300,7 +308,20 @@ e **effettivamente misurabili** su ERP/MES/qualità/E2C:
 - Entrambe vanno riportate e messe a confronto nell'analisi di sensibilità; va
   dichiarata quale si assume come primaria per il KPI.
 
-### 6.5 Architettura dati e governance (riuso da OR7.1–7.3)
+### 6.5 Natura e coerenza dei dati (fase attuale)
+Coerentemente con quanto fatto in **RP7.3**, in questa fase l'assessment è
+alimentato da **dati sintetici ma coerenti** con i valori reali: gli **ordini di
+grandezza e i parametri tecnici sono ancorati agli EPD** (massa per m², parametri
+ISO 10545, cottura, perdite, contenuto riciclato) e alle serie degli altri report
+(RP6.1–6.4 impronte, RP7.3 energia/produzione per D060 e D240). La natura dei dati
+non viene dichiarata nel corpo della relazione in questa fase; è tracciata solo
+negli artefatti di calcolo (`calculation_log`, campo *note/versione*) come
+provvisoria. **A fine progetto l'assessment sarà rieseguito con i dati reali**,
+sostituendo i valori e rilanciando la pipeline a struttura di calcolo invariata
+(stessa logica del disclaimer «serie provvisorie, struttura di calcolo invariata
+al consolidamento» di RP7.3).
+
+### 6.6 Architettura dati e governance (riuso da OR7.1–7.3)
 Alimentare la stessa pipeline da **due sorgenti** con identica struttura logica:
 **ERP/MES** (serie storica) e **E2C** (tempo reale), come in RP7.3. Predisporre
 gli artefatti gemelli: `RP7.4_data_collection.xlsx` (schede per tipologia /
@@ -372,6 +393,10 @@ prodotto); prospettive verso il monitoraggio continuo su E2C.
 - RP6.8 *Report di Product Analysis* — segmentazione portafoglio (tipologie).
 - RP6.9 *Report di Data-driven Product Design* + Annesso *Protocollo di Product
   Design* — metriche di prodotto.
+- **EPD (EPDItaly, ISO 14025 / EN 15804+A2)** — *Porcelain Stoneware Ceramic
+  Tiles* 7,4 mm e 8,2 mm (Scandiano) e 20 mm (Frassinoro): definiscono le 3
+  tipologie e forniscono i parametri tecnici (ISO 10545) e i flussi per m² usati
+  come riferimento di coerenza dei dati.
 - RP7.1 *Collaudo piattaforma E2C*, RP7.2 *Performance testing della Intelligent
   Factory* — infrastruttura dati sorgente.
 - RP7.3 *Assessment termodinamico della fabbrica* (EEA+) + `RP7.3_data_collection`,
