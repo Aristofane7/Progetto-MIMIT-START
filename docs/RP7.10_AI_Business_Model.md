@@ -9,7 +9,7 @@
 
 ---
 
-## 1. Introduzione
+## 1. INTRODUZIONE
 
 ### 1.1 Background
 
@@ -37,7 +37,7 @@ La **baseline** è il **Modello di Business tradizionale** dell'impresa ceramica
 
 ---
 
-## 2. Metodologia
+## 2. METODOLOGIA
 
 ### 2.1 Dall'evidenza dei collaudi all'AI-BM
 
@@ -68,7 +68,7 @@ Il modello (BMC as-is/to-be, catena del valore, SWOT, transition model) è codif
 
 ---
 
-## 3. Risultati
+## 3. RISULTATI
 
 ### 3.1 Il Business Model Canvas dell'AI-BM (KPI)
 
@@ -145,7 +145,7 @@ L'AI-BM risulta **validato su entrambi gli assi**: successo competitivo (Busines
 
 ---
 
-## 4. Discussione e conclusioni
+## 4. DISCUSSIONE E CONCLUSIONI
 
 ### 4.1 Discussione critica
 

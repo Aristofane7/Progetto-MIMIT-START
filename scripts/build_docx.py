@@ -33,18 +33,23 @@ MD = DOCS / "RP7.10_AI_Business_Model.md"
 TEMPLATE = ROOT / "RPX.Y Titolo_Relazione_Parziale_data.docx"
 OUT = DOCS / "RP7.10_AI_Business_Model.docx"
 
-BODY_FONT = "Arial Narrow"      # font del corpo (Normal) come da template
-META_FONT = "Calibri"          # font dei metadati di testata come da template
+# Formattazione allineata alle relazioni finali del progetto (es. RP 7.4):
+#   corpo Arial Narrow 11 pt giustificato; titoli in Times New Roman grassetto
+#   verde scuro (#024C41), 16 pt (sezioni) / 13 pt (sottosezioni); titolo di testata
+#   Arial Narrow 28 pt grassetto; metadati Calibri 18 pt grassetto.
+BODY_FONT = "Arial Narrow"        # font del corpo (Normal)
+HEAD_FONT = "Times New Roman"     # font dei titoli di sezione
+META_FONT = "Calibri"            # font dei metadati di testata
 BLACK = RGBColor(0, 0, 0)
+HEAD_COLOR = RGBColor(0x02, 0x4C, 0x41)   # verde scuro dei titoli
 
-# Blocco di testata (canonico del template), popolato con i dati della relazione.
+# Blocco di testata (come nelle RP finali): titolo + 4 righe di metadati.
 TITLE = "Sviluppo di un modello di business basato sull'Intelligenza Artificiale (AI-BM)"
 META_LINES = [
-    "Progetto START — SusTainable dAta-dRiven manufacTuring",
-    "OR 7 — Validazione in ambiente operativo della Intelligent Industry · Attività 7.10",
-    "Relazione Parziale N°: RP 7.10",
-    "Versione del Documento: R1.0 — Data di Revisione del Documento: 07.08.2026",
-    "Responsabilità: Gresmalt S.p.A. — Capofila",
+    "Relazione Parziale N°: RP7.10",
+    "Versione del Documento: RV.1",
+    "Data di Revisione del Documento: 07.08.2026",
+    "Responsabilità: Gresmalt — Capofila",
 ]
 
 
@@ -85,23 +90,30 @@ def build_reference() -> Path:
     )
     d = Document(str(ref))
 
-    # Corpo (Normal): Arial Narrow 12 pt, giustificato.
+    # Corpo (Normal): Arial Narrow 11 pt, giustificato.
     normal = _style(d, "Normal")
-    _set_style(normal, font=BODY_FONT, size=12, color=BLACK)
+    _set_style(normal, font=BODY_FONT, size=11, color=BLACK)
     normal.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     normal.paragraph_format.space_after = Pt(6)
 
-    # Titoli di sezione: grassetto, neri, come da template (18/13/12 pt).
-    _set_style(_style(d, "Heading 1"), font=BODY_FONT, size=18, bold=True, color=BLACK)
-    _set_style(_style(d, "Heading 2"), font=BODY_FONT, size=13, bold=True, color=BLACK)
-    _set_style(_style(d, "Heading 3"), font=BODY_FONT, size=12, bold=True, color=BLACK)
+    # Stili del corpo usati da pandoc: basati su Normal (Arial Narrow 11).
+    for nm in ("Body Text", "First Paragraph", "Compact"):
+        try:
+            _set_style(_style(d, nm), font=BODY_FONT, size=11, color=BLACK)
+            _style(d, nm).paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        except KeyError:
+            pass
+
+    # Titoli: Times New Roman grassetto verde scuro (20/16/13 pt) come nelle RP finali.
+    _set_style(_style(d, "Heading 1"), font=HEAD_FONT, size=20, bold=True, color=HEAD_COLOR)
+    _set_style(_style(d, "Heading 2"), font=HEAD_FONT, size=16, bold=True, color=HEAD_COLOR)
+    _set_style(_style(d, "Heading 3"), font=HEAD_FONT, size=13, bold=True, color=HEAD_COLOR)
+    _style(d, "Heading 1").paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    for h in ("Heading 2", "Heading 3"):
+        _style(d, h).paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     for h in ("Heading 1", "Heading 2", "Heading 3"):
         pf = _style(d, h).paragraph_format
-        pf.space_before = Pt(10); pf.space_after = Pt(4)
-    try:
-        _set_style(_style(d, "Title"), font=BODY_FONT, size=26, bold=True, color=BLACK)
-    except KeyError:
-        pass
+        pf.space_before = Pt(12); pf.space_after = Pt(6)
 
     # Pagina A4 con i margini del template.
     sec = d.sections[0]
@@ -123,9 +135,12 @@ def body_markdown() -> Path:
 
 
 def run_pandoc(ref: Path, body: Path) -> None:
+    # Nessuno shift: '## ' -> Heading 2 (sezioni), '### ' -> Heading 3 (sottosezioni).
+    # '-implicit_figures': le immagini non generano una didascalia automatica dal testo
+    # alternativo (si usa la sola riga di didascalia descrittiva della relazione).
     subprocess.run(
         ["pandoc", str(body.name), "--reference-doc", str(ref.name),
-         "--shift-heading-level-by=-1", "-o", OUT.name],
+         "-f", "markdown-implicit_figures", "-o", OUT.name],
         check=True, cwd=str(DOCS),
     )
 
@@ -147,10 +162,10 @@ def prepend_header() -> None:
     # Paragrafi creati nello stesso documento (evita problemi di namespace) e poi
     # spostati in testa, nell'ordine corretto.
     made = []
-    p = d.add_paragraph(); _center_para(p, TITLE, font=BODY_FONT, size=24, space_after=10)
+    p = d.add_paragraph(); _center_para(p, TITLE, font=BODY_FONT, size=28, space_after=10)
     made.append(p)
     for line in META_LINES:
-        p = d.add_paragraph(); _center_para(p, line, font=META_FONT, size=15, space_after=3)
+        p = d.add_paragraph(); _center_para(p, line, font=META_FONT, size=18, space_after=3)
         made.append(p)
 
     # Riga separatrice: il bordo (w:pBdr) va inserito PRIMA di w:spacing nell'ordine
@@ -168,7 +183,22 @@ def prepend_header() -> None:
 
     for p in made:
         body_first.addprevious(p._element)
+
+    _style_captions_and_images(d)
     d.save(str(OUT))
+
+
+def _style_captions_and_images(d) -> None:
+    """Centra le immagini e porta le didascalie (Figura/Tabella) a 10 pt, come RP 7.4."""
+    for p in d.paragraphs:
+        if p._element.findall(".//" + qn("w:drawing")):
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            continue
+        t = p.text.strip()
+        if t.startswith("Figura ") or t.startswith("Tabella "):
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            for r in p.runs:
+                r.font.size = Pt(10)
 
 
 def main() -> None:
