@@ -19,12 +19,13 @@ RP8.6/
 ├── requirements.txt
 ├── run_impatto.py                       runner end‑to‑end → output/impatto_*.csv
 ├── src/
-│   └── impatto.py                       modello di Leontief (matrice A, inversa L, moltiplicatori I/II)
+│   ├── impatto.py                       modello di Leontief (matrice A, inversa L, moltiplicatori I/II)
+│   └── build_report.py                  assembla il .docx sul template ufficiale START
 ├── scripts/
 │   └── gen_figures_impatto.py           genera le 4 figure della relazione
 ├── docs/
-│   ├── RP8.6_Assessment_Impatto.md      relazione (sorgente Markdown)
-│   ├── RP8.6_Assessment_Impatto.docx    relazione (generata da pandoc)
+│   ├── RP8.6_Assessment_Impatto.md      relazione (sorgente Markdown, per lettura/diff)
+│   ├── RP8.6_Assessment_Impatto.docx    relazione ufficiale (template START: loghi, header, stili)
 │   ├── RP8.5-8.6_Contesto_Preliminare.md  nota di inquadramento (perimetro, baseline, metodo)
 │   └── figures/                         fig_imp1..4 (PNG)
 └── output/
@@ -39,14 +40,14 @@ RP8.6/
 pip install -r requirements.txt          # numpy, pandas, matplotlib
 python run_impatto.py                    # calcolo + export CSV
 python scripts/gen_figures_impatto.py    # rigenera le figure
+python src/build_report.py               # assembla il .docx ufficiale sul template START
 ```
 
-Rigenerazione del `.docx` dalla sorgente Markdown (richiede pandoc):
-
-```bash
-cd docs && pandoc RP8.6_Assessment_Impatto.md -o RP8.6_Assessment_Impatto.docx \
-  --resource-path=. --toc
-```
+Il `.docx` è generato da `src/build_report.py`, che apre il template ufficiale
+`RPX.Y Titolo_Relazione_Parziale_data.docx` (loghi, intestazioni, piè di pagina e stili),
+compila i segnaposto di copertina e ricostruisce il contenuto (testo, tabelle, figure)
+importando i numeri dal motore `impatto.py` — così documento, CSV e figure restano coerenti.
+Dipendenza: `python-docx`. Il template dev'essere presente nella radice del repository.
 
 ## Sintesi dei risultati (simulazione)
 
@@ -79,4 +80,4 @@ territori della scheda.
 
 ## Dipendenze
 
-`numpy`, `pandas`, `matplotlib` (per le figure). Conversione `.docx`: `pandoc`.
+`numpy`, `pandas`, `matplotlib` (figure), `python-docx` (generazione del `.docx` sul template).
