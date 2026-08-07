@@ -38,6 +38,7 @@ PDF presenti nella radice del repository.
 pip install -r requirements.txt
 python run_collaudo_aibm.py         # stampa gli esiti ed esporta output/collaudo_aibm_*.csv
 python scripts/gen_figures_aibm.py  # rigenera docs/figures/fig_aibm*.png
+python scripts/build_docx.py        # genera docs/RP7.10_AI_Business_Model.docx con la formattazione del template
 ```
 
 ## Impianto metodologico
@@ -49,6 +50,8 @@ python scripts/gen_figures_aibm.py  # rigenera docs/figures/fig_aibm*.png
 - **Analisi strategica:** SWOT dell'AI-BM e *transition model* (da logiche
   asset-based/episodiche a sistemi adattivi data-driven), con le quattro tensioni
   sistemiche dell'*embodied AI* (Bouncken & Cesinger, 2026).
+- **Quantificazione economica:** ROI e *payback* a livello di progetto, contributo
+  marginale al ROA di gruppo (valori rappresentativi), come nel modello di VOLT.
 
 Il *BM design* si avvale di consulenza specialistica (problema progettuale n. 10).
 Le voci del modello sono rappresentative e vanno consolidate con i dati aziendali.

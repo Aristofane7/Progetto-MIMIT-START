@@ -53,9 +53,19 @@ def main() -> None:
     for t in aibm.TENSIONS:
         print(f"  - {t}")
 
+    f = aibm.financials()
+    print("\nQuantificazione economica (valori rappresentativi, k EUR):")
+    print(f"  Investimento: {f['investimento']:.0f}  |  Beneficio netto annuo: "
+          f"{f['beneficio_netto_annuo']:.0f}")
+    print(f"  Livello progetto -> ROI: {f['roi_pct']:.1f}%  |  Payback: "
+          f"{f['payback_anni']:.2f} anni")
+    print(f"  Contesto di gruppo -> ROA ~{f['roa_gruppo_pct']:.0f}%  |  contributo "
+          f"marginale AI-BM: +{f['contributo_roa_pp']:.2f} pp  (beneficio = "
+          f"{f['quota_ebitda_pct']:.1f}% dell'EBITDA)")
+
     print("\nEsito: AI-BM definito e proposto (Business Model Canvas prodotto; "
-          "analisi strategica via SWOT e transition model; baseline BM tradizionale -> "
-          "obiettivo AI-BM).")
+          "analisi strategica via SWOT e transition model; validazione economica via "
+          "ROI/payback; baseline BM tradizionale -> obiettivo AI-BM).")
 
     out_dir = Path(__file__).parent / "output"
     out_dir.mkdir(exist_ok=True)
@@ -65,6 +75,7 @@ def main() -> None:
     pd.DataFrame(aibm.TRANSITION).to_csv(out_dir / "collaudo_aibm_transition.csv", index=False)
     swot_rows = [{"quadrante": k, "voce": it} for k, items in aibm.SWOT.items() for it in items]
     pd.DataFrame(swot_rows).to_csv(out_dir / "collaudo_aibm_swot.csv", index=False)
+    pd.DataFrame([f]).to_csv(out_dir / "collaudo_aibm_finanza.csv", index=False)
     print(f"\nRisultati esportati per Power BI in: {out_dir}/collaudo_aibm_*.csv")
 
 

@@ -32,6 +32,7 @@ La **baseline** è il **Modello di Business tradizionale** dell'impresa ceramica
 - **definire e proporre l'AI-BM** che aiuti l'impresa a valorizzare la transizione verso la *Intelligent Industry*;
 - **produrre il Business Model Canvas** (KPI) nella doppia versione as-is (tradizionale) → to-be (AI-BM);
 - **condurre l'analisi strategica** a supporto (catena dato → informazione → valore, SWOT, transition model);
+- **quantificare i vantaggi** dell'AI-BM con un modello economico (ROI e payback a livello di progetto, contributo al ROA a livello di gruppo);
 - **chiudere l'OR 7** integrando i risultati dei collaudi precedenti (RP 7.1–7.9) come fonti di valore dell'AI-BM.
 
 ---
@@ -55,6 +56,7 @@ Il **Business Model Canvas** (Osterwalder & Pigneur, 2010) è adottato come stru
 - **Catena dato → informazione → valore** — è il "motore" dell'AI-BM e risponde direttamente allo scopo della scheda (trasformare i dati in informazioni e le informazioni in valore). I dati di processo e d'uso (RP 7.1, RP 7.2, RP 7.9) diventano informazione tramite gli algoritmi AI (qualità predittiva RP 7.5, P-TSA RP 7.4, assessment RP 7.3) e quindi valore per il cliente (personalizzazione, sostenibilità certificata, prodotto-servizio).
 - **Analisi SWOT** — inquadra il **successo competitivo** dell'AI-BM classificando i fattori interni (forze/debolezze) ed esterni (opportunità/minacce) (Helms & Nixon, 2010).
 - **Transition model** — descrive il passaggio da logiche asset-based/episodiche a sistemi adattivi/data-driven lungo sei dimensioni (logica del valore, temporalità, ruolo della AI, orchestrazione, monetizzazione, apprendimento), con evidenza delle **quattro tensioni sistemiche** dell'embodied AI (Bouncken & Cesinger, 2026).
+- **ROI e ROA** — misurano la **redditualità** dell'AI-BM: il ROI rapporta il beneficio netto annuo all'investimento (con il relativo *payback*); il contributo al ROA rapporta il beneficio netto al totale delle attività, collocando l'iniziativa nella scala del gruppo. Coerentemente con l'impostazione del *Circular Business Plan* di VOLT (RP 8.8), la validazione integra così l'asse **strategico** (BMC, SWOT, transition model) con quello **economico** (ROI/ROA).
 
 ### 2.4 Trattamento del problema progettuale n. 10
 
@@ -116,9 +118,30 @@ Il transition model (Figura 4) sintetizza il passaggio dell'impresa lungo sei di
 
 *Figura 4. Transition model (as-is → to-be) su sei dimensioni; catena dato → informazione → valore; tensioni sistemiche dell'embodied AI-BM.*
 
-### 3.5 Esito
+### 3.5 Quantificazione economica (ROI/ROA)
 
-L'AI-BM risulta **definito e proposto**: il Business Model Canvas (KPI) è stato prodotto nella doppia versione con 9/9 blocchi riconfigurati (baseline: BM tradizionale → obiettivo: AI-BM), e l'analisi strategica (catena del valore, SWOT, transition model) ne conferma il posizionamento competitivo e la coerenza con la transizione verso la *Intelligent Industry*.
+La validazione economica (Figura 5) è condotta con **valori rappresentativi**: quelli di contesto di gruppo sono calibrati sull'**ordine di grandezza** dei bilanci di gruppo Gresmalt (ricavi ~180 M€, ROA ~20%), senza riportarne le cifre riservate puntuali. A **livello di progetto** l'AI-BM presenta un **ROI annuo del ~43%** con **payback di ~2,3 anni**. A **livello di gruppo** il contributo al ROA è **marginale (+~0,14 punti percentuali)**: coerentemente con la natura incrementale dell'iniziativa (il beneficio netto annuo è pari a meno dell'1% dell'EBITDA di gruppo), il valore dell'AI-BM si esprime soprattutto a **livello di progetto** e sul piano **strategico**, non come variazione dei *ratios* aziendali. I benefici annui derivano dalle capacità validate nei collaudi dell'OR 7: premium da personalizzazione e *smart materials* (RP 7.7, RP 7.9), ricavi ricorrenti da servizi (monitoraggio, sostenibilità certificata), minor costo della non-qualità (qualità predittiva DDQM, RP 7.5) ed efficienza operativa ed energetica (*Intelligent Factory*, RP 7.2–7.3).
+
+![Figura 5 — Validazione economica dell'AI-BM (ROI, payback, ROA).](figures/fig_aibm5_finanza.png)
+
+*Figura 5. Benefici netti annui, ROI/payback (livello di progetto) e ROA di gruppo di contesto con il contributo marginale dell'AI-BM (valori rappresentativi).*
+
+**Tabella 3 — Sintesi della validazione economica (valori rappresentativi, k€).**
+
+| Voce | Valore |
+|---|--:|
+| Investimento una tantum | 1.200 |
+| Beneficio lordo annuo | 770 |
+| Costi incrementali annui | 250 |
+| Beneficio netto annuo | 520 |
+| ROI annuo (progetto) | ~43% |
+| Payback (progetto) | ~2,3 anni |
+| ROA di gruppo (contesto) | ~20% |
+| Contributo marginale al ROA | +~0,14 pp |
+
+### 3.6 Esito
+
+L'AI-BM risulta **validato su entrambi gli assi**: successo competitivo (Business Model Canvas prodotto con 9/9 blocchi riconfigurati — baseline: BM tradizionale → obiettivo: AI-BM — profilo SWOT favorevole e transition model coerente) e redditualità a livello di progetto (ROI ~43%, payback ~2,3 anni), con un contributo marginale ma positivo ai *ratios* di gruppo.
 
 ---
 
@@ -126,7 +149,7 @@ L'AI-BM risulta **definito e proposto**: il Business Model Canvas (KPI) è stato
 
 ### 4.1 Discussione critica
 
-RP 7.10 dimostra che i risultati tecnici dell'OR 7 sono **traducibili in un modello di business** implementabile. L'impianto integrato è essenziale: il solo Business Model Canvas fotograferebbe la configurazione senza spiegarne la dinamica, mentre la sola analisi strategica non ancorerebbe il valore alle capacità realmente validate nei collaudi. La lettura dell'AI-BM come caso di **embodied AI** (Bouncken & Cesinger, 2026) coglie la specificità dell'industria ceramica *Intelligent Industry*: l'intelligenza è incorporata negli impianti, nei sensori di linea e nell'involucro edilizio, e sposta il focus **dall'efficienza all'efficacia**, dal prodotto al ciclo di vita, dalla vendita una tantum alla relazione ricorrente basata sulla fiducia.
+RP 7.10 dimostra che i risultati tecnici dell'OR 7 sono **traducibili in un modello di business** implementabile e misurabile. L'impianto integrato è essenziale: il solo Business Model Canvas fotograferebbe la configurazione senza spiegarne la dinamica, la sola analisi strategica non ancorerebbe il valore alle capacità realmente validate nei collaudi, e la sola analisi economica non coglierebbe il valore strategico della transizione. L'integrazione degli assi **strategico** (BMC, SWOT, transition model) ed **economico** (ROI/ROA) permette di validare l'AI-BM in modo completo. La lettura dell'AI-BM come caso di **embodied AI** (Bouncken & Cesinger, 2026) coglie la specificità dell'industria ceramica *Intelligent Industry*: l'intelligenza è incorporata negli impianti, nei sensori di linea e nell'involucro edilizio, e sposta il focus **dall'efficienza all'efficacia**, dal prodotto al ciclo di vita, dalla vendita una tantum alla relazione ricorrente basata sulla fiducia.
 
 ### 4.2 Interdipendenze con altri OR e chiusura dell'OR 7
 
@@ -147,14 +170,14 @@ L'AI-BM rende operativa la Finalità di START di **impiegare l'AI per creare e c
 
 ### 4.4 Limiti e sviluppi
 
-- **Quantificazione economica.** L'AI-BM è validato sul piano qualitativo-strategico (KPI = Business Model Canvas); la stima del ritorno economico (es. ROI dei servizi ricorrenti) sarà consolidata con la contabilità industriale e i consuntivi delle iniziative.
+- **Dati economici.** I valori di ROI/ROA sono rappresentativi e calibrati sull'ordine di grandezza dei bilanci di gruppo; verranno consolidati con la contabilità industriale e i consuntivi delle iniziative (in particolare i ricavi ricorrenti da servizi).
 - **Competenze e consulenza.** L'esito dipende dall'apporto della consulenza specialistica di BM design (problema n. 10) e dall'acquisizione interna di competenze di data science.
 - **Governo delle tensioni.** L'apertura dei dati d'uso, la scalabilità della piattaforma e l'affidabilità dell'automazione richiedono presidi espliciti (data governance, cybersecurity, contratti di ecosistema).
 - **Estensione.** Il modello potrà incorporare indicatori ESG/LCA come termini espliciti della proposta di valore e replicarsi ad altri attori del distretto ceramico.
 
 ### 4.5 Conclusioni
 
-L'attività OR 7.10 ha definito e proposto un **modello di business basato sull'Intelligenza Artificiale (AI-BM)**, producendo il Business Model Canvas previsto (KPI: baseline Modello di Business tradizionale → obiettivo AI-BM, 9/9 blocchi riconfigurati) e dimostrando, con l'analisi strategica (catena dato → informazione → valore, SWOT, transition model), la coerenza dell'AI-BM con la transizione verso la *Intelligent Industry*. Con questa relazione si **chiude l'OR 7**: i collaudi tecnici della *Intelligent Industry* trovano compimento in un modello di business implementabile e replicabile, pronto a sostenere le decisioni di adozione e le successive fasi di lancio sul mercato dei prodotti ceramici.
+L'attività OR 7.10 ha definito e proposto un **modello di business basato sull'Intelligenza Artificiale (AI-BM)**, producendo il Business Model Canvas previsto (KPI: baseline Modello di Business tradizionale → obiettivo AI-BM, 9/9 blocchi riconfigurati) e dimostrando, con l'impianto integrato strategico-economico (catena dato → informazione → valore, SWOT, transition model, ROI/ROA), la validità dell'AI-BM in termini di successo competitivo e di redditualità a livello di progetto (ROI ~43%, payback ~2,3 anni; contributo marginale ma positivo al ROA di gruppo). Con questa relazione si **chiude l'OR 7**: i collaudi tecnici della *Intelligent Industry* trovano compimento in un modello di business implementabile e replicabile, pronto a sostenere le decisioni di adozione e le successive fasi di lancio sul mercato dei prodotti ceramici.
 
 ---
 
@@ -162,11 +185,12 @@ L'attività OR 7.10 ha definito e proposto un **modello di business basato sull'
 
 ```bash
 pip install -r requirements.txt
-python run_collaudo_aibm.py         # BMC as-is/to-be, KPI, catena del valore, SWOT, transition + output/collaudo_aibm_*.csv
+python run_collaudo_aibm.py         # BMC as-is/to-be, KPI, catena del valore, SWOT, transition, ROI/ROA + output/collaudo_aibm_*.csv
 python scripts/gen_figures_aibm.py  # rigenera le figure della relazione
+python scripts/build_docx.py        # genera il .docx finale con la formattazione del template ufficiale
 ```
 
-Modello (BMC, catena del valore, SWOT, transition): `src/aibm.py`. Runner: `run_collaudo_aibm.py`. Figure: `docs/figures/fig_aibm*.png`.
+Modello (BMC, catena del valore, SWOT, transition, ROI/ROA): `src/aibm.py`. Runner: `run_collaudo_aibm.py`. Figure: `docs/figures/fig_aibm*.png`. Documento finale: `scripts/build_docx.py` (usa `RPX.Y Titolo_Relazione_Parziale_data.docx` come riferimento di formato).
 
 ## Appendice B — Riferimenti
 

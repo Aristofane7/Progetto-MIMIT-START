@@ -205,6 +205,54 @@ SWOT = {
 }
 
 
+# --- Quantificazione economica (valori rappresentativi, in k EUR) ----------------
+# Analogamente al modello finanziario del Circular Business Plan di VOLT (RP 8.8),
+# l'AI-BM e validato anche sul piano della redditualita con ROI/payback (livello di
+# progetto) e contributo marginale al ROA (livello di gruppo). I valori sono
+# RAPPRESENTATIVI e vanno consolidati con la contabilita industriale; i benefici
+# derivano dalle capacita validate nei collaudi dell'OR 7.
+INVESTMENT = 1200.0          # investimento una tantum per l'implementazione dell'AI-BM
+ANNUAL_BENEFITS = {
+    "Premium da personalizzazione e smart materials (RP7.7, RP7.9)": 280.0,
+    "Ricavi ricorrenti da servizi (monitoraggio, sostenibilita certificata)": 210.0,
+    "Minor costo della non-qualita (qualita predittiva DDQM, RP7.5)": 160.0,
+    "Efficienza operativa ed energetica (Intelligent Factory, RP7.2-7.3)": 120.0,
+}
+ANNUAL_INCREMENTAL_COSTS = 250.0   # piattaforma/IT, data governance, competenze
+
+# Contesto di gruppo (valori RAPPRESENTATIVI, calibrati sull'ordine di grandezza dei
+# bilanci di gruppo Gresmalt; NON sono le cifre riservate puntuali). Servono a
+# collocare l'iniziativa nella scala aziendale e a stimarne il contributo marginale.
+COMPANY_CTX = {
+    "ricavi": 180000.0,        # ~180 M EUR
+    "attivita_totali": 370000.0,
+    "ebitda": 55000.0,
+    "roa_pct": 20.0,           # ROA di gruppo (rappresentativo)
+}
+
+
+def financials() -> dict:
+    gross = sum(ANNUAL_BENEFITS.values())
+    net_annual = gross - ANNUAL_INCREMENTAL_COSTS
+    roi = 100 * net_annual / INVESTMENT
+    payback = INVESTMENT / net_annual
+    # contributo MARGINALE dell'AI-BM al ROA di gruppo (iniziativa incrementale)
+    contributo_roa_pp = 100 * net_annual / COMPANY_CTX["attivita_totali"]
+    roa_con_aibm = COMPANY_CTX["roa_pct"] + contributo_roa_pp
+    return {
+        "investimento": INVESTMENT,
+        "beneficio_lordo_annuo": gross,
+        "costi_incrementali_annui": ANNUAL_INCREMENTAL_COSTS,
+        "beneficio_netto_annuo": net_annual,
+        "roi_pct": round(roi, 1),
+        "payback_anni": round(payback, 2),
+        "roa_gruppo_pct": COMPANY_CTX["roa_pct"],
+        "contributo_roa_pp": round(contributo_roa_pp, 2),
+        "roa_con_aibm_pct": round(roa_con_aibm, 2),
+        "quota_ebitda_pct": round(100 * net_annual / COMPANY_CTX["ebitda"], 2),
+    }
+
+
 def kpi_check() -> list[dict]:
     """KPI qualitativo della scheda: il Business Model Canvas (AI-BM) prodotto.
 
@@ -254,3 +302,8 @@ if __name__ == "__main__":
     print("\nTensioni sistemiche:")
     for t in TENSIONS:
         print(f"  - {t}")
+    f = financials()
+    print("\nQuantificazione economica (valori rappresentativi, k EUR):")
+    print(f"  Investimento {f['investimento']:.0f} | Beneficio netto annuo "
+          f"{f['beneficio_netto_annuo']:.0f} | ROI {f['roi_pct']:.1f}% | "
+          f"Payback {f['payback_anni']:.2f} anni | contributo ROA +{f['contributo_roa_pp']:.2f} pp")

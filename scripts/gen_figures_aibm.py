@@ -5,6 +5,7 @@ Produce in docs/figures/:
   fig_aibm2_bmc.png         - Business Model Canvas (as-is tradizionale -> to-be AI-BM) = KPI
   fig_aibm3_swot.png        - matrice SWOT 2x2 dell'AI-BM
   fig_aibm4_transition.png  - transition model + catena dato->valore + tensioni sistemiche
+  fig_aibm5_finanza.png     - validazione economica (ROI/payback livello progetto; ROA di gruppo)
 """
 
 from __future__ import annotations
@@ -19,7 +20,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.patches import FancyArrowPatch, FancyBboxPatch  # noqa: E402
+from matplotlib.patches import Circle, FancyArrowPatch, FancyBboxPatch  # noqa: E402
 
 import aibm  # noqa: E402
 
@@ -225,11 +226,67 @@ def fig_transition():
     fig.savefig(FIG / "fig_aibm4_transition.png"); plt.close(fig)
 
 
+# ---------------------------------------------------- fig 5: validazione economica
+def fig_finanza():
+    f = aibm.financials()
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(13, 4.4),
+                                        gridspec_kw={"width_ratios": [1.2, 0.8, 0.9]})
+
+    # benefici netti annui vs costi incrementali
+    items = list(aibm.ANNUAL_BENEFITS.items())
+    labels = [_wrap(k.split("(")[0].strip(), 20) for k, _ in items]
+    vals = [v for _, v in items]
+    ax1.barh(range(len(vals)), vals, color=GREEN, edgecolor="white")
+    ax1.barh([len(vals)], [-aibm.ANNUAL_INCREMENTAL_COSTS], color=RED, edgecolor="white")
+    ax1.set_yticks(list(range(len(vals))) + [len(vals)],
+                   labels + [_wrap("Costi incrementali", 20)], fontsize=7.6)
+    ax1.axvline(0, color=GREY, lw=0.8)
+    ax1.set_xlabel("k EUR / anno")
+    ax1.set_title(f"Benefici netti annui: {f['beneficio_netto_annuo']:.0f} k EUR",
+                  fontsize=11, fontweight="bold", color=NAVY)
+    ax1.spines[["top", "right"]].set_visible(False)
+
+    # ROI + payback (livello di progetto)
+    ax2.axis("off"); ax2.set_xlim(0, 1); ax2.set_ylim(0, 1)
+    ax2.text(0.5, 0.97, f"Investimento {f['investimento']:.0f} k EUR", ha="center",
+             va="top", color=GREY, fontsize=9)
+    ax2.add_patch(Circle((0.5, 0.54), 0.30, facecolor=GREEN, edgecolor="none"))
+    ax2.text(0.5, 0.585, f"{f['roi_pct']:.0f}%", ha="center", va="center",
+             color="white", fontsize=24, fontweight="bold")
+    ax2.text(0.5, 0.45, "ROI annuo", ha="center", va="center", color="white", fontsize=10)
+    ax2.text(0.5, 0.12, f"Payback: {f['payback_anni']:.1f} anni", ha="center",
+             va="center", color=NAVY, fontsize=12, fontweight="bold")
+
+    # ROA di gruppo (contesto) con contributo marginale dell'AI-BM
+    base = f["roa_gruppo_pct"]; contrib = f["contributo_roa_pp"]
+    ax3.bar(["ROA di gruppo"], [base], color=GREY, edgecolor="white", width=0.5)
+    ax3.bar(["ROA di gruppo"], [contrib], bottom=[base], color=GREEN, edgecolor="white",
+            width=0.5)
+    ax3.text(0, base / 2, f"~{base:.0f}%", ha="center", va="center", color="white",
+             fontsize=12, fontweight="bold")
+    ax3.annotate(f"+{contrib:.2f} pp\n(AI-BM, marginale)", xy=(0.25, base + contrib),
+                 xytext=(0.55, base + 3.2), fontsize=9, color=GREEN, fontweight="bold",
+                 ha="left", arrowprops=dict(arrowstyle="-|>", color=GREEN, lw=1.4))
+    ax3.set_ylim(0, base * 1.35); ax3.set_xlim(-0.7, 1.4)
+    ax3.set_ylabel("ROA (%)")
+    ax3.set_title("ROA di gruppo (contesto)", fontsize=11, fontweight="bold", color=NAVY)
+    ax3.text(0.5, -0.16, "il ritorno dell'AI-BM e a livello di progetto (ROI)",
+             transform=ax3.transAxes, ha="center", va="top", fontsize=8.5,
+             color=GREY, style="italic")
+    ax3.spines[["top", "right"]].set_visible(False)
+
+    fig.suptitle("Validazione economica dell'AI-BM (valori rappresentativi)",
+                 fontsize=12.5, fontweight="bold", color=NAVY, y=1.03)
+    fig.tight_layout()
+    fig.savefig(FIG / "fig_aibm5_finanza.png"); plt.close(fig)
+
+
 def main():
     fig_metodo()
     fig_bmc()
     fig_swot()
     fig_transition()
+    fig_finanza()
     print("Figure RP 7.10 generate in", FIG)
 
 
