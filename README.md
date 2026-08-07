@@ -23,8 +23,11 @@ Progetto-MIMIT-START/
 ├── scripts/
 │   └── gen_figures_aibm.py     # genera le figure della relazione
 ├── docs/
-│   ├── RP7.10_AI_Business_Model.md    # relazione (template ufficiale a 4 sezioni)
-│   ├── RP7.10_AI_Business_Model.docx  # versione Word
+│   ├── RP7.10_AI_Business_Model.md    # relazione (4 sezioni secondo il format di progetto)
+│   ├── RP7.10_AI_Business_Model.docx  # versione Word (stile RP di progetto: testata,
+│   │                                  #   logo, piè di pagina, titoli TNR verde)
+│   ├── assets/rp_format_reference.docx # reference di formato (solo stili + testata/piè
+│   │                                  #   di pagina di progetto; usato da build_docx.py)
 │   └── figures/                       # figure fig_aibm*.png
 └── output/                     # collaudo_aibm_*.csv (per Power BI)
 ```
