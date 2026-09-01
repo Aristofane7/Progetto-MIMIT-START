@@ -63,6 +63,23 @@ aggregato annuale/impianto — i coefficienti granulari usati dai motori
 per-lotto restano `DRAFT` (vedi ADR-011), e l'input `Psi`/`Ex_useful` resta un
 dato riportato, non derivato.
 
+## Dataset sintetico temporaneo (sviluppo modello Power BI)
+
+In attesa dei dati master reali (issue #7) e dei connettori live (issue #3),
+`scripts/generate_synthetic_demo_data.py` genera un dataset **chiaramente
+etichettato come sintetico** (`source_system='SYNTHETIC_DEMO'`, plant `SYN01`/
+`SYN02`, cluster `9001+`) per sviluppare il modello semantico Power BI (issue
+#8) contro `mv_intelligent_industry_state`. Vedi `docs/decisions/ADR-014-...`
+per le regole (mai coefficienti `APPROVED`, mai usato per la Validazione
+Stage 9, mai citato come risultato di calcolo):
+
+```bash
+python3 -m scripts.generate_synthetic_demo_data   # scrive data/synthetic/{seed.sql,csv/}
+pytest tests/integration/test_synthetic_demo_data.py  # verifica il flusso end-to-end
+```
+
+`data/synthetic/` non è versionato (rigenerabile in un comando, seed fisso).
+
 ## Stato di avanzamento
 
 Vedi `docs/ROADMAP.md` per lo stato Stage 0–9 e la checklist dei 30 criteri di accettazione
