@@ -1,0 +1,50 @@
+# Draft data contract for the LIMS feed behind fact_quality_test
+# (sql/migrations/0003_..., sec. 10.10) — technical test results underlying
+# the TQ/OCR dimension of P-TSA (sec. 24.4). Target field names match that
+# table's columns exactly; source field names below are placeholders
+# (`TBD_*`) — the real LIMS table/column names are open item P0-03
+# (docs/decisions/ADR-021-...), not fabricated here (spec sec. 64).
+contract_id: LIMS_QUALITY_V1
+source_system: LIMS
+entity: quality_test
+owner: quality_it
+
+keys:
+  - TBD_sample_id
+  - TBD_test_code
+
+timestamp:
+  field: TBD_test_ts
+  timezone: Europe/Rome
+
+fields:
+  TBD_lot_reference:
+    target: lot_id
+    type: string
+
+  TBD_test_code:
+    target: test_code
+    type: string
+    required: true
+
+  TBD_measured_value:
+    target: measured_value
+    type: decimal
+
+  TBD_unit:
+    target: unit
+    type: string
+
+  TBD_acceptance_threshold:
+    target: acceptance_threshold
+    type: decimal
+
+quality:
+  reject_if_missing:
+    - TBD_test_code
+    - TBD_test_ts
+
+deduplication:
+  key:
+    - TBD_sample_id
+    - TBD_test_code

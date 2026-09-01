@@ -15,8 +15,13 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 - **27 / 30** v1 acceptance criteria (spec sec. 57) — **DONE**
 - **3 / 30** — **PARTIAL** (E2C live connector, full golden-regression approval,
   BI drill-down — semantic model shipped, report pages need GUI authoring)
-- **235 tests passing** (0 skipped — the last skip, P-TSA z-score, is
+- **251 tests passing** (0 skipped — the last skip, P-TSA z-score, is
   resolved by ADR-020), 95% coverage on `src/`, CI green on `main`
+- Issue #3 (P0-03): the real MES/SCADA/ERP/HR/LIMS field/table names remain a
+  genuine external blocker (checked directly against RP6.6/RP6.7/RP7.1/RP7.2,
+  ADR-021) — but the Edge collector (sec. 34.1), source-agnostic Cloud
+  raw/staging landing (sec. 34.2, ADR-004), and 4 new draft ERP/HR/SCADA/LIMS
+  data contracts are now built and tested
 - Stage 9 self-check (ADR-017): `python3 -m scripts.stage9_validation_checklist`
   reports **12 PASS / 5 PARTIAL / 4 BLOCKED** out of 21 checklist items (spec
   sec. 65) — a live, re-runnable number, not a hand-maintained assertion
@@ -42,7 +47,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 | 0 — Foundation | repo layout, CI, feature flags, unit library | **DONE** |
 | 1 — Master data | plant/line/process/equipment/product/cluster DDL | **PARTIAL** — schema + loaders done; the 22 real RP6.8 clusters are now loaded (`data/reference/rp68_cluster_master.csv`, ADR-015); the 13.251-product export with cluster assignment (RP6.8 sec. 3.7) is an external blocker — not in this repository, not reconstructable from the report, needs whoever holds the raw RP6.8 deliverables |
 | 2 — Lot bridge | production lot / lot-process / product mapping | **DONE** (schema); real MES lot codes need contract mapping (P0-04) |
-| 3 — Process observation | E2C/MES ingestion, canonical units | **PARTIAL** — data contract mechanism done (`src/ingestion/contracts.py`), one example contract (`MES_PRODUCTION_V1`); no live Edge/MES/SCADA connector is implemented (needs IT source mappings, P0-03) |
+| 3 — Process observation | E2C/MES ingestion, canonical units | **PARTIAL** — data contract mechanism done (`src/ingestion/contracts.py`), plus a generic Edge collector (`src/ingestion/edge/collector.py`, sec. 34.1) and a source-agnostic Cloud raw/staging landing schema + writer (`src/ingestion/edge/cloud_writer.py`, migration `0011`, sec. 34.2, ADR-021); 5 draft contracts total (`MES_PRODUCTION_V1` + new `ERP_ECONOMIC_V1`/`HR_SOCIAL_V1`/`SCADA_PROCESS_OBSERVATION_V1`/`LIMS_QUALITY_V1`), all source fields `TBD_*` pending real IT field names; no live connection to a real plant system is implemented (needs IT source mappings, P0-03 — confirmed a genuine external blocker, ADR-021) |
 | 4 — EEA engines | TEI → EFA → EcoFA → SFA → EEA aggregation | **DONE** (formulas + engines + tests) + an aggregate plant/year path (`src/engines/eea/aggregate.py`, ADR-012) validated against 66 real data points from `data/reference/RP7.3_calculation_log.xlsx`. Coefficients (`COEFF_RP73_PROVISIONAL_2026`) and AHP weights (`EEA_AHP_RP73_1`) are `APPROVED` as of 2026-09-01 (ADR-013) — P0-02 **resolved for the aggregate model**. The 4 real SRC-TEI/EFA/EcoFA/SFA manuals (repo root PDFs) were found and read (ADR-018): EFA/EcoFA/SFA formulas already matched exactly; TEI-J's quality-penalty formula was wrong (absolute-difference vs the manual's ratio shortfall) and is now fixed (`engine_version` 1.1.0). Granular coefficient *values* (`B_TILE`, `B_SDM`, `KAPPA_MTS`, etc.) remain `DRAFT`/test-only — the real coefficient library ("Tabella 2") every manual points to is not part of this corpus, an external blocker like issue #7's product export, not a code gap |
 | 5 — Product intelligence | sales, cluster performance, trend | **DONE** (schema + CQS + trend classification + SCD2 catalog) |
 | 6 — P-TSA | SCR/PsI/OCR/z-score/AHP/P-TSI/TII | **DONE** (engine + tests); z-score golden regression now real, validated against the RP7.4 report's own Tabelle 3-7 (ADR-020, issue #6) |
@@ -52,7 +57,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 
 ## Acceptance criteria (spec sec. 57) — status
 
-1. Physical data via E2C or equivalent fixture — **PARTIAL** (contract mechanism ready, no live connector)
+1. Physical data via E2C or equivalent fixture — **PARTIAL** (contract mechanism, Edge collector, and Cloud raw/staging landing all ready and tested, ADR-021; no live connector — P0-03 real field names remain a confirmed external blocker)
 2. Data associated with plant — DONE
 3. Data associated with line/process — DONE
 4. Lot associated with product — DONE
@@ -84,7 +89,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 
 - ARIMA forecasting, logistic success model, portfolio optimizer (sec. 36, ADR-009)
 - Any actuation / Digital Twin closed loop (sec. 3, ADR-001)
-- Live Edge/MES/SCADA/ERP/HR/LIMS connectors (require IT-provided field mappings, P0-03)
+- Live Edge/MES/SCADA/ERP/HR/LIMS connectors (require IT-provided field mappings, P0-03 — confirmed a genuine external blocker after reading RP6.6/RP6.7/RP7.1/RP7.2 directly, ADR-021); the source-agnostic Edge/Cloud infrastructure they will plug into is already built
 - The 3 Power BI report pages' actual visual layout (sec. 38.1-38.3) —
   a GUI-authoring step in Power BI Desktop against the semantic model in
   `bi/powerbi/` (ADR-016) and the spec in `docs/powerbi/report_pages_spec.md`;
@@ -105,7 +110,12 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
    `Psi` stays a directly reported input by design. No coefficient invented,
    no project-owner sign-off needed (nothing new was approved).
 3. Get IT to supply real MES/SCADA/ERP/HR/LIMS field names and complete
-   `audit_source_mapping` + per-source YAML contracts (P0-03).
+   `audit_source_mapping` + per-source YAML contracts (P0-03) — confirmed
+   genuinely blocked, not hidden in this corpus (ADR-021, checked directly
+   against RP6.6/RP6.7/RP7.1/RP7.2). The Edge collector, Cloud raw/staging
+   landing, and 4 draft ERP/HR/SCADA/LIMS contracts (`TBD_*` source fields)
+   are ready to receive the real field names with no schema or engine-code
+   change once IT provides them.
 3b. ~~Load the 22 real RP6.8 clusters~~ — **done, ADR-015**. Obtain the real
     13,251-product cluster-assignment export (RP6.8 sec. 3.7, not in this
     repository) and run `python3 -m scripts.import_rp68_product_master_data
