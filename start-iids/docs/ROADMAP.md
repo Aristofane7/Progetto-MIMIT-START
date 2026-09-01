@@ -15,7 +15,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 - **27 / 30** v1 acceptance criteria (spec sec. 57) — **DONE**
 - **3 / 30** — **PARTIAL** (E2C live connector, full golden-regression approval,
   BI drill-down — semantic model shipped, report pages need GUI authoring)
-- **211 tests passing** (1 skipped, documented — see ADR-011), 95% coverage on
+- **220 tests passing** (1 skipped, documented — see ADR-011), 95% coverage on
   `src/`, CI green on `main`
 - Stage 9 self-check (ADR-017): `python3 -m scripts.stage9_validation_checklist`
   reports **10 PASS / 7 PARTIAL / 4 BLOCKED** out of 21 checklist items (spec
@@ -23,6 +23,9 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 - The real SRC-TEI/EFA/EcoFA/SFA manuals (repo-root PDFs) were found and read
   (ADR-018): EFA/EcoFA/SFA formulas confirmed exact; TEI-J's quality-penalty
   formula was wrong and is now fixed against the real manual text
+- The RP7.3 narrative report (repo-root PDF) was found and read (ADR-019):
+  `Psi`/`Ex_useful` confirmed as intentionally a directly-reported input in
+  the beta methodology, closing that ADR-012 open item
 - Real RP7.3 aggregate EEA+/TSI model (ADR-012) **validated against 66 real,
   non-fabricated data points**; its coefficient/weight sets are **APPROVED**
   by the project owner (ADR-013, 2026-09-01)
@@ -57,7 +60,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 6. Historical state reconstructable — DONE (historical-replay repository queries, sec. 46; proven across multiple time points, not just one, in `test_factory_shadow_historical_replay_across_two_periods`, ADR-017)
 7-10. TEI/EFA/EcoFA/SFA operational — DONE; formulas cross-checked against the real SRC-TEI/EFA/EcoFA/SFA manuals (ADR-018) — EFA/EcoFA/SFA matched exactly, TEI-J's quality-penalty formula was corrected
 11. EEA aggregates four contributions — DONE
-12. TSI_norm computable with coherent baseline — DONE, and the fuller real RP7.3 `TSI_abs`/`TSI_rel`/`Phi`/`Psi`/`SA_w` variant (ADR-012) reproduces 66 real logged values (`tests/regression/test_rp73_calculation_log.py`)
+12. TSI_norm computable with coherent baseline — DONE, and the fuller real RP7.3 `TSI_abs`/`TSI_rel`/`Phi`/`Psi`/`SA_w` variant (ADR-012) reproduces 66+9 real logged values (`tests/regression/test_rp73_calculation_log.py`); `Psi`/`Ex_useful` confirmed by design, not a stopgap (ADR-019)
 13. Sales associable to product — DONE
 14. Cluster performance available — DONE
 15. Trend linkable to cluster — DONE
@@ -95,8 +98,12 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
    series is later consolidated with different values, that must land under a
    new `coefficient_set_id`/`weight_set_id` (sec. 11.3 point 4), never as an
    in-place edit of the approved set.
-2. Resolve the `Psi`/`Ex_useful` open item (ADR-012) with the project owner —
-   currently a reported, not derived, input; unaffected by ADR-013.
+2. ~~Resolve the `Psi`/`Ex_useful` open item (ADR-012)~~ — **done, ADR-019**:
+   the primary RP7.3 report (repo root PDF, not examined before) confirms
+   `Ex_useful`'s coefficient-based derivation is deliberately deferred to a
+   future "release" version of the methodology, not missing from this beta —
+   `Psi` stays a directly reported input by design. No coefficient invented,
+   no project-owner sign-off needed (nothing new was approved).
 3. Get IT to supply real MES/SCADA/ERP/HR/LIMS field names and complete
    `audit_source_mapping` + per-source YAML contracts (P0-03).
 3b. ~~Load the 22 real RP6.8 clusters~~ — **done, ADR-015**. Obtain the real

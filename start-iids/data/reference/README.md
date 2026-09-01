@@ -22,9 +22,20 @@ project owner (Davide Settembre) has explicitly signed off on using
 (`COEFF_RP73_PROVISIONAL_2026`) and `config/weights/eea_ahp_rp73.yaml`
 (`EEA_AHP_RP73_1`) for current calculations — see `docs/decisions/ADR-013-...`
 for the exact scope of that approval (it covers only these two sets, not the
-granular per-lot coefficients tracked in ADR-011, and it does not resolve the
-`Psi`/`Ex_useful` open item). See `docs/decisions/ADR-012-...` for the full
-model derivation and the verified formulas.
+granular per-lot coefficients tracked in ADR-011). See `docs/decisions/ADR-012-...`
+for the full model derivation and the verified formulas.
+
+**`Psi`/`Ex_useful`: resolved (ADR-019, issue #5).** The repo-root PDF
+`RP7.3 Report di Assessment termodinamico della fabbrica.pdf` — the actual
+narrative report these two xlsx files are the data for, not examined when
+ADR-012 was first written — confirms `Ex_ref = Ex_el + Ex_fuel` (a second,
+independent source for what was already implemented) and states that
+`Ex_useful`'s decomposition via a production coefficient is deliberately
+deferred to a future "release" version of the methodology, not missing from
+this beta. `Psi` stays a directly reported input by design, not as a
+stopgap — see ADR-019 and the added
+`test_ex_useful_from_report_matches_psi_times_ex_ref_from_log` regression
+test.
 
 ## RP6.8 product cluster master data (issue #7, ADR-015)
 

@@ -92,3 +92,26 @@ def test_tsi_rel_matches_log(plant_id, year):
     expected = CALCULATION_LOG[(plant_id, year, "TSI_rel")]
     actual = compute_tsi_rel(tsi_abs_2025, tsi_abs_2023, record_key=plant_id)
     assert actual == pytest.approx(expected, rel=2e-2)
+
+
+# ADR-019: Ex_useful (GJ), transcribed verbatim from "RP7.3 Report di Assessment
+# termodinamico della fabbrica.pdf" Tabella 4 -- the primary RP7.3 report, not
+# yet used elsewhere in this repo. This is real, reported data (sec. 64: "Non
+# fabbricare input per far tornare i valori"), not derived from a coefficient.
+EX_USEFUL_GJ_TABELLA4 = {
+    ("D020", 2023): 30138, ("D020", 2024): 30210, ("D020", 2025): 30225,
+    ("D060", 2023): 51117, ("D060", 2024): 51072, ("D060", 2025): 50931,
+    ("D240", 2023): 40698, ("D240", 2024): 40527, ("D240", 2025): 40392,
+}
+
+
+@pytest.mark.parametrize("plant_id,year", REFERENCE_DATA.plant_years())
+def test_ex_useful_from_report_matches_psi_times_ex_ref_from_log(plant_id, year):
+    """Closes ADR-012's open item (issue #5): Psi/Ex_ref from the calculation
+    log and Ex_useful from the narrative report are two independently-labeled
+    views of the same underlying real numbers -- Psi * Ex_ref reproduces the
+    report's own Ex_useful column, confirming Psi was never fabricated."""
+    psi = CALCULATION_LOG[(plant_id, year, "Psi")]
+    ex_ref = CALCULATION_LOG[(plant_id, year, "Ex_ref")]
+    expected_ex_useful = EX_USEFUL_GJ_TABELLA4[(plant_id, year)]
+    assert psi * ex_ref == pytest.approx(expected_ex_useful, rel=2e-3)
