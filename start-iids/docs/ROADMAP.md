@@ -13,10 +13,9 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 ## At a glance
 
 - **27 / 30** v1 acceptance criteria (spec sec. 57) — **DONE**
-- **2 / 30** — **PARTIAL** (E2C live connector, full golden-regression approval)
-- **1 / 30** — **NOT STARTED** (Power BI semantic model — a BI-tool artifact
-  outside this Python/SQL repository)
-- **191 tests passing** (1 skipped, documented — see ADR-011), 95% coverage on
+- **3 / 30** — **PARTIAL** (E2C live connector, full golden-regression approval,
+  BI drill-down — semantic model shipped, report pages need GUI authoring)
+- **192 tests passing** (1 skipped, documented — see ADR-011), 95% coverage on
   `src/`, CI green on `main`
 - Real RP7.3 aggregate EEA+/TSI model (ADR-012) **validated against 66 real,
   non-fabricated data points**; its coefficient/weight sets are **APPROVED**
@@ -39,7 +38,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 | 5 — Product intelligence | sales, cluster performance, trend | **DONE** (schema + CQS + trend classification + SCD2 catalog) |
 | 6 — P-TSA | SCR/PsI/OCR/z-score/AHP/P-TSI/TII | **DONE** (engine + tests); z-score golden regression blocked on RP7.4 dataset (ADR-011 item 5) |
 | 7 — Product Design workflow | project/option/prototype/test/decision | **DONE** (schema + state machine + decision enum) |
-| 8 — Integrated mart | IIDS view, read-only API | **DONE** (`mv_intelligent_industry_state`, FastAPI read-only endpoints) |
+| 8 — Integrated mart | IIDS view, read-only API | **DONE** (`mv_intelligent_industry_state`, FastAPI read-only endpoints); Power BI semantic model **PARTIAL** — TMDL model + measures + CSV/SQL data-source switch shipped (`bi/powerbi/`, ADR-016); the 3 report pages (sec. 38.1-38.3) are a GUI-authoring step against the shipped model + `docs/powerbi/report_pages_spec.md` |
 | 9 — Validation | regression, audit, performance, UAT | **PARTIAL** — unit/integration/regression test suite in place; performance/UAT against real infrastructure is out of this repository's scope |
 
 ## Acceptance criteria (spec sec. 57) — status
@@ -64,7 +63,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 21. Prototype test linked — DONE (schema: `fact_quality_test.prototype_id`)
 22. Design decision auditable — DONE
 23. IIDS view available — DONE
-24. BI drill-down functioning — **NOT STARTED** (Power BI semantic model is a BI-tool artifact, sec. 38, out of this Python/SQL repository's scope; the read-only API + view provide the data it would consume). Development against real data waits on issues #3/#7; a temporary, clearly-tagged synthetic dataset (`scripts/generate_synthetic_demo_data.py`, ADR-014) unblocks model/page development in the meantime — see [issue #8](https://github.com/Aristofane7/Progetto-MIMIT-START/issues/8)
+24. BI drill-down functioning — **PARTIAL**: the Power BI semantic model (`bi/powerbi/`, ADR-016) is real and openable — `FactShadowState` + 6 conformed dimensions, display-aggregation-only measures, a `DataSourceMode` parameter switching between the ADR-014 synthetic export and a live SQL connection with no model rework. The 3 report pages/drill-down visuals themselves (sec. 38.1-38.4) are specified field-by-field in `docs/powerbi/report_pages_spec.md` but not yet built — that's a Power BI Desktop GUI step this repository can't execute or validate headlessly. Full real-data demonstration still waits on issues #3/#7 — see [issue #8](https://github.com/Aristofane7/Progetto-MIMIT-START/issues/8)
 25. No automatic actuation — DONE (structural: no write routes exist; CI greps for forbidden patterns)
 26. Coefficient/version tracked — DONE (`dim_coefficient_set`, `dim_weight_set`)
 27. calc_run reproducible — DONE (`audit_calc_run`, `make_calc_run_id`)
@@ -77,7 +76,10 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 - ARIMA forecasting, logistic success model, portfolio optimizer (sec. 36, ADR-009)
 - Any actuation / Digital Twin closed loop (sec. 3, ADR-001)
 - Live Edge/MES/SCADA/ERP/HR/LIMS connectors (require IT-provided field mappings, P0-03)
-- Power BI semantic model artifact itself (sec. 38 — BI-tool-side work)
+- The 3 Power BI report pages' actual visual layout (sec. 38.1-38.3) —
+  a GUI-authoring step in Power BI Desktop against the semantic model in
+  `bi/powerbi/` (ADR-016) and the spec in `docs/powerbi/report_pages_spec.md`;
+  not something this repository can produce or validate headlessly
 - Re-clustering pipeline running on a schedule (sec. 19.6 — cluster versions are imported on request)
 
 ## Next steps for whoever continues this work
@@ -100,9 +102,13 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
    pricing, `B_TILE`, cluster-trend thresholds, P-TSA z-score fixture) with the
    actual SRC-TEI/EFA/EcoFA/SFA/RP74 manual text and an owner sign-off — these
    are separate from, and not covered by, the ADR-013 approval.
-5. Build the Power BI semantic model against `mv_intelligent_industry_state` /
-   the read-only API (sec. 38). Can start now against the synthetic dataset
-   (`scripts/generate_synthetic_demo_data.py`, ADR-014) — swap to real data
-   once #3/#7 land, no model rework expected since both read the same view.
+5. ~~Build the Power BI semantic model against `mv_intelligent_industry_state`~~
+   — **done, ADR-016**: `bi/powerbi/START_IIDS.SemanticModel/` (TMDL), built
+   and testable today against the synthetic dataset via
+   `scripts/export_mv_intelligent_industry_state.py`. Remaining: open it in
+   Power BI Desktop and build the 3 report pages per
+   `docs/powerbi/report_pages_spec.md` (sec. 38.1-38.4) — a GUI step: not
+   executable from this repository. Swap `DataSourceMode`/`SqlServer`/
+   `SqlDatabase` to real data once #3/#7 land, no model rework needed.
 6. Run the Stage 9 checklist (spec sec. 65) against a staging environment with
    real data before declaring v1 production-ready.

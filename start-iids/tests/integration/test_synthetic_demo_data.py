@@ -75,6 +75,7 @@ def test_mv_intelligent_industry_state_returns_synthetic_rows(seeded_engine):
         assert row["plant_id"].startswith("SYN")
         assert row["tsi_norm"] is not None
         assert row["p_tsi_5"] is not None
+        assert row["process_name"] is not None  # ADR-016: Factory-page Process drill-down
 
 
 def test_api_serves_synthetic_lot_state(seeded_engine):

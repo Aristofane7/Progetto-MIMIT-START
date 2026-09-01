@@ -18,6 +18,11 @@
 --     referencing the product's current cluster/version (best-effort linkage —
 --     sec. 23's bridge_design_process_requirement is the authoritative link once
 --     a given lot is produced from an explicit design option in later stages).
+--
+-- process_id/process_name/process_family (ADR-016) are a passthrough addition
+-- beyond sec. 26.2's "campi minimi" (a floor, not a ceiling): the Factory page
+-- drill-down Plant→Line→Lot→Process required by sec. 38.1 has no field to
+-- drill into without them. Same first-process-of-the-lot join as line_id.
 
 CREATE VIEW mv_intelligent_industry_state AS
 SELECT
@@ -25,6 +30,9 @@ SELECT
     COALESCE(lot.end_ts, lot.start_ts)              AS period_end,
     lot.plant_id                                    AS plant_id,
     lp.line_id                                      AS line_id,
+    lp.process_id                                   AS process_id,
+    proc.process_name                               AS process_name,
+    proc.process_family                             AS process_family,
     lot.lot_id                                      AS lot_id,
     lot.product_id                                  AS product_id,
     prod.cluster_id                                 AS cluster_id,
@@ -61,6 +69,8 @@ SELECT
 FROM fact_production_lot lot
 LEFT JOIN fact_lot_process lp
     ON lp.lot_id = lot.lot_id AND lp.sequence_no = 1
+LEFT JOIN dim_process proc
+    ON proc.process_id = lp.process_id
 LEFT JOIN dim_product prod
     ON prod.product_id = lot.product_id
 LEFT JOIN fact_eea_state eea

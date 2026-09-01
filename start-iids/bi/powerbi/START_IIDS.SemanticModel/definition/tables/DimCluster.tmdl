@@ -1,0 +1,37 @@
+/// Conformed dimension built from DISTINCT (cluster_id, cluster_version)
+/// pairs in mv_intelligent_industry_state — cluster_id alone is only unique
+/// within one cluster_version (dim_product_cluster's real PK is the pair,
+/// sec. 19.6 SCD2), so ClusterKey (matching FactShadowState's) is the actual
+/// relationship key. No dominant-attribute columns here: those live in
+/// dim_product_cluster, which isn't part of the exposed read surface issue
+/// #8 is scoped to (see data/reference/rp68_cluster_master.csv, ADR-015, for
+/// the real values if a future iteration extends the view to carry them).
+table DimCluster
+
+	column cluster_id
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: cluster_id
+
+	column cluster_version
+		dataType: string
+		summarizeBy: none
+		sourceColumn: cluster_version
+
+	column ClusterKey = DimCluster[cluster_id] & "|" & DimCluster[cluster_version]
+		dataType: string
+		summarizeBy: none
+		isKey
+
+	partition DimCluster = m
+		mode: import
+		source =
+				let
+				    FromCsvRaw = Csv.Document(File.Contents(LocalCsvFolder & "\dim_cluster.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    FromCsv = Table.PromoteHeaders(FromCsvRaw, [PromoteAllScalars=true]),
+				    FromSql = Sql.Database(SqlServer, SqlDatabase, [Query="SELECT DISTINCT cluster_id, cluster_version FROM mv_intelligent_industry_state WHERE cluster_id IS NOT NULL"]),
+				    Source = if DataSourceMode = "SQL" then FromSql else FromCsv,
+				    ChangedType = Table.TransformColumnTypes(Source, {{"cluster_id", Int64.Type}, {"cluster_version", type text}})
+				in
+				    ChangedType
+

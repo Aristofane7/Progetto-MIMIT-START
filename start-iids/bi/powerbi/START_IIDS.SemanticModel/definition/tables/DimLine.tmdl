@@ -1,0 +1,28 @@
+/// Conformed dimension built from DISTINCT (plant_id, line_id) pairs in
+/// mv_intelligent_industry_state. line_id is globally unique (dim_line's
+/// real PK), so it alone is the relationship key.
+table DimLine
+
+	column line_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: line_id
+		isKey
+
+	column plant_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: plant_id
+
+	partition DimLine = m
+		mode: import
+		source =
+				let
+				    FromCsvRaw = Csv.Document(File.Contents(LocalCsvFolder & "\dim_line.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    FromCsv = Table.PromoteHeaders(FromCsvRaw, [PromoteAllScalars=true]),
+				    FromSql = Sql.Database(SqlServer, SqlDatabase, [Query="SELECT DISTINCT plant_id, line_id FROM mv_intelligent_industry_state WHERE line_id IS NOT NULL"]),
+				    Source = if DataSourceMode = "SQL" then FromSql else FromCsv,
+				    ChangedType = Table.TransformColumnTypes(Source, {{"plant_id", type text}, {"line_id", type text}})
+				in
+				    ChangedType
+

@@ -1,0 +1,34 @@
+/// Conformed dimension built from DISTINCT process_id/process_name/
+/// process_family already carried by mv_intelligent_industry_state
+/// (ADR-016 passthrough addition) — backs the Factory page's
+/// Plant→Line→Lot→Process drill-down (sec. 38.1).
+table DimProcess
+
+	column process_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: process_id
+		isKey
+
+	column process_name
+		dataType: string
+		summarizeBy: none
+		sourceColumn: process_name
+
+	column process_family
+		dataType: string
+		summarizeBy: none
+		sourceColumn: process_family
+
+	partition DimProcess = m
+		mode: import
+		source =
+				let
+				    FromCsvRaw = Csv.Document(File.Contents(LocalCsvFolder & "\dim_process.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    FromCsv = Table.PromoteHeaders(FromCsvRaw, [PromoteAllScalars=true]),
+				    FromSql = Sql.Database(SqlServer, SqlDatabase, [Query="SELECT DISTINCT process_id, process_name, process_family FROM mv_intelligent_industry_state WHERE process_id IS NOT NULL"]),
+				    Source = if DataSourceMode = "SQL" then FromSql else FromCsv,
+				    ChangedType = Table.TransformColumnTypes(Source, {{"process_id", type text}, {"process_name", type text}, {"process_family", type text}})
+				in
+				    ChangedType
+

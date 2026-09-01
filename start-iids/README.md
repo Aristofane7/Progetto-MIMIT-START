@@ -78,6 +78,18 @@ python3 -m scripts.import_rp68_product_master_data --products-csv <file>  # + ca
 pytest tests/unit/test_rp68_cluster_master_data.py tests/integration/test_rp68_master_data_import.py
 ```
 
+## Modello semantico Power BI (issue #8)
+
+`bi/powerbi/START_IIDS.SemanticModel/` è un progetto Power BI in formato
+TMDL (testuale, apribile in Power BI Desktop 2024.06+ via File → Apri sulla
+cartella) che legge **solo** `mv_intelligent_industry_state` (ADR-006, sec.
+39: nessuna logica di calcolo duplicata in DAX). Vedi `bi/powerbi/README.md`
+per come cambiare sorgente dati (CSV locale ↔ SQL reale) e
+`docs/powerbi/report_pages_spec.md` per la mappatura visual-per-visual delle
+pagine richieste dalla sez. 38 — le pagine vere e proprie restano un passo
+da costruire in Power BI Desktop (ADR-016), non riproducibile/validabile da
+questo ambiente headless.
+
 ## Dataset sintetico temporaneo (sviluppo modello Power BI)
 
 In attesa dei dati master reali (issue #7) e dei connettori live (issue #3),
