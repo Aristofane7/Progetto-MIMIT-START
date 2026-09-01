@@ -86,6 +86,35 @@ def test_factory_shadow_404_when_no_state_before_at(client):
     assert resp.status_code == 404
 
 
+def test_factory_shadow_historical_replay_across_two_periods(seeded_engine):
+    """sec. 46: the API must reconstruct the state 'as of' any point in time,
+    not just return the single latest row -- prove it with a second, later
+    calc_run for the same plant and three distinct `at` values."""
+    with seeded_engine.begin() as conn:
+        conn.execute(text(
+            "INSERT INTO audit_calc_run (calc_run_id, engine, engine_version, baseline_id, "
+            "coefficient_set_id, period_start, period_end, status, started_at) VALUES "
+            "('RUN-2', 'EEA', '1.0.0', 'BASELINE_2017', 'COEFF_2026_01', :ps, :pe, 'SUCCESS', :ps)"
+        ), {"ps": datetime(2026, 2, 1, tzinfo=UTC), "pe": datetime(2026, 2, 28, tzinfo=UTC)})
+        conn.execute(text(
+            "INSERT INTO fact_eea_state (eea_state_id, calc_run_id, plant_id, lot_id, period_start, "
+            "period_end, scenario, f_env_gj, f_econ_gj, f_soc_gj, f_tech_gj, sa_gj, tsi_norm) VALUES "
+            "(2, 'RUN-2', 'D060', 'LOT-1', :ps, :pe, 'CURRENT', 1.1, 0.6, 0.2, 0.3, 2.2, 1.05)"
+        ), {"ps": datetime(2026, 2, 1, tzinfo=UTC), "pe": datetime(2026, 2, 28, tzinfo=UTC)})
+
+    configure_repository(IIDSRepository(seeded_engine))
+    client = TestClient(app)
+
+    before_both = client.get("/api/v1/shadow/factory", params={"plant_id": "D060", "at": "2025-06-01T00:00:00Z"})
+    assert before_both.status_code == 404
+
+    between_the_two = client.get("/api/v1/shadow/factory", params={"plant_id": "D060", "at": "2026-01-15T00:00:00Z"})
+    assert between_the_two.json()["eea"]["tsi_norm"] == 0.9  # RUN-1, not RUN-2 yet
+
+    after_both = client.get("/api/v1/shadow/factory", params={"plant_id": "D060", "at": "2026-02-15T00:00:00Z"})
+    assert after_both.json()["eea"]["tsi_norm"] == 1.05  # RUN-2 now the latest state <= at
+
+
 def test_product_shadow(client):
     resp = client.get("/api/v1/shadow/product/PROD-1", params={"at": "2026-02-01T00:00:00Z"})
     assert resp.status_code == 200

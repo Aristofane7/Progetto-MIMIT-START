@@ -107,6 +107,19 @@ pytest tests/integration/test_synthetic_demo_data.py  # verifica il flusso end-t
 
 `data/synthetic/` non è versionato (rigenerabile in un comando, seed fisso).
 
+## Validazione Stage 9 (issue #9)
+
+```bash
+python3 -m scripts.stage9_validation_checklist   # stato live dei 21 item della checklist (spec sez. 65)
+```
+
+Riporta PASS/PARTIAL/BLOCKED con l'evidenza esatta (test eseguito o issue
+bloccante) per ognuno dei 21 item — vedi `docs/decisions/ADR-017-...` per
+cosa è stato chiuso in questo passaggio (persistenza di `audit_data_quality`/
+`audit_lineage`, prova che le regole blocker rilevano violazioni reali, replay
+storico multi-periodo) e cosa resta strutturalmente fuori dalla portata di
+questo repository (UAT, performance su infrastruttura reale).
+
 ## Stato di avanzamento
 
 Vedi `docs/ROADMAP.md` per lo stato Stage 0–9 e la checklist dei 30 criteri di accettazione

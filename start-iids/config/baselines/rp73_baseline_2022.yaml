@@ -1,0 +1,26 @@
+# Baseline for the RP7.3 aggregate EEA+/TSI model (mirrors dim_baseline,
+# sec. 11 migration 0004). Status governance follows the same DRAFT/APPROVED
+# rule as coefficient/weight sets (sec. 11.3) -- see
+# config/coefficients/rp73_provisional_2026.yaml for the sibling pattern.
+#
+# Found missing during the Stage 9 self-check (issue #9, ADR-017): the
+# aggregate model has used baseline_year=2022 since ADR-012 (confirmed by the
+# RP7.3 workbook's own Moduli_* sheets, and validated end-to-end against 66
+# real logged values in tests/regression/test_rp73_calculation_log.py) but
+# never had a dim_baseline-shaped config artifact recording that as a
+# governed decision -- this file is that artifact, filed as DRAFT because
+# ADR-013 (2026-09-01) approved only COEFF_RP73_PROVISIONAL_2026 and
+# EEA_AHP_RP73_1, not a baseline.
+baseline_id: RP73_BASELINE_2022
+baseline_name: "RP7.3 aggregate EEA+/TSI baseline (fixed year 2022)"
+baseline_year: 2022
+functional_unit: "plant-year (GJ)"
+coefficient_set_id: COEFF_RP73_PROVISIONAL_2026
+status: DRAFT
+approved_by: null
+approved_at: null
+notes: >
+  Baseline year fixed at 2022 for every plant, not a rolling previous-year
+  comparison (ADR-012). Needs an explicit project-owner sign-off, separate
+  from the ADR-013 coefficient/weight approval, before spec sec. 65's
+  "Baseline APPROVED" checklist item can read PASS.
