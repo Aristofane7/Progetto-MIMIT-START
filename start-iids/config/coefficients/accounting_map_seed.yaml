@@ -1,0 +1,17 @@
+# Seed example for dim_accounting_map. Spec ref: sec. 30.2 worked example.
+# "physical driver wins": if LOGISTICS_TKM is available, EFA owns it; EcoFA may
+# only price LOGISTICS_EUR for the same activity when the physical driver is absent.
+accounting_map:
+  - accounting_term_id: LOGISTICS_TKM
+    source_category: LOGISTICS
+    description: "Transport activity priced via physical driver (tonne*km)"
+    owning_module: EFA
+    physical_driver_first: true
+    fallback_module: null
+
+  - accounting_term_id: LOGISTICS_EUR
+    source_category: LOGISTICS
+    description: "Transport activity priced via economic proxy (EUR), used only when LOGISTICS_TKM is absent"
+    owning_module: ECOFA
+    physical_driver_first: true
+    fallback_module: EFA

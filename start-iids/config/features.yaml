@@ -1,0 +1,20 @@
+# Feature flags for START IIDS.
+# Rule (spec sec.3, sec.36): FUTURE capabilities MUST ship disabled. Flipping any of
+# these to true requires an explicit project-owner decision and an ADR, not a code change.
+features:
+  # Digital Twin / closed-loop control — permanently out of scope for the Digital Shadow.
+  # No code path in this repository may write to PLC/SCADA/actuators regardless of this flag;
+  # the flag exists only as a documented, auditable kill-switch for future architecture phases.
+  automatic_actuation: false
+
+  # RP6.9 prospective forecasting model — not validated, no operational implementation in v1.
+  arima_forecast: false
+
+  # RP6.9 concept-success probability model — not validated in v1.
+  logistic_success_model: false
+
+  # RP6.9 portfolio value optimizer V(C*) — not implemented in v1.
+  portfolio_optimizer: false
+
+  # DIM_TREND.source_type = 'FORECAST' rows — disabled until arima_forecast is approved.
+  trend_forecast_rows: false
