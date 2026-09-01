@@ -15,11 +15,14 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 - **27 / 30** v1 acceptance criteria (spec sec. 57) — **DONE**
 - **3 / 30** — **PARTIAL** (E2C live connector, full golden-regression approval,
   BI drill-down — semantic model shipped, report pages need GUI authoring)
-- **206 tests passing** (1 skipped, documented — see ADR-011), 95% coverage on
+- **211 tests passing** (1 skipped, documented — see ADR-011), 95% coverage on
   `src/`, CI green on `main`
 - Stage 9 self-check (ADR-017): `python3 -m scripts.stage9_validation_checklist`
   reports **10 PASS / 7 PARTIAL / 4 BLOCKED** out of 21 checklist items (spec
   sec. 65) — a live, re-runnable number, not a hand-maintained assertion
+- The real SRC-TEI/EFA/EcoFA/SFA manuals (repo-root PDFs) were found and read
+  (ADR-018): EFA/EcoFA/SFA formulas confirmed exact; TEI-J's quality-penalty
+  formula was wrong and is now fixed against the real manual text
 - Real RP7.3 aggregate EEA+/TSI model (ADR-012) **validated against 66 real,
   non-fabricated data points**; its coefficient/weight sets are **APPROVED**
   by the project owner (ADR-013, 2026-09-01)
@@ -37,7 +40,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 | 1 — Master data | plant/line/process/equipment/product/cluster DDL | **PARTIAL** — schema + loaders done; the 22 real RP6.8 clusters are now loaded (`data/reference/rp68_cluster_master.csv`, ADR-015); the 13.251-product export with cluster assignment (RP6.8 sec. 3.7) is an external blocker — not in this repository, not reconstructable from the report, needs whoever holds the raw RP6.8 deliverables |
 | 2 — Lot bridge | production lot / lot-process / product mapping | **DONE** (schema); real MES lot codes need contract mapping (P0-04) |
 | 3 — Process observation | E2C/MES ingestion, canonical units | **PARTIAL** — data contract mechanism done (`src/ingestion/contracts.py`), one example contract (`MES_PRODUCTION_V1`); no live Edge/MES/SCADA connector is implemented (needs IT source mappings, P0-03) |
-| 4 — EEA engines | TEI → EFA → EcoFA → SFA → EEA aggregation | **DONE** (formulas + engines + tests) + an aggregate plant/year path (`src/engines/eea/aggregate.py`, ADR-012) validated against 66 real data points from `data/reference/RP7.3_calculation_log.xlsx`. Coefficients (`COEFF_RP73_PROVISIONAL_2026`) and AHP weights (`EEA_AHP_RP73_1`) are `APPROVED` as of 2026-09-01 (ADR-013) — P0-02 **resolved for the aggregate model**; the granular per-lot coefficients used by the TEI/EFA/EcoFA/SFA engines directly remain unapproved test-only values (ADR-011) |
+| 4 — EEA engines | TEI → EFA → EcoFA → SFA → EEA aggregation | **DONE** (formulas + engines + tests) + an aggregate plant/year path (`src/engines/eea/aggregate.py`, ADR-012) validated against 66 real data points from `data/reference/RP7.3_calculation_log.xlsx`. Coefficients (`COEFF_RP73_PROVISIONAL_2026`) and AHP weights (`EEA_AHP_RP73_1`) are `APPROVED` as of 2026-09-01 (ADR-013) — P0-02 **resolved for the aggregate model**. The 4 real SRC-TEI/EFA/EcoFA/SFA manuals (repo root PDFs) were found and read (ADR-018): EFA/EcoFA/SFA formulas already matched exactly; TEI-J's quality-penalty formula was wrong (absolute-difference vs the manual's ratio shortfall) and is now fixed (`engine_version` 1.1.0). Granular coefficient *values* (`B_TILE`, `B_SDM`, `KAPPA_MTS`, etc.) remain `DRAFT`/test-only — the real coefficient library ("Tabella 2") every manual points to is not part of this corpus, an external blocker like issue #7's product export, not a code gap |
 | 5 — Product intelligence | sales, cluster performance, trend | **DONE** (schema + CQS + trend classification + SCD2 catalog) |
 | 6 — P-TSA | SCR/PsI/OCR/z-score/AHP/P-TSI/TII | **DONE** (engine + tests); z-score golden regression blocked on RP7.4 dataset (ADR-011 item 5) |
 | 7 — Product Design workflow | project/option/prototype/test/decision | **DONE** (schema + state machine + decision enum) |
@@ -52,7 +55,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 4. Lot associated with product — DONE
 5. Product associated with cluster — DONE
 6. Historical state reconstructable — DONE (historical-replay repository queries, sec. 46; proven across multiple time points, not just one, in `test_factory_shadow_historical_replay_across_two_periods`, ADR-017)
-7-10. TEI/EFA/EcoFA/SFA operational — DONE
+7-10. TEI/EFA/EcoFA/SFA operational — DONE; formulas cross-checked against the real SRC-TEI/EFA/EcoFA/SFA manuals (ADR-018) — EFA/EcoFA/SFA matched exactly, TEI-J's quality-penalty formula was corrected
 11. EEA aggregates four contributions — DONE
 12. TSI_norm computable with coherent baseline — DONE, and the fuller real RP7.3 `TSI_abs`/`TSI_rel`/`Phi`/`Psi`/`SA_w` variant (ADR-012) reproduces 66 real logged values (`tests/regression/test_rp73_calculation_log.py`)
 13. Sales associable to product — DONE
@@ -101,10 +104,15 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
     repository) and run `python3 -m scripts.import_rp68_product_master_data
     --products-csv <file>` — the importer is ready and FK-validated against
     the real cluster set, only the input file is missing (issue #7).
-4. Resolve the five ADR-011 open items (TEI-J quality penalty, MTO powder
-   pricing, `B_TILE`, cluster-trend thresholds, P-TSA z-score fixture) with the
-   actual SRC-TEI/EFA/EcoFA/SFA/RP74 manual text and an owner sign-off — these
-   are separate from, and not covered by, the ADR-013 approval.
+4. ~~Resolve ADR-011 items 1-3 (TEI-J quality penalty, MTO powder pricing,
+   `B_TILE`) against the actual SRC-TEI manual text~~ — **done, ADR-018**: the
+   4 real manuals were found at the repo root; TEI-J's formula is fixed,
+   EFA/EcoFA/SFA confirmed correct. Still open: get the project owner's
+   sign-off on actual coefficient *values* once the real "Tabella 2" library
+   (referenced by all 4 manuals, not part of this corpus) is available —
+   confirming a formula is not approving a value (sec. 11.3). ADR-011 item 4
+   (cluster-trend thresholds) and item 5 (P-TSA z-score/RP7.4 fixture) are
+   untouched by this — neither is a formula question the manuals answer.
 5. ~~Build the Power BI semantic model against `mv_intelligent_industry_state`~~
    — **done, ADR-016**: `bi/powerbi/START_IIDS.SemanticModel/` (TMDL), built
    and testable today against the synthetic dataset via

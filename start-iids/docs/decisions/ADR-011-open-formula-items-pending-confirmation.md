@@ -1,34 +1,36 @@
 # ADR-011 — Open formula items pending project-owner / SRC-manual confirmation
 
-**Status:** OPEN — implemented as best-effort ARCH placeholders, flagged in code
+**Status:** PARTIALLY SUPERSEDED (items 1-3 by ADR-018, 2026-09-01) — see below
 
 This ADR tracks implementation choices made where the implementation spec names
-an input/output and a source manual, but the corresponding manual's full text is
-not available as machine-readable content in this corpus (only referenced PDF
-filenames: `SRC-TEI`, `SRC-EFA`, `SRC-ECO`, `SRC-SFA`, `SRC-RP74`). Per the
-project's own governance rule (spec Appendix M — "Qualsiasi modifica di formula
-richiede: ADR + source reference + test old + test new + migration/version
-increment + approval"), none of the following should be treated as production
-sign-off; each is implemented defensively (fails closed / never silently guesses)
-and documented in-line at its point of use.
+an input/output and a source manual. **Update (ADR-018):** items 1-3 below were
+written on the premise that the SRC-TEI manual "is not available as
+machine-readable content in this corpus" — that premise was wrong; the manual
+is a readable PDF at the repo root (`Manuale operativo – Modulo TEI‑J (beta)
+per EEA+.pdf`). ADR-018 confirms items 2 and 3 were already implemented
+correctly, and corrects item 1's formula. Per the project's own governance rule
+(spec Appendix M — "Qualsiasi modifica di formula richiede: ADR + source
+reference + test old + test new + migration/version increment + approval"),
+resolving the *formula* is not the same as approving the *coefficient value* —
+see ADR-018 for exactly what remains open (the real coefficient library,
+"Tabella 2", is still not part of this corpus).
 
-## 1. TEI-J quality penalty (sec. 14.7)
-`src/engines/tei/formulas.py::compute_quality_penalty` implements a shortfall
-penalty `kappa * max(0, q_thr - q) * exposed_exergy`. The manual's exact
-algebraic form is referenced but not transcribed in the spec beyond naming its
-three inputs (`q`, `q_thr`, `kappa`). **Action required:** confirm against
-SRC-TEI before using in a production sign-off calculation.
+## 1. TEI-J quality penalty (sec. 14.7) — SUPERSEDED by ADR-018
+~~`src/engines/tei/formulas.py::compute_quality_penalty` implements a shortfall
+penalty `kappa * max(0, q_thr - q) * exposed_exergy`.~~ Corrected to the
+manual's actual ratio-shortfall formula, `kappa * max(0, 1 - q/q_target) *
+exposed_exergy` (Manuale TEI-J §4.4/5.4) — see ADR-018.
 
-## 2. TEI-J MTO powder pricing (sec. 14.5)
-The minimal MTO dataset carries `m_SDU` (powder used) while the loss formula
-names `Ex_SDM`. This implementation prices `m_sdu_kg` using the `B_SDM`
-coefficient (same atomized-powder material). **Action required:** confirm this
-identification against SRC-TEI.
+## 2. TEI-J MTO powder pricing (sec. 14.5) — CONFIRMED by ADR-018
+Manual §3 confirms `Ex_SDU = m_SDU * b_SD`: pricing `m_sdu_kg` with the
+`B_SDM` coefficient (same atomized-powder material) was already correct.
 
-## 3. TEI-J specific exergy per manufactured tile (`B_TILE`)
-`Ex_T = N_T_man * b_tile` requires a specific-exergy-per-tile coefficient not
-named explicitly in sec. 14. `B_TILE` is introduced as a new `TEI`-domain
-coefficient code, to be populated in an APPROVED `dim_coefficient` set.
+## 3. TEI-J specific exergy per manufactured tile (`B_TILE`) — CONFIRMED by ADR-018
+Manual §3 confirms `Ex_T = N_T^man * b_T` (the manual's own Power BI example
+names it `b_tile_MJex_per_pz`) — this module's `B_TILE` coefficient and
+`Ex_T = N_T_man * b_tile` formula were already the right shape. Still `DRAFT`/
+test-only as a coefficient *value*, pending the real Tabella 2 and
+project-owner approval (ADR-018).
 
 ## 4. Cluster performance trend thresholds (sec. 20.2)
 `src/product/sales/cluster_performance.py` classifies GROWTH/STABLE/DECLINE at

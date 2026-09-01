@@ -1,19 +1,28 @@
 """TEI-J pure formulas (Technological Exergy Impact, Joule-based).
 
-Spec ref: `docs/sources/..._Implementation_Spec_v1.0.md` sec. 14 and Appendix A.
+Spec ref: `docs/sources/..._Implementation_Spec_v1.0.md` sec. 14 and Appendix A,
+cross-checked against "Manuale operativo – Modulo TEI-J (beta) per EEA+" (repo
+root PDF) — ADR-018 supersedes ADR-011 items 1-3 for this module: that ADR was
+written believing the SRC-TEI manual had no machine-readable text in this
+corpus, but the PDF was present in the repo root all along (ADR-018).
 
-ARCH note (be explicit — this is NOT a verbatim transcription of the SRC-TEI
-manual, which is not available as machine-readable text in this corpus, only as a
-referenced PDF filename): the manual's exact algebraic form of the quality-penalty
-term (sec. 14.7, "Applicare la formula del manuale utilizzando: q, q_thr, kappa")
-and the specific-exergy-per-tile coefficient used to derive ``Ex_T`` are not spelled
-out character-for-character in the implementation spec. This module implements the
-most direct reading consistent with the documented inputs/outputs and flags both as
-`ARCH — pending confirmation against SRC-TEI` in-line. Do not treat these two points
-as final without sign-off from the project owner (see `docs/decisions/ADR-011...`).
-Everything else in this module (exergy conversions, MTS/MTO loss, backlog with its
-N_man=0 / N_sold>N_man guards, and the f_tech aggregation) is DOC — a direct
-transcription of sec. 14.3-14.8.
+Everything in this module is now DOC (confirmed against the real manual):
+exergy conversions, MTS/MTO loss (sec. 3-5 / manual §3-5), backlog with its
+N_man=0 / N_sold>N_man guards (manual §5.3), the f_tech aggregation (manual
+§6.3), the quality-penalty ratio formula (manual §4.4/5.4, `compute_quality_penalty`
+docstring — corrected from an earlier ARCH guess, see ADR-018), and the MTO
+powder-pricing / B_TILE identifications (manual §3: `Ex_SDU = m_SDU * b_SD`,
+`Ex_T = N_T^man * b_T`, confirming this module's `B_SDM`/`B_TILE` coefficient
+choices were already right).
+
+Still open (ADR-018, not fabricated here): the manual's quality-penalty sum
+runs over multiple parameters k with a dedicated `Quality` fact table (manual
+§8.3); this module's single-parameter case is what sec. 14.2's minimal MTS/MTO
+dataset actually carries. And per Appendix M, a confirmed *formula* is not the
+same as an *approved coefficient value* — B_TILE/B_SDM/KAPPA_MTS/KAPPA_MTO
+numeric values remain DRAFT/test-only pending the project owner's sign-off on
+an actual `dim_coefficient` set (ADR-011 item 4 tracks a separate, unrelated
+open item: cluster-trend thresholds).
 """
 from __future__ import annotations
 
@@ -147,18 +156,41 @@ def compute_backlog(flow: MTOFlow, ex_t_mj: float, record_key: str) -> tuple[flo
 
 
 def compute_quality_penalty(
-    q: float | None, q_thr: float | None, kappa: float | None, exposed_exergy_mj: float
+    q: float | None, q_target: float | None, kappa: float | None, exposed_exergy_mj: float,
+    record_key: str = "",
 ) -> float:
-    """Sec. 14.7 — ARCH pending SRC-TEI confirmation (see module docstring).
+    """Sec. 14.7 (MTS4/MTO4) — DOC, confirmed verbatim against "Manuale operativo
+    – Modulo TEI-J (beta) per EEA+" sec. 4.4/5.4 (ADR-018, supersedes ADR-011 item 1):
 
-    Implemented as a shortfall penalty: zero when quality meets/exceeds threshold,
-    otherwise proportional to the shortfall, the exergy exposed in that perimeter,
-    and the approved `kappa` coefficient. Any missing input yields zero penalty
-    (treated as "not measured", never as an implicit pass/fail judgement call).
+        Ex_qual = kappa * max(0, 1 - q / q_target) * Ex_exposed
+
+    A *ratio* shortfall against a target/acceptability value `q_target` (the
+    manual's q-bar), not the absolute-difference shortfall `max(0, q_thr - q)`
+    this module used before the manual became available — the two are only
+    equivalent when q is already normalized to a [0, 1] scale with q_target=1,
+    which sec. 14.2's minimal dataset never guaranteed. `q_target` corresponds
+    to the `Q_THR_MTS`/`Q_THR_MTO` coefficients (name unchanged to avoid an
+    unrelated config/schema churn); "threshold" there means this ratio's
+    denominator, not a subtraction reference point.
+
+    The manual sums this term over multiple quality parameters k (its own
+    kappa_k per parameter); this module still handles the single-parameter
+    case (K={1}) sec. 14.2's minimal MTS/MTO dataset carries — a true
+    per-parameter sum needs a `Quality` fact table (manual sec. 8.3) this
+    schema doesn't have yet, tracked as a follow-up, not fabricated here.
+
+    Any missing input yields zero penalty ("not measured", never an implicit
+    pass/fail judgement call).
     """
-    if q is None or q_thr is None or kappa is None:
+    if q is None or q_target is None or kappa is None:
         return 0.0
-    shortfall = max(0.0, q_thr - q)
+    if q_target <= 0:
+        raise EngineError(
+            ErrorCategory.PHYSICAL_RANGE_ERROR,
+            f"q_target must be > 0 (it is a ratio denominator), got {q_target}",
+            record_key=record_key,
+        )
+    shortfall = max(0.0, 1.0 - (q / q_target))
     return kappa * shortfall * exposed_exergy_mj
 
 
