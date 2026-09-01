@@ -12,10 +12,16 @@ validate and drive the ADR-012 aggregate EEA+/TSI model:
 - `ahp_weights.xlsx` — AHP pairwise comparison matrix and resulting weights for
   the `env`/`econ`/`soc`/`tech` dimensions.
 
-**Status: provisional.** Per the `Istruzioni` sheet in the data collection file:
-*"I valori inseriti sono provvisori e in corso di consolidamento con le serie
-storiche definitive."* The derived coefficient set
-(`config/coefficients/rp73_provisional_2026.yaml`) and weight set
-(`config/weights/eea_ahp_rp73.yaml`) are loaded with `status: DRAFT` accordingly
-— per spec sec. 11.3, a DRAFT set must never feed a production calc-run. See
-`docs/decisions/ADR-012-...` for full derivation and the verified formulas.
+**Data collection round: still labeled provisional by its own source.** Per
+the `Istruzioni` sheet in the data collection file: *"I valori inseriti sono
+provvisori e in corso di consolidamento con le serie storiche definitive."*
+
+**Derived coefficient/weight sets: APPROVED (ADR-013, 2026-09-01).** The
+project owner (Davide Settembre) has explicitly signed off on using
+`config/coefficients/rp73_provisional_2026.yaml`
+(`COEFF_RP73_PROVISIONAL_2026`) and `config/weights/eea_ahp_rp73.yaml`
+(`EEA_AHP_RP73_1`) for current calculations — see `docs/decisions/ADR-013-...`
+for the exact scope of that approval (it covers only these two sets, not the
+granular per-lot coefficients tracked in ADR-011, and it does not resolve the
+`Psi`/`Ex_useful` open item). See `docs/decisions/ADR-012-...` for the full
+model derivation and the verified formulas.

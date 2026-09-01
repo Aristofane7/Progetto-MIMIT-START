@@ -14,7 +14,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 | 1 — Master data | plant/line/process/equipment/product/cluster DDL | **DONE** (schema + loaders); real 13.251-product / 22-cluster CSV import is a data-loading exercise for whoever owns the RP6.8 export, not a code gap |
 | 2 — Lot bridge | production lot / lot-process / product mapping | **DONE** (schema); real MES lot codes need contract mapping (P0-04) |
 | 3 — Process observation | E2C/MES ingestion, canonical units | **PARTIAL** — data contract mechanism done (`src/ingestion/contracts.py`), one example contract (`MES_PRODUCTION_V1`); no live Edge/MES/SCADA connector is implemented (needs IT source mappings, P0-03) |
-| 4 — EEA engines | TEI → EFA → EcoFA → SFA → EEA aggregation | **DONE** (formulas + engines + tests) + an aggregate plant/year path (`src/engines/eea/aggregate.py`, ADR-012) validated against 66 real data points from `data/reference/RP7.3_calculation_log.xlsx`. Coefficients (`COEFF_RP73_PROVISIONAL_2026`, real project data) and AHP weights (`EEA_AHP_RP73_1`) are loaded but `DRAFT` — source explicitly labeled provisional (P0-02 partially resolved: real data now exists, formal APPROVED sign-off still open) |
+| 4 — EEA engines | TEI → EFA → EcoFA → SFA → EEA aggregation | **DONE** (formulas + engines + tests) + an aggregate plant/year path (`src/engines/eea/aggregate.py`, ADR-012) validated against 66 real data points from `data/reference/RP7.3_calculation_log.xlsx`. Coefficients (`COEFF_RP73_PROVISIONAL_2026`) and AHP weights (`EEA_AHP_RP73_1`) are `APPROVED` as of 2026-09-01 (ADR-013) — P0-02 **resolved for the aggregate model**; the granular per-lot coefficients used by the TEI/EFA/EcoFA/SFA engines directly remain unapproved test-only values (ADR-011) |
 | 5 — Product intelligence | sales, cluster performance, trend | **DONE** (schema + CQS + trend classification + SCD2 catalog) |
 | 6 — P-TSA | SCR/PsI/OCR/z-score/AHP/P-TSI/TII | **DONE** (engine + tests); z-score golden regression blocked on RP7.4 dataset (ADR-011 item 5) |
 | 7 — Product Design workflow | project/option/prototype/test/decision | **DONE** (schema + state machine + decision enum) |
@@ -49,7 +49,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 27. calc_run reproducible — DONE (`audit_calc_run`, `make_calc_run_id`)
 28. Data quality visible — DONE (`audit_data_quality`, blocker queries)
 29. P0 unit conversion validated — DONE (`test_units_energy.py`)
-30. Golden regression tests approved — **PARTIAL**: CQS (sec. 19.5), the P-TSA AHP-formula self-consistency check, and — the strongest evidence so far — 66 real, non-fabricated RP7.3 EEA+/TSI data points (`f_env`/`f_econ`/`f_soc`/`f_tech`/`SA_raw`/`Ex_ref`/`TSI_abs`/`TSI_rel`, ADR-012) all pass; the P-TSA z-score targets remain blocked on a real fixture (see ADR-011). "Approved" in the governance sense (sec. 61 decision log) still requires project-owner sign-off — these are test-suite passes, not formal approvals
+30. Golden regression tests approved — **PARTIAL**: CQS (sec. 19.5), the P-TSA AHP-formula self-consistency check, and — the strongest evidence so far — 66 real, non-fabricated RP7.3 EEA+/TSI data points (`f_env`/`f_econ`/`f_soc`/`f_tech`/`SA_raw`/`Ex_ref`/`TSI_abs`/`TSI_rel`, ADR-012) all pass against coefficient/weight sets now formally `APPROVED` (ADR-013, 2026-09-01); the P-TSA z-score targets remain blocked on a real fixture (see ADR-011), and the granular per-lot TEI/EFA/EcoFA/SFA coefficients are still unapproved test-only values
 
 ## What was deliberately NOT built (FUTURE / out of scope, per spec)
 
@@ -61,16 +61,19 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 
 ## Next steps for whoever continues this work
 
-1. Get the RP7.3 historical series consolidated, then have the project owner
-   formally promote `COEFF_RP73_PROVISIONAL_2026` and `EEA_AHP_RP73_1` from
-   `DRAFT` to `APPROVED` (never skip the review, never do this in code).
+1. ~~Promote `COEFF_RP73_PROVISIONAL_2026` and `EEA_AHP_RP73_1` from `DRAFT` to
+   `APPROVED`~~ — **done, ADR-013 (2026-09-01)**. If the RP7.3 historical
+   series is later consolidated with different values, that must land under a
+   new `coefficient_set_id`/`weight_set_id` (sec. 11.3 point 4), never as an
+   in-place edit of the approved set.
 2. Resolve the `Psi`/`Ex_useful` open item (ADR-012) with the project owner —
-   currently a reported, not derived, input.
+   currently a reported, not derived, input; unaffected by ADR-013.
 3. Get IT to supply real MES/SCADA/ERP/HR/LIMS field names and complete
    `audit_source_mapping` + per-source YAML contracts (P0-03).
 4. Resolve the five ADR-011 open items (TEI-J quality penalty, MTO powder
    pricing, `B_TILE`, cluster-trend thresholds, P-TSA z-score fixture) with the
-   actual SRC-TEI/EFA/EcoFA/SFA/RP74 manual text and an owner sign-off.
+   actual SRC-TEI/EFA/EcoFA/SFA/RP74 manual text and an owner sign-off — these
+   are separate from, and not covered by, the ADR-013 approval.
 5. Build the Power BI semantic model against `mv_intelligent_industry_state` /
    the read-only API (sec. 38).
 6. Run the Stage 9 checklist (spec sec. 65) against a staging environment with

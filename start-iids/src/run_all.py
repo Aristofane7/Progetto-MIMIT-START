@@ -10,19 +10,19 @@ the verified formulas (`src/engines/eea/aggregate.py`) over
 that workbook's own `Istruzioni` sheet: *"Rigenerazione: sostituire i valori e
 rieseguire python3 -m src.run_all (stessa struttura di calcolo)."*
 
-PROVISIONAL / DEMO SCRIPT — NOT A PRODUCTION CALC-RUN.
-
 The coefficient set (`COEFF_RP73_PROVISIONAL_2026`) and AHP weight set
-(`EEA_AHP_RP73_1`) are stored as `status: DRAFT` (sec. 11.3) because the source
-data is explicitly labeled provisional. This script is the one place in the
-codebase that locally re-wraps those DRAFT sets as `APPROVED` purely for this
-in-memory run — the persisted YAML on disk is untouched, no engine anywhere
-else does this, and every run prints a loud banner saying so. Promoting the
-YAML files themselves to APPROVED requires an explicit project-owner decision.
+(`EEA_AHP_RP73_1`) are `status: APPROVED` as of 2026-09-01 (ADR-013, signed off
+by the project owner) — this script loads and uses them exactly as any other
+production calculation would, through `CoefficientSet.get`/`WeightSet.
+get_dimension_weight`, with no special-casing. The underlying RP7.3 data
+collection round is still labeled "provisional" by its own source sheet
+(future consolidation may supersede these six values with a new
+coefficient_set_id, per sec. 11.3 point 4), but their current use is approved.
 
 `Psi` (exergy efficiency) is read directly from the existing calculation log as
 a reported input, pending resolution of the `Ex_useful` derivation (ADR-012
-open item) — it is not recomputed from scratch here.
+open item, unaffected by the coefficient/weight approval) — it is not
+recomputed from scratch here.
 """
 from __future__ import annotations
 
@@ -32,8 +32,8 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-from src.core.coefficients import CoefficientSet, load_coefficient_set
-from src.core.weights import WeightSet, load_weight_set
+from src.core.coefficients import load_coefficient_set
+from src.core.weights import load_weight_set
 from src.engines.eea.aggregate import compute_aggregate_state
 from src.ingestion.rp73_reference_data import load_rp73_calculation_log, load_rp73_reference_data
 
@@ -48,33 +48,19 @@ FIELDNAMES = [
 ]
 
 
-def _elevate_for_provisional_demo_run(coefficient_set: CoefficientSet) -> CoefficientSet:
-    """Re-wrap a DRAFT coefficient set as APPROVED for this in-memory run only.
-    See module docstring — never do this outside `src/run_all.py`."""
-    return CoefficientSet(coefficient_set.coefficient_set_id, "APPROVED", coefficient_set.coefficients())
-
-
-def _elevate_weight_set_for_provisional_demo_run(weight_set: WeightSet) -> WeightSet:
-    return WeightSet(weight_set.weight_set_id, "APPROVED", weight_set.weights())
-
-
 def run(output_path: Path | None = None) -> list[dict]:
+    coefficient_set = load_coefficient_set(CONFIG_DIR / "coefficients" / "rp73_provisional_2026.yaml")
+    weight_set = load_weight_set(CONFIG_DIR / "weights" / "eea_ahp_rp73.yaml")
     print(
-        "WARNING: provisional/demo run — COEFF_RP73_PROVISIONAL_2026 and "
-        "EEA_AHP_RP73_1 are DRAFT (not APPROVED) and are being used here for "
-        "reference-log regeneration only. This is NOT a production calc-run. "
-        "See ADR-012.",
+        f"Using APPROVED coefficient set '{coefficient_set.coefficient_set_id}' "
+        f"(approved_by={coefficient_set.approved_by}, approved_at={coefficient_set.approved_at}) "
+        f"and weight set '{weight_set.weight_set_id}' "
+        f"(approved_by={weight_set.approved_by}, approved_at={weight_set.approved_at}). See ADR-013.",
         file=sys.stderr,
     )
 
     reference_data = load_rp73_reference_data(DATA_DIR / "RP7.3_data_collection_20232025.xlsx")
     calculation_log = load_rp73_calculation_log(DATA_DIR / "RP7.3_calculation_log.xlsx")
-    coefficient_set = _elevate_for_provisional_demo_run(
-        load_coefficient_set(CONFIG_DIR / "coefficients" / "rp73_provisional_2026.yaml")
-    )
-    weight_set = _elevate_weight_set_for_provisional_demo_run(
-        load_weight_set(CONFIG_DIR / "weights" / "eea_ahp_rp73.yaml")
-    )
 
     today = datetime.now(UTC).date().isoformat()
     rows: list[dict] = []

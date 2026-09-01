@@ -42,11 +42,20 @@ class CoefficientSet:
     loaded as DRAFT and must stay out of the engines until reviewed and approved.
     """
 
-    def __init__(self, coefficient_set_id: str, status: str, coefficients: dict[str, Coefficient]):
+    def __init__(
+        self,
+        coefficient_set_id: str,
+        status: str,
+        coefficients: dict[str, Coefficient],
+        approved_by: str | None = None,
+        approved_at: str | None = None,
+    ):
         if status not in ("DRAFT", "APPROVED", "RETIRED"):
             raise ValueError(f"invalid coefficient set status '{status}'")
         self.coefficient_set_id = coefficient_set_id
         self.status = status
+        self.approved_by = approved_by
+        self.approved_at = approved_at
         self._coefficients = dict(coefficients)
 
     def get(self, code: str) -> Coefficient:
@@ -78,10 +87,11 @@ class CoefficientSet:
     def raw_value(self, code: str) -> float:
         """Return a coefficient's numeric value WITHOUT the APPROVED-status gate.
 
-        For provisional/demo pipelines only (e.g. `src/run_all.py` regenerating
-        the RP7.3 reference log from an explicitly DRAFT set, ADR-012) — never
-        call this from a calculation engine. Engines must always go through
-        :meth:`get`, which enforces sec. 11.3.
+        For provisional/demo pipelines validating a still-DRAFT set's numbers
+        against known-good outputs before it can be promoted (e.g. how
+        `COEFF_RP73_PROVISIONAL_2026` was checked prior to ADR-013's approval)
+        — never call this from a calculation engine. Engines must always go
+        through :meth:`get`, which enforces sec. 11.3.
         """
         coefficient = self._coefficients.get(code)
         if coefficient is None:
@@ -116,4 +126,6 @@ def load_coefficient_set(path: str | Path) -> CoefficientSet:
         coefficient_set_id=set_meta["coefficient_set_id"],
         status=set_meta["status"],
         coefficients=coefficients,
+        approved_by=set_meta.get("approved_by"),
+        approved_at=set_meta.get("approved_at"),
     )

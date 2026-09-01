@@ -44,11 +44,11 @@ pip install -e ".[dev]"
 pytest
 ```
 
-## Pipeline aggregata EEA+/TSI (dati reali provvisori RP7.3)
+## Pipeline aggregata EEA+/TSI (dati reali RP7.3)
 
-`data/reference/` contiene i file reali (seppur provvisori) del progetto:
-raccolta dati 2023-2025, log di calcolo di riferimento e matrice AHP. La
-pipeline che li consuma è descritta in `docs/decisions/ADR-012-...`:
+`data/reference/` contiene i file reali del progetto: raccolta dati 2023-2025,
+log di calcolo di riferimento e matrice AHP. La pipeline che li consuma è
+descritta in `docs/decisions/ADR-012-...`:
 
 ```bash
 python3 -m src.run_all                       # stampa il log su stdout
@@ -56,10 +56,12 @@ python3 -m src.run_all --output out.csv       # scrive il log su file
 pytest tests/regression/test_rp73_calculation_log.py  # verifica contro i valori reali pubblicati
 ```
 
-Attenzione: il coefficient set e il weight set usati sono `DRAFT` (dati
-provvisori, non ancora approvati) — `run_all.py` lo segnala esplicitamente e
-non deve essere considerato un calcolo di produzione (sez. 11.3 della
-specifica).
+Il coefficient set (`COEFF_RP73_PROVISIONAL_2026`) e il weight set
+(`EEA_AHP_RP73_1`) sono `APPROVED` (sign-off del 2026-09-01, vedi
+`docs/decisions/ADR-013-...`); la loro copertura è però limitata al modello
+aggregato annuale/impianto — i coefficienti granulari usati dai motori
+per-lotto restano `DRAFT` (vedi ADR-011), e l'input `Psi`/`Ex_useful` resta un
+dato riportato, non derivato.
 
 ## Stato di avanzamento
 

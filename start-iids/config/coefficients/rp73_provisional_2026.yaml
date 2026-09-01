@@ -1,16 +1,20 @@
 # Real RP7.3 coefficients, transcribed verbatim from the "Coefficienti" sheet of
-# data/reference/RP7.3_data_collection_20232025.xlsx. See ADR-012.
+# data/reference/RP7.3_data_collection_20232025.xlsx. See ADR-012 and ADR-013.
 #
-# status: DRAFT — per spec sec. 11.3, a DRAFT set must never feed a production
-# calc-run. This is real, source-attributed project data (not a manual
-# placeholder), but the source data itself is explicitly labeled provisional.
-# Promote to APPROVED only via an explicit project-owner decision once the
-# historical series is consolidated (see the source workbook's Istruzioni sheet).
+# status: APPROVED — promoted from DRAFT by explicit project-owner decision
+# (ADR-013, 2026-09-01). The underlying data collection round is still labeled
+# "provisional" by its own source sheet (values may be revised once the
+# historical series is consolidated), but the project owner has signed off on
+# using these six coefficients for current calculations. Any future value
+# change (not just a status change) must create a NEW coefficient_set_id per
+# sec. 11.3 point 4 — never edit an APPROVED set's values in place.
 coefficient_set:
   coefficient_set_id: COEFF_RP73_PROVISIONAL_2026
   description: "RP7.3 provisional coefficient library (2023-2025 data collection)"
   reference_year: 2025
-  status: DRAFT
+  status: APPROVED
+  approved_by: "Davide Settembre"
+  approved_at: "2026-09-01"
 
 coefficients:
   - coefficient_id: EL_EX

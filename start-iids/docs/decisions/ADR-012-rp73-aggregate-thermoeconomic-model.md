@@ -93,13 +93,14 @@ a `Psi` value from scratch in this codebase.
    same `WeightSet` abstraction as P-TSA's AHP weights (sec. 24.8/24.9), under a
    distinct `weight_set_id` (`EEA_AHP_RP73_1`) — never hardcoded in a formula.
 3. `dim_coefficient` gains `EL_EX`, `GAS_EX`, `IMP_CO2`, `ECO_VA`, `ECO_IN`,
-   `LAB_H` under a coefficient set loaded as **`DRAFT`**, not `APPROVED` — the
-   source data explicitly says these are provisional ("in corso di
-   consolidamento con le serie storiche definitive"). Per sec. 11.3, a `DRAFT`
-   set must never feed a production calculation; it is used here only for
-   regression testing and demonstration (`src/run_all.py`), clearly labeled as
-   such. Promoting it to `APPROVED` requires an explicit project-owner sign-off
-   once the historical series is consolidated.
+   `LAB_H` under a coefficient set that was loaded as `DRAFT` at the time this
+   ADR was first written — the source data explicitly says these are
+   provisional ("in corso di consolidamento con le serie storiche
+   definitive"), and per sec. 11.3 a `DRAFT` set must never feed a production
+   calculation. **Update (2026-09-01):** the project owner has since promoted
+   both `COEFF_RP73_PROVISIONAL_2026` and `EEA_AHP_RP73_1` to `APPROVED` —
+   see **ADR-013** for the exact scope of that sign-off (it does not cover the
+   granular per-lot coefficients, nor the `Psi`/`Ex_useful` open item below).
 4. `fact_eea_state` gains nullable `ex_ref_gj`, `sa_w_gj`, `phi`, `psi`,
    `tsi_abs` columns via a new, additive migration (`0010_...sql`) — existing
    lot/process-level rows populated by the granular TEI/EFA/EcoFA/SFA engines

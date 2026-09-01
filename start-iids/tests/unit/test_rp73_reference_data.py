@@ -8,20 +8,26 @@ DATA_DIR = pathlib.Path(__file__).resolve().parents[2] / "data" / "reference"
 CONFIG_DIR = pathlib.Path(__file__).resolve().parents[2] / "config"
 
 
-def test_load_coefficient_set_from_yaml_is_draft():
+def test_load_coefficient_set_from_yaml_is_approved():
+    # ADR-013: promoted from DRAFT to APPROVED on 2026-09-01.
     coeff_set = load_coefficient_set(CONFIG_DIR / "coefficients" / "rp73_provisional_2026.yaml")
     assert coeff_set.coefficient_set_id == "COEFF_RP73_PROVISIONAL_2026"
-    assert coeff_set.status == "DRAFT"
-    assert coeff_set.raw_value("EL_EX") == 3.6
-    assert coeff_set.raw_value("GAS_EX") == 42
+    assert coeff_set.status == "APPROVED"
+    assert coeff_set.approved_by == "Davide Settembre"
+    assert coeff_set.approved_at == "2026-09-01"
+    assert coeff_set.get("EL_EX").value == 3.6
+    assert coeff_set.get("GAS_EX").value == 42
 
 
-def test_load_weight_set_from_yaml_is_draft():
+def test_load_weight_set_from_yaml_is_approved():
+    # ADR-013: promoted from DRAFT to APPROVED on 2026-09-01.
     weight_set = load_weight_set(CONFIG_DIR / "weights" / "eea_ahp_rp73.yaml")
     assert weight_set.weight_set_id == "EEA_AHP_RP73_1"
-    assert weight_set.status == "DRAFT"
-    assert weight_set.raw_dimension_weight("env") == 0.3661
-    assert weight_set.raw_dimension_weight("tech") == 0.3934
+    assert weight_set.status == "APPROVED"
+    assert weight_set.approved_by == "Davide Settembre"
+    assert weight_set.approved_at == "2026-09-01"
+    assert weight_set.get_dimension_weight("env") == 0.3661
+    assert weight_set.get_dimension_weight("tech") == 0.3934
 
 
 def test_load_rp73_reference_data_has_three_plants():

@@ -28,11 +28,20 @@ class WeightSet:
     architecturally a sibling registry to a coefficient set (both are APPROVED,
     versioned, governed parameter sets — see sec. 11 vs 24.9)."""
 
-    def __init__(self, weight_set_id: str, status: str, weights: dict[tuple[str, str], Weight]):
+    def __init__(
+        self,
+        weight_set_id: str,
+        status: str,
+        weights: dict[tuple[str, str], Weight],
+        approved_by: str | None = None,
+        approved_at: str | None = None,
+    ):
         if status not in ("DRAFT", "APPROVED", "RETIRED"):
             raise ValueError(f"invalid weight set status '{status}'")
         self.weight_set_id = weight_set_id
         self.status = status
+        self.approved_by = approved_by
+        self.approved_at = approved_at
         self._weights = dict(weights)
 
     def _get(self, dimension_code: str, metric_code: str) -> Weight:
@@ -66,7 +75,8 @@ class WeightSet:
 
     def raw_dimension_weight(self, dimension_code: str) -> float:
         """Return a dimension weight WITHOUT the APPROVED-status gate. For
-        provisional/demo pipelines only (ADR-012) — never call from an engine."""
+        validating a still-DRAFT set's numbers before promotion (ADR-012/013)
+        — never call from an engine."""
         weight = self._weights.get((dimension_code, DIMENSION_LEVEL))
         if weight is None:
             raise EngineError(
@@ -95,4 +105,6 @@ def load_weight_set(path: str | Path) -> WeightSet:
         weight_set_id=set_meta["weight_set_id"],
         status=set_meta["status"],
         weights=weights,
+        approved_by=set_meta.get("approved_by"),
+        approved_at=set_meta.get("approved_at"),
     )
