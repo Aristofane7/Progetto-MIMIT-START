@@ -61,7 +61,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 21. Prototype test linked — DONE (schema: `fact_quality_test.prototype_id`)
 22. Design decision auditable — DONE
 23. IIDS view available — DONE
-24. BI drill-down functioning — **NOT STARTED** (Power BI semantic model is a BI-tool artifact, sec. 38, out of this Python/SQL repository's scope; the read-only API + view provide the data it would consume)
+24. BI drill-down functioning — **NOT STARTED** (Power BI semantic model is a BI-tool artifact, sec. 38, out of this Python/SQL repository's scope; the read-only API + view provide the data it would consume). Development against real data waits on issues #3/#7; a temporary, clearly-tagged synthetic dataset (`scripts/generate_synthetic_demo_data.py`, ADR-014) unblocks model/page development in the meantime — see [issue #8](https://github.com/Aristofane7/Progetto-MIMIT-START/issues/8)
 25. No automatic actuation — DONE (structural: no write routes exist; CI greps for forbidden patterns)
 26. Coefficient/version tracked — DONE (`dim_coefficient_set`, `dim_weight_set`)
 27. calc_run reproducible — DONE (`audit_calc_run`, `make_calc_run_id`)
@@ -93,6 +93,8 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
    actual SRC-TEI/EFA/EcoFA/SFA/RP74 manual text and an owner sign-off — these
    are separate from, and not covered by, the ADR-013 approval.
 5. Build the Power BI semantic model against `mv_intelligent_industry_state` /
-   the read-only API (sec. 38).
+   the read-only API (sec. 38). Can start now against the synthetic dataset
+   (`scripts/generate_synthetic_demo_data.py`, ADR-014) — swap to real data
+   once #3/#7 land, no model rework expected since both read the same view.
 6. Run the Stage 9 checklist (spec sec. 65) against a staging environment with
    real data before declaring v1 production-ready.

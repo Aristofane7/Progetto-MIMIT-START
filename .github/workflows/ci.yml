@@ -24,7 +24,7 @@ jobs:
         working-directory: start-iids
 
       - name: Lint
-        run: ruff check src tests
+        run: ruff check src tests scripts
         working-directory: start-iids
 
       - name: Unit + regression tests

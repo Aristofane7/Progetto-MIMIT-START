@@ -8,3 +8,7 @@ __pycache__/
 htmlcov/
 .env
 *.db
+
+# Generated synthetic demo data (ADR-014) — reproducible via
+# `python3 -m scripts.generate_synthetic_demo_data`, never committed.
+/data/synthetic/
