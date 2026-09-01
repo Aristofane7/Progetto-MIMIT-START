@@ -1,10 +1,28 @@
 # ROADMAP — START Intelligent Industry Digital Shadow (IIDS)
 
+**Last updated:** 2026-09-01 — v1 technical backbone merged into `main`
+([PR #1](https://github.com/Aristofane7/Progetto-MIMIT-START/pull/1), squash
+commit `39f2c7f`).
+
 Status snapshot of this implementation against the deployment stages (spec sec. 53)
 and the v1 acceptance criteria (spec sec. 57). "This repository" = what agents can
 verify by running `pytest` here; it does not include live connections to a real
 plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mappings
 (open item P0-03) and infrastructure this codebase does not own.
+
+## At a glance
+
+- **27 / 30** v1 acceptance criteria (spec sec. 57) — **DONE**
+- **2 / 30** — **PARTIAL** (E2C live connector, full golden-regression approval)
+- **1 / 30** — **NOT STARTED** (Power BI semantic model — a BI-tool artifact
+  outside this Python/SQL repository)
+- **178 tests passing** (1 skipped, documented — see ADR-011), 95% coverage on
+  `src/`, CI green on `main`
+- Real RP7.3 aggregate EEA+/TSI model (ADR-012) **validated against 66 real,
+  non-fabricated data points**; its coefficient/weight sets are **APPROVED**
+  by the project owner (ADR-013, 2026-09-01)
+- Nothing in `src/` writes to the physical system — enforced structurally and
+  by a CI guard (ADR-001)
 
 ## Stage status
 
