@@ -1,0 +1,96 @@
+# Real RP7.3 coefficients, transcribed verbatim from the "Coefficienti" sheet of
+# data/reference/RP7.3_data_collection_20232025.xlsx. See ADR-012 and ADR-013.
+#
+# status: APPROVED — promoted from DRAFT by explicit project-owner decision
+# (ADR-013, 2026-09-01). The underlying data collection round is still labeled
+# "provisional" by its own source sheet (values may be revised once the
+# historical series is consolidated), but the project owner has signed off on
+# using these six coefficients for current calculations. Any future value
+# change (not just a status change) must create a NEW coefficient_set_id per
+# sec. 11.3 point 4 — never edit an APPROVED set's values in place.
+coefficient_set:
+  coefficient_set_id: COEFF_RP73_PROVISIONAL_2026
+  description: "RP7.3 provisional coefficient library (2023-2025 data collection)"
+  reference_year: 2025
+  status: APPROVED
+  approved_by: "Davide Settembre"
+  approved_at: "2026-09-01"
+
+coefficients:
+  - coefficient_id: EL_EX
+    domain: TEI
+    code: EL_EX
+    description: "Exergia elettrica"
+    value: 3.6
+    unit: MJ/kWh
+    source: fisica
+    source_year: 2025
+    boundary: "—"
+    method: fisico
+    confidence: A
+    version: "1.0"
+
+  - coefficient_id: GAS_EX
+    domain: TEI
+    code: GAS_EX
+    description: "Exergia chimica gas"
+    value: 42
+    unit: MJ/Nm3
+    source: "exergia chimica"
+    source_year: 2025
+    boundary: CTG
+    method: "termod."
+    confidence: B
+    version: "1.0"
+
+  - coefficient_id: IMP_CO2
+    domain: EFA
+    code: IMP_CO2
+    description: "CO2-eq -> J"
+    value: 441868
+    unit: MJ/tCO2e
+    source: modello
+    source_year: 2024
+    boundary: "—"
+    method: modello
+    confidence: B
+    version: "1.0"
+
+  - coefficient_id: ECO_VA
+    domain: ECOFA
+    code: ECO_VA
+    description: "VA EUR->MJ"
+    value: 3.2
+    unit: MJ/EUR
+    source: settoriale
+    source_year: 2024
+    boundary: "—"
+    method: top-down
+    confidence: B
+    version: "1.0"
+
+  - coefficient_id: ECO_IN
+    domain: ECOFA
+    code: ECO_IN
+    description: "Input econ. EUR->MJ"
+    value: 4.5
+    unit: MJ/EUR
+    source: fornitori
+    source_year: 2024
+    boundary: "—"
+    method: bottom-up
+    confidence: B
+    version: "1.0"
+
+  - coefficient_id: LAB_H
+    domain: SFA
+    code: LAB_H
+    description: "Exergia oraria lavoro"
+    value: 3.5
+    unit: MJ/h
+    source: modello
+    source_year: 2024
+    boundary: "—"
+    method: modello
+    confidence: B
+    version: "1.0"

@@ -1,0 +1,45 @@
+# Data contract example. Spec ref: sec. 27 (DOC, transcribed verbatim from the
+# implementation spec's worked example). Real MES/SCADA/ERP field names are P0-03
+# (open item, docs/decisions/ADR-011...): they must be supplied by IT before this
+# contract can be pointed at a live source.
+contract_id: MES_PRODUCTION_V1
+source_system: MES
+entity: production_lot
+owner: production_it
+
+keys:
+  - lot_code
+  - product_code
+
+timestamp:
+  field: start_time
+  timezone: Europe/Rome
+
+fields:
+  lot_code:
+    target: lot_id
+    type: string
+    required: true
+
+  product_code:
+    target: product_id
+    type: string
+    required: true
+
+  output_m2:
+    target: output_m2
+    type: decimal
+    unit: m2
+    min: 0
+
+quality:
+  reject_if_missing:
+    - lot_code
+    - product_code
+    - start_time
+
+deduplication:
+  key:
+    - lot_code
+    - product_code
+    - start_time
