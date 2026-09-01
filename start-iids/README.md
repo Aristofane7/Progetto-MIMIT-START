@@ -44,6 +44,23 @@ pip install -e ".[dev]"
 pytest
 ```
 
+## Pipeline aggregata EEA+/TSI (dati reali provvisori RP7.3)
+
+`data/reference/` contiene i file reali (seppur provvisori) del progetto:
+raccolta dati 2023-2025, log di calcolo di riferimento e matrice AHP. La
+pipeline che li consuma è descritta in `docs/decisions/ADR-012-...`:
+
+```bash
+python3 -m src.run_all                       # stampa il log su stdout
+python3 -m src.run_all --output out.csv       # scrive il log su file
+pytest tests/regression/test_rp73_calculation_log.py  # verifica contro i valori reali pubblicati
+```
+
+Attenzione: il coefficient set e il weight set usati sono `DRAFT` (dati
+provvisori, non ancora approvati) — `run_all.py` lo segnala esplicitamente e
+non deve essere considerato un calcolo di produzione (sez. 11.3 della
+specifica).
+
 ## Stato di avanzamento
 
 Vedi `docs/ROADMAP.md` per lo stato Stage 0–9 e la checklist dei 30 criteri di accettazione

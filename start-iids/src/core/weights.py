@@ -6,6 +6,9 @@ an engine (spec sec. 24.8, Appendix L).
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
+
+import yaml
 
 from src.engines.errors import EngineError, ErrorCategory
 
@@ -55,3 +58,41 @@ class WeightSet:
     def get_dimension_weight(self, dimension_code: str) -> float:
         """The AHP alpha weight for a whole dimension (sec. 24.8)."""
         return self._get(dimension_code, DIMENSION_LEVEL).value
+
+    def weights(self) -> dict[tuple[str, str], Weight]:
+        """Read-only snapshot of every weight in this set, regardless of
+        approval status. For export/reporting/re-wrapping only."""
+        return dict(self._weights)
+
+    def raw_dimension_weight(self, dimension_code: str) -> float:
+        """Return a dimension weight WITHOUT the APPROVED-status gate. For
+        provisional/demo pipelines only (ADR-012) — never call from an engine."""
+        weight = self._weights.get((dimension_code, DIMENSION_LEVEL))
+        if weight is None:
+            raise EngineError(
+                ErrorCategory.MISSING_COEFFICIENT,
+                f"weight for dimension={dimension_code!r} not found in set '{self.weight_set_id}'",
+                record_key=dimension_code,
+            )
+        return weight.value
+
+
+def load_weight_set(path: str | Path) -> WeightSet:
+    """Load a `WeightSet` from a YAML file shaped like `config/weights/*.yaml`
+    (a `weight_set` block + a `weights` list). Never hardcode AHP weights in
+    Python — see spec sec. 24.8, Appendix L."""
+    raw = yaml.safe_load(Path(path).read_text())
+    set_meta = raw["weight_set"]
+    weights = {
+        (w["dimension_code"], w.get("metric_code", DIMENSION_LEVEL)): Weight(
+            dimension_code=w["dimension_code"],
+            metric_code=w.get("metric_code", DIMENSION_LEVEL),
+            value=w["weight_value"],
+        )
+        for w in raw["weights"]
+    }
+    return WeightSet(
+        weight_set_id=set_meta["weight_set_id"],
+        status=set_meta["status"],
+        weights=weights,
+    )

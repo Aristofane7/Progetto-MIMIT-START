@@ -1,0 +1,27 @@
+# Real RP7.3 AHP dimension weights, transcribed verbatim from
+# data/reference/ahp_weights.xlsx (Weights_Consistency sheet). See ADR-012.
+#
+# status: DRAFT — the source NOTE sheet says "Matrice di confronto a coppie del
+# panel — provvisoria, da confermare." Weights are used as published (they sum
+# to 1.0001 due to 4-decimal rounding) rather than renormalized, to stay
+# traceable to the source.
+weight_set:
+  weight_set_id: EEA_AHP_RP73_1
+  methodology: AHP
+  version: "1.0"
+  status: DRAFT
+  consistency_ratio: 0.0169  # CR <= 0.10 => CONSISTENTE, per the source sheet
+
+weights:
+  - dimension_code: env
+    metric_code: ""
+    weight_value: 0.3661
+  - dimension_code: econ
+    metric_code: ""
+    weight_value: 0.1451
+  - dimension_code: soc
+    metric_code: ""
+    weight_value: 0.0955
+  - dimension_code: tech
+    metric_code: ""
+    weight_value: 0.3934

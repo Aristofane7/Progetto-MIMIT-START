@@ -3,7 +3,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from src.core.coefficients import CoefficientSet
 from src.core.units.energy import mj_to_gj
+from src.core.weights import WeightSet
+from src.engines.errors import EngineError, ErrorCategory
+
+# Sec. 18.1 dimension codes, as published in ahp_weights.xlsx / RP7.3_calculation_log.xlsx.
+DIM_ENV = "env"
+DIM_ECON = "econ"
+DIM_SOC = "soc"
+DIM_TECH = "tech"
 
 
 @dataclass(frozen=True)
@@ -86,3 +95,87 @@ def build_eea_state(
         tsi_norm=tsi_norm,
         quality_flag=quality_flag,
     )
+
+
+# --- Real RP7.3 aggregate model (ADR-012): Ex_ref, SA_w, Phi, Psi, TSI_abs, TSI_rel ---
+# Verified by hand against RP7.3_calculation_log.xlsx (D020/2023: R001-R010) before
+# being implemented — see ADR-012 for the worked-through numbers.
+
+
+def compute_ex_ref_mj(
+    e_el_kwh: float, v_gas_nm3: float, coefficients: CoefficientSet, record_key: str
+) -> float:
+    """Reference plant exergy input: Ex_ref = Ex_el + Ex_fuel.
+
+    Ex_el = E_el_kWh * EL_EX (EL_EX = 3.6 MJ/kWh, same physical constant as
+    `kwh_to_mj` — sourced from the `Coefficienti` sheet as an APPROVABLE
+    coefficient rather than hardcoded here). Ex_fuel = V_gas_Nm3 * GAS_EX
+    (chemical exergy of natural gas, MJ/Nm3).
+    """
+    if e_el_kwh < 0 or v_gas_nm3 < 0:
+        raise EngineError(
+            ErrorCategory.PHYSICAL_RANGE_ERROR,
+            f"e_el_kwh and v_gas_nm3 must not be negative, got {e_el_kwh!r}, {v_gas_nm3!r}",
+            record_key=record_key,
+        )
+    el_ex = coefficients.get("EL_EX").value
+    gas_ex = coefficients.get("GAS_EX").value
+    ex_el_mj = e_el_kwh * el_ex
+    ex_fuel_mj = v_gas_nm3 * gas_ex
+    return ex_el_mj + ex_fuel_mj
+
+
+def compute_sa_weighted_mj(components: EEAComponentsMJ, weight_set: WeightSet) -> float:
+    """SA_w = sum(w_i * f_i) over the four sustainability dimensions, AHP-weighted
+    (sec. 24.8-style governance: weights come from an approved/versioned
+    `WeightSet`, never hardcoded). Weights are used as published even when they
+    do not sum to exactly 1 (rounding in the source AHP sheet) — see ADR-012."""
+    return (
+        weight_set.get_dimension_weight(DIM_ENV) * components.f_env_mj
+        + weight_set.get_dimension_weight(DIM_ECON) * components.f_econ_mj
+        + weight_set.get_dimension_weight(DIM_SOC) * components.f_soc_mj
+        + weight_set.get_dimension_weight(DIM_TECH) * components.f_tech_mj
+    )
+
+
+def compute_phi(sa_w_gj: float, ex_ref_gj: float, record_key: str) -> float:
+    """Phi = SA_w / Ex_ref (both in GJ, dimensionless result)."""
+    if ex_ref_gj == 0:
+        raise EngineError(
+            ErrorCategory.CALCULATION_ERROR,
+            "ex_ref_gj is zero: Phi is undefined",
+            record_key=record_key,
+        )
+    return sa_w_gj / ex_ref_gj
+
+
+def compute_psi_efficiency(psi_reported: float) -> float:
+    """Psi = Ex_useful / Ex_ref.
+
+    ADR-012 open item: no sheet in the available corpus defines `Ex_useful` or a
+    coefficient to derive it from production output. This function is a
+    documented pass-through of a directly reported Psi value (sourced from the
+    real RP7.3 calculation log, not fabricated) — it does not compute Psi from
+    scratch. Do not add an `Ex_useful` derivation here without a confirmed
+    source and a project-owner-approved coefficient (Appendix L/M).
+    """
+    return psi_reported
+
+
+def compute_tsi_abs(phi: float, psi: float, alpha: float = 0.5, beta: float = 0.5) -> float:
+    """TSI_abs = alpha*Phi + beta*Psi. RP7.3's logged runs use alpha=beta=0.5;
+    both are exposed as parameters (not hardcoded in the caller) so a different,
+    approved blend can be supplied without touching this function."""
+    return alpha * phi + beta * psi
+
+
+def compute_tsi_rel(tsi_abs_current: float, tsi_abs_baseline: float, record_key: str) -> float:
+    """TSI_rel = TSI_abs(t) / TSI_abs(baseline) — the real RP7.3 ratio underlying
+    the spec's simplified `tsi_norm` description (sec. 18.2), see ADR-012."""
+    if tsi_abs_baseline == 0:
+        raise EngineError(
+            ErrorCategory.CALCULATION_ERROR,
+            "tsi_abs_baseline is zero: TSI_rel is undefined",
+            record_key=record_key,
+        )
+    return tsi_abs_current / tsi_abs_baseline
