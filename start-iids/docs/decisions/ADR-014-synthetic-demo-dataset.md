@@ -28,7 +28,9 @@ for this purpose only.
    - plant IDs `SYN01`/`SYN02` (never a real site code like `D020`/`D060`/`D240`);
    - product/lot IDs prefixed `SYN-`;
    - `cluster_version = 'SYNTHETIC_DEMO_V1'` with `cluster_id` in the `9001+`
-     range, clear of the real RP6.8 range (`1`-`22`);
+     range, clear of the real RP6.8 range (`0`-`21`, corrected from an
+     earlier `1`-`22` assumption once the real clusters were transcribed —
+     see ADR-015);
    - the coefficient set (`SYN_COEFF_SET`) and weight set (`SYN_WEIGHT_SET`)
      backing the synthetic `audit_calc_run` rows are **`DRAFT`** and must
      **never** be promoted to `APPROVED` — sec. 11.3 already blocks a DRAFT set

@@ -16,11 +16,14 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 - **2 / 30** — **PARTIAL** (E2C live connector, full golden-regression approval)
 - **1 / 30** — **NOT STARTED** (Power BI semantic model — a BI-tool artifact
   outside this Python/SQL repository)
-- **178 tests passing** (1 skipped, documented — see ADR-011), 95% coverage on
+- **191 tests passing** (1 skipped, documented — see ADR-011), 95% coverage on
   `src/`, CI green on `main`
 - Real RP7.3 aggregate EEA+/TSI model (ADR-012) **validated against 66 real,
   non-fabricated data points**; its coefficient/weight sets are **APPROVED**
   by the project owner (ADR-013, 2026-09-01)
+- The 22 real RP6.8 product clusters are loaded (ADR-015); the 13,251-product
+  export with cluster assignment (issue #7) remains an external blocker, not
+  a code gap — see `data/reference/README.md`
 - Nothing in `src/` writes to the physical system — enforced structurally and
   by a CI guard (ADR-001)
 
@@ -29,7 +32,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 | Stage | Scope | Status |
 |---|---|---|
 | 0 — Foundation | repo layout, CI, feature flags, unit library | **DONE** |
-| 1 — Master data | plant/line/process/equipment/product/cluster DDL | **DONE** (schema + loaders); real 13.251-product / 22-cluster CSV import is a data-loading exercise for whoever owns the RP6.8 export, not a code gap |
+| 1 — Master data | plant/line/process/equipment/product/cluster DDL | **PARTIAL** — schema + loaders done; the 22 real RP6.8 clusters are now loaded (`data/reference/rp68_cluster_master.csv`, ADR-015); the 13.251-product export with cluster assignment (RP6.8 sec. 3.7) is an external blocker — not in this repository, not reconstructable from the report, needs whoever holds the raw RP6.8 deliverables |
 | 2 — Lot bridge | production lot / lot-process / product mapping | **DONE** (schema); real MES lot codes need contract mapping (P0-04) |
 | 3 — Process observation | E2C/MES ingestion, canonical units | **PARTIAL** — data contract mechanism done (`src/ingestion/contracts.py`), one example contract (`MES_PRODUCTION_V1`); no live Edge/MES/SCADA connector is implemented (needs IT source mappings, P0-03) |
 | 4 — EEA engines | TEI → EFA → EcoFA → SFA → EEA aggregation | **DONE** (formulas + engines + tests) + an aggregate plant/year path (`src/engines/eea/aggregate.py`, ADR-012) validated against 66 real data points from `data/reference/RP7.3_calculation_log.xlsx`. Coefficients (`COEFF_RP73_PROVISIONAL_2026`) and AHP weights (`EEA_AHP_RP73_1`) are `APPROVED` as of 2026-09-01 (ADR-013) — P0-02 **resolved for the aggregate model**; the granular per-lot coefficients used by the TEI/EFA/EcoFA/SFA engines directly remain unapproved test-only values (ADR-011) |
@@ -88,6 +91,11 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
    currently a reported, not derived, input; unaffected by ADR-013.
 3. Get IT to supply real MES/SCADA/ERP/HR/LIMS field names and complete
    `audit_source_mapping` + per-source YAML contracts (P0-03).
+3b. ~~Load the 22 real RP6.8 clusters~~ — **done, ADR-015**. Obtain the real
+    13,251-product cluster-assignment export (RP6.8 sec. 3.7, not in this
+    repository) and run `python3 -m scripts.import_rp68_product_master_data
+    --products-csv <file>` — the importer is ready and FK-validated against
+    the real cluster set, only the input file is missing (issue #7).
 4. Resolve the five ADR-011 open items (TEI-J quality penalty, MTO powder
    pricing, `B_TILE`, cluster-trend thresholds, P-TSA z-score fixture) with the
    actual SRC-TEI/EFA/EcoFA/SFA/RP74 manual text and an owner sign-off — these

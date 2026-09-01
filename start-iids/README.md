@@ -63,6 +63,21 @@ aggregato annuale/impianto — i coefficienti granulari usati dai motori
 per-lotto restano `DRAFT` (vedi ADR-011), e l'input `Psi`/`Ex_useful` resta un
 dato riportato, non derivato.
 
+## Dati master reali RP6.8 (cluster di prodotto)
+
+`data/reference/rp68_cluster_master.csv` contiene i 22 cluster reali,
+trascritti dal report `RP6.8 Report di Product Analysis_30-04-25.pdf`
+(conteggio prodotti verificato: somma esatta a 13.251). Vedi
+`docs/decisions/ADR-015-...` per la nota di qualità dati su un cluster con
+un difetto nella tabella sorgente, e per lo stato del blocco esterno
+sull'export completo dei 13.251 prodotti (issue #7):
+
+```bash
+python3 -m scripts.import_rp68_product_master_data                 # rigenera data/reference/rp68_master_seed.sql (22 cluster reali)
+python3 -m scripts.import_rp68_product_master_data --products-csv <file>  # + carica l'export prodotti reale, quando disponibile
+pytest tests/unit/test_rp68_cluster_master_data.py tests/integration/test_rp68_master_data_import.py
+```
+
 ## Dataset sintetico temporaneo (sviluppo modello Power BI)
 
 In attesa dei dati master reali (issue #7) e dei connettori live (issue #3),

@@ -25,3 +25,18 @@ for the exact scope of that approval (it covers only these two sets, not the
 granular per-lot coefficients tracked in ADR-011, and it does not resolve the
 `Psi`/`Ex_useful` open item). See `docs/decisions/ADR-012-...` for the full
 model derivation and the verified formulas.
+
+## RP6.8 product cluster master data (issue #7, ADR-015)
+
+- `rp68_cluster_master.csv` — the 22 real product clusters, transcribed
+  verbatim from `RP6.8 Report di Product Analysis_30-04-25.pdf` (repo root),
+  product counts cross-checked to sum to exactly 13,251. One cluster (11) has
+  a documented source-data defect and one (13) a minor source discrepancy —
+  see the `data_quality_flag` column and `docs/decisions/ADR-015-...`.
+- `rp68_master_seed.sql` — generated INSERT statements for
+  `dim_product_cluster` (`cluster_version = RP68_2025_04`). Regenerate with
+  `python3 -m scripts.import_rp68_product_master_data`.
+- **Not present, and not reconstructable from the PDF:** the full
+  13,251-product export with per-product cluster assignment that RP6.8 sec.
+  3.7 names as an existing deliverable. `scripts/import_rp68_product_master_data.py
+  --products-csv <file>` is ready to validate and load it once supplied.

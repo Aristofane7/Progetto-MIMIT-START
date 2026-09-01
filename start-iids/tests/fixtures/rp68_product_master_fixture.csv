@@ -1,0 +1,5 @@
+product_id,product_name,cluster_id,shape,dimension_class,format_mm,thickness_mm,slip_class,surface_effect,finish,colour_class,mass_kg_m2,product_status,source_product_code
+FIXTURE-PROD-0001,Fixture product 1,0,LISTELLO,PICCOLO,300x600,8,ANTISLIP,PIETRA,MATTE,CHIARO,19.5,ACTIVE,FIX-0001
+FIXTURE-PROD-0002,Fixture product 2,1,RETTANGOLARE,GRANDE,600x1200,9,ANTISLIP,PIETRA,MATTE,MEDIO,21.0,ACTIVE,FIX-0002
+FIXTURE-PROD-0003,Fixture product with unknown cluster,999,QUADRATO,MEDIO,600x600,9,NPD,CEMENTO,GLOSSY,SCURO,20.0,ACTIVE,FIX-0003
+,Fixture product missing an id,0,QUADRATO,MEDIO,600x600,9,NPD,CEMENTO,GLOSSY,SCURO,20.0,ACTIVE,FIX-0004
