@@ -1,6 +1,6 @@
 # ADR-011 — Open formula items pending project-owner / SRC-manual confirmation
 
-**Status:** PARTIALLY SUPERSEDED (items 1-3 by ADR-018, 2026-09-01) — see below
+**Status:** PARTIALLY SUPERSEDED (items 1-3 by ADR-018, item 5 by ADR-020, 2026-09-01) — only item 4 (cluster-trend thresholds) remains genuinely open
 
 This ADR tracks implementation choices made where the implementation spec names
 an input/output and a source manual. **Update (ADR-018):** items 1-3 below were
@@ -37,14 +37,16 @@ project-owner approval (ADR-018).
 ±5% period-over-period growth. The spec defines the enum but not the numeric
 thresholds. **Action required:** project-owner approval of the actual thresholds.
 
-## 5. P-TSA z-score golden regression (sec. 43.2)
-The published z-score P-TSI reference values (T1=-0.047, T2=-0.115, T3=+0.162)
-cannot be reproduced without RP7.4's underlying per-type indicator matrix and
-population statistics, which are not part of this corpus. Per spec sec. 64
-("Non fabbricare input per far tornare i valori"), `tests/regression/
-test_ptsa_golden_reference.py::test_zscore_p_tsi_matches_rp74_published_values`
-is marked `skip` rather than backed by fabricated inputs. **Action required:**
-obtain the RP7.4 dataset (or an IT-equivalent) as a `tests/fixtures/` file.
+## 5. P-TSA z-score golden regression (sec. 43.2) — RESOLVED by ADR-020
+~~The published z-score P-TSI reference values... cannot be reproduced
+without RP7.4's underlying per-type indicator matrix..., which are not part
+of this corpus.~~ The repo-root PDF `RP 7.4 Report di Product Technological
+Sustainability Assessment.pdf` (not examined when this item was written)
+contains the full raw SCR/PsI/OCR matrix (Tabelle 3-5) and the real
+per-dimension scoring data (Tabella 7). Transcribed into
+`data/reference/RP7.4_indicator_matrix.csv` /
+`RP7.4_dimension_scores.csv`; `test_zscore_p_tsi_matches_rp74_published_values`
+is un-skipped and passing. See ADR-020.
 
 ## Process to close each item
 Per Appendix M: source reference from the actual manual text → old test (this

@@ -37,6 +37,19 @@ stopgap — see ADR-019 and the added
 `test_ex_useful_from_report_matches_psi_times_ex_ref_from_log` regression
 test.
 
+## RP7.4 P-TSA indicator matrix (issue #6, ADR-020)
+
+- `RP7.4_indicator_matrix.csv` — the real SCR/PsI/OCR raw values for the 3
+  product types (T1/T2/T3), transcribed verbatim from Tabelle 3-5 of
+  `RP 7.4 Report di Product Technological Sustainability Assessment.pdf`
+  (repo root). Metric codes match `IOA_METRICS`/`OP_METRICS`/`TQ_METRICS` in
+  `src/engines/ptsa/formulas.py` exactly.
+- `RP7.4_dimension_scores.csv` — the real per-dimension 1-5 scores
+  (`S_IOA`/`S_OP`/`S_TQ`), `P-TSI(5)`, and `TII` per type, from Tabella 7.
+- Together these un-skip `tests/regression/test_ptsa_golden_reference.py`'s
+  z-score P-TSI golden regression (sec. 43.2's published -0.047/-0.115/
+  +0.162) — see `docs/decisions/ADR-020-...` for how this was found.
+
 ## RP6.8 product cluster master data (issue #7, ADR-015)
 
 - `rp68_cluster_master.csv` — the 22 real product clusters, transcribed

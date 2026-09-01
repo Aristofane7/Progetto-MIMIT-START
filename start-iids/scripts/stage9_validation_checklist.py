@@ -137,13 +137,13 @@ def build_checklist() -> list[ChecklistItem]:
         "(tests/regression/test_rp73_calculation_log.py).", gate=True,
     ))
 
-    ptsa_ok = _pytest_passes("tests/unit/test_ptsa_engine.py")
+    ptsa_ok = _pytest_passes(
+        "tests/unit/test_ptsa_engine.py", "tests/regression/test_ptsa_golden_reference.py",
+    )
     items.append(ChecklistItem(
-        11, "P-TSA PASS / P-TSI PASS",
-        "PARTIAL" if ptsa_ok else "BLOCKED",
-        f"Formula self-consistency: {'PASS' if ptsa_ok else 'FAIL'} "
-        "(tests/unit/test_ptsa_engine.py). The z-score golden regression is skipped "
-        "pending a real RP7.4 fixture — blocked on issue #6/#5.",
+        11, "P-TSA PASS / P-TSI PASS", "PASS" if ptsa_ok else "BLOCKED",
+        "Formula tests plus the z-score/scoring golden regression against the "
+        "real RP7.4 report data (ADR-020, issue #6).", gate=True,
     ))
 
     trend_ok = _pytest_passes("tests/unit/test_cluster_performance_trend.py")
@@ -209,10 +209,12 @@ def build_checklist() -> list[ChecklistItem]:
 
     golden_ok = _pytest_passes("tests/regression/")
     items.append(ChecklistItem(
-        20, "Golden regression PASS",
-        "PARTIAL" if golden_ok else "BLOCKED",
-        f"RP7.3 EEA+/TSI: {'PASS' if golden_ok else 'FAIL'} (66 points). "
-        "P-TSA z-score (RP7.4): skipped, blocked on issue #6.",
+        20, "Golden regression PASS", "PASS" if golden_ok else "BLOCKED",
+        f"{'PASS' if golden_ok else 'FAIL'}: RP7.3 EEA+/TSI (66+9 points, ADR-012/ADR-019) "
+        "and RP7.4 P-TSA z-score/scoring (ADR-020) both now backed by real report data. "
+        "Granular per-lot TEI/EFA/EcoFA/SFA coefficient *values* remain unapproved "
+        "(tracked separately under item 7, not a regression-test gap).",
+        gate=True,
     ))
 
     items.append(ChecklistItem(

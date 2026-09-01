@@ -15,10 +15,10 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 - **27 / 30** v1 acceptance criteria (spec sec. 57) — **DONE**
 - **3 / 30** — **PARTIAL** (E2C live connector, full golden-regression approval,
   BI drill-down — semantic model shipped, report pages need GUI authoring)
-- **220 tests passing** (1 skipped, documented — see ADR-011), 95% coverage on
-  `src/`, CI green on `main`
+- **235 tests passing** (0 skipped — the last skip, P-TSA z-score, is
+  resolved by ADR-020), 95% coverage on `src/`, CI green on `main`
 - Stage 9 self-check (ADR-017): `python3 -m scripts.stage9_validation_checklist`
-  reports **10 PASS / 7 PARTIAL / 4 BLOCKED** out of 21 checklist items (spec
+  reports **12 PASS / 5 PARTIAL / 4 BLOCKED** out of 21 checklist items (spec
   sec. 65) — a live, re-runnable number, not a hand-maintained assertion
 - The real SRC-TEI/EFA/EcoFA/SFA manuals (repo-root PDFs) were found and read
   (ADR-018): EFA/EcoFA/SFA formulas confirmed exact; TEI-J's quality-penalty
@@ -45,10 +45,10 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 | 3 — Process observation | E2C/MES ingestion, canonical units | **PARTIAL** — data contract mechanism done (`src/ingestion/contracts.py`), one example contract (`MES_PRODUCTION_V1`); no live Edge/MES/SCADA connector is implemented (needs IT source mappings, P0-03) |
 | 4 — EEA engines | TEI → EFA → EcoFA → SFA → EEA aggregation | **DONE** (formulas + engines + tests) + an aggregate plant/year path (`src/engines/eea/aggregate.py`, ADR-012) validated against 66 real data points from `data/reference/RP7.3_calculation_log.xlsx`. Coefficients (`COEFF_RP73_PROVISIONAL_2026`) and AHP weights (`EEA_AHP_RP73_1`) are `APPROVED` as of 2026-09-01 (ADR-013) — P0-02 **resolved for the aggregate model**. The 4 real SRC-TEI/EFA/EcoFA/SFA manuals (repo root PDFs) were found and read (ADR-018): EFA/EcoFA/SFA formulas already matched exactly; TEI-J's quality-penalty formula was wrong (absolute-difference vs the manual's ratio shortfall) and is now fixed (`engine_version` 1.1.0). Granular coefficient *values* (`B_TILE`, `B_SDM`, `KAPPA_MTS`, etc.) remain `DRAFT`/test-only — the real coefficient library ("Tabella 2") every manual points to is not part of this corpus, an external blocker like issue #7's product export, not a code gap |
 | 5 — Product intelligence | sales, cluster performance, trend | **DONE** (schema + CQS + trend classification + SCD2 catalog) |
-| 6 — P-TSA | SCR/PsI/OCR/z-score/AHP/P-TSI/TII | **DONE** (engine + tests); z-score golden regression blocked on RP7.4 dataset (ADR-011 item 5) |
+| 6 — P-TSA | SCR/PsI/OCR/z-score/AHP/P-TSI/TII | **DONE** (engine + tests); z-score golden regression now real, validated against the RP7.4 report's own Tabelle 3-7 (ADR-020, issue #6) |
 | 7 — Product Design workflow | project/option/prototype/test/decision | **DONE** (schema + state machine + decision enum) |
 | 8 — Integrated mart | IIDS view, read-only API | **DONE** (`mv_intelligent_industry_state`, FastAPI read-only endpoints); Power BI semantic model **PARTIAL** — TMDL model + measures + CSV/SQL data-source switch shipped (`bi/powerbi/`, ADR-016); the 3 report pages (sec. 38.1-38.3) are a GUI-authoring step against the shipped model + `docs/powerbi/report_pages_spec.md` |
-| 9 — Validation | regression, audit, performance, UAT | **PARTIAL** — unit/integration/regression suite in place; audit persistence (`audit_data_quality`/`audit_lineage`) and blocker-rule detection now proven with real inserts, not just schema (ADR-017); `scripts/stage9_validation_checklist.py` reports live status against issue #9's 21-item checklist (10 PASS/7 PARTIAL/4 BLOCKED); performance/UAT against real infrastructure remain out of this repository's scope by construction |
+| 9 — Validation | regression, audit, performance, UAT | **PARTIAL** — unit/integration/regression suite in place; audit persistence (`audit_data_quality`/`audit_lineage`) and blocker-rule detection now proven with real inserts, not just schema (ADR-017); `scripts/stage9_validation_checklist.py` reports live status against issue #9's 21-item checklist (12 PASS/5 PARTIAL/4 BLOCKED); performance/UAT against real infrastructure remain out of this repository's scope by construction |
 
 ## Acceptance criteria (spec sec. 57) — status
 
@@ -65,8 +65,8 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 14. Cluster performance available — DONE
 15. Trend linkable to cluster — DONE
 16. P-TSA computes SCR/PsI/OCR — DONE
-17. P-TSI z computed — DONE
-18. P-TSI scoring/AHP computed — DONE
+17. P-TSI z computed — DONE, validated against the real RP7.4 report data (ADR-020)
+18. P-TSI scoring/AHP computed — DONE, validated against the real RP7.4 report data (ADR-020)
 19. TII computed on the appropriate (P_TSI_5) variant — DONE
 20. Design project traceable end-to-end — DONE (schema + workflow validator)
 21. Prototype test linked — DONE (schema: `fact_quality_test.prototype_id`)
@@ -78,7 +78,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 27. calc_run reproducible — DONE (`audit_calc_run`, `make_calc_run_id`)
 28. Data quality visible — DONE (`audit_data_quality`, blocker queries; `src/core/quality/persistence.py` now actually writes findings, and the blocker queries are proven to detect real violations rather than just parse as SQL, ADR-017)
 29. P0 unit conversion validated — DONE (`test_units_energy.py`)
-30. Golden regression tests approved — **PARTIAL**: CQS (sec. 19.5), the P-TSA AHP-formula self-consistency check, and — the strongest evidence so far — 66 real, non-fabricated RP7.3 EEA+/TSI data points (`f_env`/`f_econ`/`f_soc`/`f_tech`/`SA_raw`/`Ex_ref`/`TSI_abs`/`TSI_rel`, ADR-012) all pass against coefficient/weight sets now formally `APPROVED` (ADR-013, 2026-09-01); the P-TSA z-score targets remain blocked on a real fixture (see ADR-011), and the granular per-lot TEI/EFA/EcoFA/SFA coefficients are still unapproved test-only values
+30. Golden regression tests approved — **PARTIAL**: CQS (sec. 19.5); 66+9 real, non-fabricated RP7.3 EEA+/TSI data points (`f_env`/`f_econ`/`f_soc`/`f_tech`/`SA_raw`/`Ex_ref`/`TSI_abs`/`TSI_rel`/`Ex_useful`, ADR-012/ADR-019) all pass against coefficient/weight sets formally `APPROVED` (ADR-013, 2026-09-01); the P-TSA z-score AND scoring/AHP targets now both pass against the real RP7.4 report data (ADR-020, issue #6) — the only remaining gap is that the granular per-lot TEI/EFA/EcoFA/SFA coefficient *values* (formulas confirmed, ADR-018) are still unapproved test-only placeholders pending the real Tabella 2 library
 
 ## What was deliberately NOT built (FUTURE / out of scope, per spec)
 
@@ -118,8 +118,14 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
    sign-off on actual coefficient *values* once the real "Tabella 2" library
    (referenced by all 4 manuals, not part of this corpus) is available —
    confirming a formula is not approving a value (sec. 11.3). ADR-011 item 4
-   (cluster-trend thresholds) and item 5 (P-TSA z-score/RP7.4 fixture) are
-   untouched by this — neither is a formula question the manuals answer.
+   (cluster-trend thresholds) remains genuinely open — no manual answers a
+   business-policy question like that. Item 5 (P-TSA z-score/RP7.4 dataset)
+   is separately resolved — see next point.
+4b. ~~Obtain the RP7.4 dataset for the P-TSA z-score golden regression
+    (ADR-011 item 5)~~ — **done, ADR-020**: the RP7.4 report (repo root PDF)
+    contains the full raw SCR/PsI/OCR matrix and real per-dimension scores;
+    `test_zscore_p_tsi_matches_rp74_published_values` is un-skipped and
+    passing (issue #6).
 5. ~~Build the Power BI semantic model against `mv_intelligent_industry_state`~~
    — **done, ADR-016**: `bi/powerbi/START_IIDS.SemanticModel/` (TMDL), built
    and testable today against the synthetic dataset via
