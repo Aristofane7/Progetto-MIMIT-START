@@ -28,6 +28,11 @@
 -- not in sec. 26.2's field list, added because the distribution channel
 -- (B2B/B2C) is a monitoring point named directly in the Piano di Sviluppo
 -- (OR7.5's B2C-CR/B2B-CR) with no field to surface it without this join.
+--
+-- scenario (ADR-024) is the lot's own real CURRENT/HISTORICAL flag
+-- (sec. 46, fact_production_lot's existing column) — surfaced so a viewer
+-- can toggle historical replay vs current state without a fabricated
+-- what-if/disruption model (which this domain does not have).
 
 CREATE VIEW mv_intelligent_industry_state AS
 SELECT
@@ -39,6 +44,7 @@ SELECT
     proc.process_name                               AS process_name,
     proc.process_family                             AS process_family,
     lot.lot_id                                      AS lot_id,
+    lot.scenario                                    AS scenario,
     lot.product_id                                  AS product_id,
     prod.cluster_id                                 AS cluster_id,
     prod.cluster_version                            AS cluster_version,

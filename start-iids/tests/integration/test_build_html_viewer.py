@@ -22,10 +22,28 @@ def _embedded_json(html: str) -> dict:
 
 
 def test_payload_has_expected_shape(payload):
-    for key in ("meta", "kpi", "dims", "rows", "clusters", "channels", "quality", "building_placeholder"):
+    for key in ("meta", "kpi", "dims", "rows", "clusters", "channels", "quality",
+                "building_placeholder", "glossary"):
         assert key in payload
     assert payload["meta"]["dataset_label"] == "TEST_LABEL"
     assert payload["kpi"]["record_count"] == len(payload["rows"])
+
+
+def test_glossary_covers_every_metric_shown_in_the_viewer(payload):
+    # ADR-024: every acronym rendered in the template must resolve to a real,
+    # spec-grounded definition — never a bare, unexplained acronym.
+    for key in ("sa_gj", "tsi_norm", "f_env_gj", "f_econ_gj", "f_soc_gj", "f_tech_gj",
+                "ioai", "opi", "tqi", "p_tsi_5", "tii", "channel_concentration_hhi", "scenario"):
+        assert key in payload["glossary"]
+        assert payload["glossary"][key]["full"]
+        assert payload["glossary"][key]["desc"]
+
+
+def test_scenario_passthrough_only_has_real_values(payload):
+    # ADR-024: scenario is fact_production_lot's own real CURRENT/HISTORICAL
+    # flag (sec. 46) — never a fabricated what-if value.
+    scenarios = {r["scenario"] for r in payload["rows"] if r["scenario"] is not None}
+    assert scenarios <= {"CURRENT", "HISTORICAL"}
 
 
 def test_channel_shares_sum_to_one(payload):

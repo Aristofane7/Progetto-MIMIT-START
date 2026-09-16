@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>START IIDS · Digital Shadow — visualizzatore interattivo</title>
 <style>
-:root{--teal:#0F6E6E;--ink:#1A1A1A;--navy:#1F3864;--green:#2E5A34;--amber:#E0A100;
-      --red:#B23A2E;--grey:#8A8A8A;--tint:#E7F3F3;--bg:#F4F5F3;--card:#fff}
+:root{--brand:#67C271;--brand-dark:#3E8A48;--ink:#1A1A1A;--navy:#1F3864;--green:#2E5A34;--amber:#E0A100;
+      --red:#B23A2E;--grey:#8A8A8A;--tint:#E9F7EA;--bg:#F4F5F3;--card:#fff}
 *{box-sizing:border-box}
 body{margin:0;font-family:'Segoe UI',Calibri,system-ui,sans-serif;background:var(--bg);color:var(--ink)}
-.top{background:var(--ink);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:16px}
-.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:20px;letter-spacing:.5px}
-.logo .sq{width:24px;height:24px;background:var(--teal);border-radius:5px}
-.top .sub{opacity:.75;font-size:12px}
-.top .gen{margin-left:auto;font-size:11px;opacity:.6}
-.tabs{display:flex;gap:2px;padding:0 20px;background:#fff;border-bottom:2px solid var(--teal);flex-wrap:wrap}
+.top{background:#fff;color:var(--ink);padding:10px 20px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #eee}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;letter-spacing:.5px;color:var(--ink)}
+.logo .icon{width:34px;height:34px;flex:none}
+.top .sub{opacity:.65;font-size:12px;color:var(--ink)}
+.top .gen{margin-left:auto;font-size:11px;opacity:.55}
+.tabs{display:flex;gap:2px;padding:0 20px;background:#fff;border-bottom:2px solid var(--brand);flex-wrap:wrap}
 .tab{padding:10px 16px;font-size:13.5px;cursor:pointer;border:none;background:none;color:#556;border-bottom:3px solid transparent;margin-bottom:-2px}
 .tab.on{color:var(--ink);font-weight:700;border-bottom-color:var(--ink)}
 .wrap{padding:18px 20px;max-width:1240px;margin:0 auto}
@@ -37,7 +37,7 @@ tr.clickable{cursor:pointer}tr.clickable:hover{background:var(--tint)}
 .bar{background:#eee;border-radius:5px;height:16px;overflow:hidden;display:flex}
 .bar span{height:100%}
 .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
-.badge.b2b{background:var(--navy);color:#fff}.badge.b2c{background:var(--teal);color:#fff}
+.badge.b2b{background:var(--navy);color:#fff}.badge.b2c{background:var(--brand);color:#fff}
 .badge.gap{background:#eee;color:#889;font-weight:600}
 .badge.GROWTH{background:var(--green);color:#fff}.badge.DECLINE{background:var(--red);color:#fff}
 .badge.STABLE{background:var(--grey);color:#fff}.badge.UNKNOWN{background:#ddd;color:#556}
@@ -45,18 +45,39 @@ select,input[type=text]{font-size:13px;padding:5px 8px;border:1px solid #ccc;bor
 .placeholder{border:1px dashed #ccc;border-radius:8px;padding:12px;background:#fafafa;color:#778;font-size:12.5px}
 .flist{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .flist button{border:1px solid #ccc;background:#fff;border-radius:16px;padding:5px 13px;font-size:12.5px;cursor:pointer}
-.flist button.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:700}
+.flist button.on{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:700}
 footer{padding:14px 20px;font-size:11px;color:#889;text-align:center}
+.gloss{border-bottom:1px dotted var(--grey);cursor:help;position:relative}
+.gloss:hover::after{content:attr(data-tip);position:absolute;left:0;top:100%;margin-top:4px;
+  background:var(--ink);color:#fff;padding:8px 10px;border-radius:6px;font-size:11.5px;font-weight:400;
+  white-space:normal;width:260px;z-index:20;box-shadow:0 2px 8px rgba(0,0,0,.2);line-height:1.4}
+th .gloss{border-bottom-color:rgba(255,255,255,.5)}
+th .gloss:hover::after{color:#fff}
+.delta{font-weight:700}.delta.up{color:var(--green)}.delta.down{color:var(--red)}.delta.flat{color:var(--grey)}
+.compare-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.compare-row label{font-size:12px;color:#556}
+.guide-toc{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.guide-toc span{background:var(--tint);color:var(--navy);border-radius:14px;padding:4px 11px;font-size:12px;font-weight:600}
 </style>
 </head>
 <body>
 <div class="top">
-  <div class="logo"><span class="sq"></span>START IIDS</div>
+  <div class="logo">
+    <svg class="icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="START">
+      <rect x="4" y="4" width="92" height="92" fill="none" stroke="#67C271" stroke-width="10"/>
+      <polygon points="50,22 61,39 39,39" fill="#67C271"/>
+      <polygon points="35,43 65,43 71,55 29,55" fill="#67C271"/>
+      <polygon points="26,59 74,59 80,71 20,71" fill="#67C271"/>
+      <polygon points="18,75 82,75 88,86 12,86" fill="#67C271"/>
+    </svg>
+    START <span style="font-weight:400;color:var(--grey);font-size:15px;margin-left:2px">IIDS</span>
+  </div>
   <div class="sub">Digital Shadow — visualizzatore interattivo (alpha 0)</div>
   <div class="gen" id="genline"></div>
 </div>
 <div class="tabs">
   <button class="tab on" data-k="overview">Panoramica</button>
+  <button class="tab" data-k="guide">Guida all'uso</button>
   <button class="tab" data-k="factory">Fabbrica</button>
   <button class="tab" data-k="product">Prodotto</button>
   <button class="tab" data-k="channel">Canale distributivo</button>
@@ -66,6 +87,7 @@ footer{padding:14px 20px;font-size:11px;color:#889;text-align:center}
 </div>
 <div class="wrap">
   <div class="page on" id="p-overview"></div>
+  <div class="page" id="p-guide"></div>
   <div class="page" id="p-factory"></div>
   <div class="page" id="p-product"></div>
   <div class="page" id="p-channel"></div>
@@ -83,6 +105,24 @@ const $ = id => document.getElementById(id);
 function n(v, d) { if (v === null || v === undefined) return "—"; return Number(v).toLocaleString("it-IT", {minimumFractionDigits: d ?? 2, maximumFractionDigits: d ?? 2}); }
 function pct(v) { if (v === null || v === undefined) return "—"; return (v * 100).toLocaleString("it-IT", {minimumFractionDigits: 1, maximumFractionDigits: 1}) + "%"; }
 function esc(s) { const d = document.createElement("div"); d.textContent = s ?? ""; return d.innerHTML; }
+/* full name + hover tooltip from DATA.glossary, everywhere a metric acronym is shown */
+function gl(key, opts) {
+  const g = DATA.glossary[key];
+  if (!g) return esc(key);
+  const wantShort = (opts && opts.short);
+  const label = wantShort
+    ? esc(g.full.split(" — ")[0])
+    : esc(g.full) + (g.unit ? ` (${esc(g.unit)})` : "");
+  return `<span class="gloss" data-tip="${esc(g.desc)}">${label}</span>`;
+}
+function deltaHtml(cur, prev, decimals) {
+  if (cur === null || prev === null || prev === undefined || cur === undefined) return `<span class="delta flat">—</span>`;
+  if (prev === 0) return `<span class="delta flat">n/d</span>`;
+  const d = (cur / prev - 1) * 100;
+  const cls = Math.abs(d) < 0.5 ? "flat" : (d > 0 ? "up" : "down");
+  const arrow = Math.abs(d) < 0.5 ? "→" : (d > 0 ? "▲" : "▼");
+  return `<span class="delta ${cls}">${arrow} ${n(Math.abs(d), decimals ?? 1)}%</span>`;
+}
 
 $("genline").textContent = "generato " + new Date(DATA.meta.generated_at).toLocaleString("it-IT") + " · " + DATA.meta.dataset_label;
 
@@ -93,10 +133,10 @@ function renderOverview() {
     <div class="pageh">${esc(DATA.meta.title)}</div>
     <div class="note">${esc(DATA.meta.data_note)}</div>
     <div class="kpis">
-      <div class="kpi navy"><div class="kpival">${n(k.tsi_norm_avg, 3)}</div><div class="kpilab">TSI norm (media)</div><div class="kpisub">baseline-relativo, sec. 12</div></div>
-      <div class="kpi navy"><div class="kpival">${n(k.p_tsi_5_avg, 2)}</div><div class="kpilab">P-TSI medio (scala 1-5)</div></div>
-      <div class="kpi ${k.data_quality_score_avg !== null && k.data_quality_score_avg < 0.7 ? 'red' : 'amber'}"><div class="kpival">${n(k.data_quality_score_avg, 2)}</div><div class="kpilab">Data Quality Score (media)</div><div class="kpisub">sec. 29/31.3</div></div>
-      <div class="kpi"><div class="kpival">${n(k.channel_concentration_hhi, 2)}</div><div class="kpilab">Concentrazione canale (HHI)</div><div class="kpisub">vedi tab «Canale distributivo»</div></div>
+      <div class="kpi navy"><div class="kpival">${n(k.tsi_norm_avg, 3)}</div><div class="kpilab">${gl("tsi_norm",{short:true})} (media)</div><div class="kpisub">baseline-relativo, sec. 12</div></div>
+      <div class="kpi navy"><div class="kpival">${n(k.p_tsi_5_avg, 2)}</div><div class="kpilab">${gl("p_tsi_5",{short:true})} (media)</div></div>
+      <div class="kpi ${k.data_quality_score_avg !== null && k.data_quality_score_avg < 0.7 ? 'red' : 'amber'}"><div class="kpival">${n(k.data_quality_score_avg, 2)}</div><div class="kpilab">${gl("data_quality_score",{short:true})} (media)</div><div class="kpisub">sec. 29/31.3</div></div>
+      <div class="kpi"><div class="kpival">${n(k.channel_concentration_hhi, 2)}</div><div class="kpilab">${gl("channel_concentration_hhi",{short:true})}</div><div class="kpisub">vedi tab «Canale distributivo»</div></div>
     </div>
     <div class="card"><h2>Copertura record</h2>
       <table><tr><td>Righe stato integrato (fabbrica+prodotto)</td><td><b>${k.record_count}</b></td></tr>
@@ -105,22 +145,29 @@ function renderOverview() {
       <tr><td>Canali distributivi noti</td><td><b>${DATA.channels.length}</b></td></tr></table>
     </div>
     <div class="note">Naviga le pagine sopra: Fabbrica (sez. 38.1), Prodotto (sez. 38.2), Canale distributivo (ADR-022),
-    Integrata (sez. 38.3), Edificio (placeholder OR3/UNISS), Qualità &amp; Build (provenienza dati).</div>`;
+    Integrata (sez. 38.3), Edificio (placeholder OR3/UNISS), Qualità &amp; Build (provenienza dati).
+    Nuovo qui? Apri il tab «Guida all'uso» per una spiegazione passo-passo e il glossario completo.</div>`;
 }
 
 /* ---------- Fabbrica (sez. 38.1) ---------- */
-let factoryState = { plantId: null };
+let factoryState = { plantId: null, scenario: null, periodA: null, periodB: null };
+function avgOf(rows, key) { const vs = rows.map(r => r[key]).filter(v => v !== null && v !== undefined); return vs.length ? vs.reduce((a,b)=>a+b,0)/vs.length : null; }
 function renderFactory() {
   const rows = DATA.rows;
   const plants = DATA.dims.dim_plant.map(p => p.plant_id);
-  const filtered = factoryState.plantId ? rows.filter(r => r.plant_id === factoryState.plantId) : rows;
-  const avg = key => { const vs = filtered.map(r => r[key]).filter(v => v !== null && v !== undefined); return vs.length ? vs.reduce((a,b)=>a+b,0)/vs.length : null; };
+  const periods = [...new Set(rows.map(r => r.period_start).filter(Boolean))].sort();
+  if (!factoryState.periodA && periods.length) factoryState.periodA = periods[0];
+  if (!factoryState.periodB && periods.length) factoryState.periodB = periods[periods.length - 1];
+
+  let filtered = factoryState.plantId ? rows.filter(r => r.plant_id === factoryState.plantId) : rows;
+  if (factoryState.scenario) filtered = filtered.filter(r => r.scenario === factoryState.scenario);
+  const avg = key => avgOf(filtered, key);
   const sa = avg("sa_gj"), tsi = avg("tsi_norm");
   const foot = ["f_env_gj","f_econ_gj","f_soc_gj","f_tech_gj"].map(k => ({k, v: avg(k)}));
   const maxFoot = Math.max(1, ...foot.map(f => Math.abs(f.v ?? 0)));
-  const footColors = {f_env_gj:"var(--green)", f_econ_gj:"var(--navy)", f_soc_gj:"var(--teal)", f_tech_gj:"var(--amber)"};
+  const footColors = {f_env_gj:"var(--green)", f_econ_gj:"var(--navy)", f_soc_gj:"var(--brand)", f_tech_gj:"var(--amber)"};
   const footBars = foot.map(f => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-      <div style="width:70px;font-size:12px">${f.k.replace('_gj','').replace('f_','')}</div>
+      <div style="width:150px;font-size:12px">${gl(f.k)}</div>
       <div class="bar" style="flex:1"><span style="width:${Math.min(100, Math.abs(f.v ?? 0)/maxFoot*100)}%;background:${footColors[f.k]}"></span></div>
       <div style="width:70px;text-align:right;font-size:12px">${n(f.v, 1)} GJ</div></div>`).join("");
 
@@ -128,27 +175,58 @@ function renderFactory() {
       <td>${esc(r.plant_id)}</td><td>${esc(r.line_id)}</td><td>${esc(r.lot_id)}</td><td>${esc(r.process_name ?? r.process_id)}</td>
       <td>${n(r.sa_gj,1)}</td><td>${n(r.tsi_norm,3)}</td></tr>`).join("");
 
+  // --- confronto periodi (analisi di "scenario" ancorata a dati reali, non simulazione shock) ---
+  const rowsA = filtered.filter(r => r.period_start === factoryState.periodA);
+  const rowsB = filtered.filter(r => r.period_start === factoryState.periodB);
+  const compareMetrics = [
+    {k: "sa_gj", dec: 1, unit: " GJ"}, {k: "tsi_norm", dec: 3, unit: ""},
+    {k: "f_env_gj", dec: 1, unit: " GJ"}, {k: "f_econ_gj", dec: 1, unit: " GJ"},
+    {k: "f_soc_gj", dec: 1, unit: " GJ"}, {k: "f_tech_gj", dec: 1, unit: " GJ"},
+  ];
+  const compareRows = compareMetrics.map(m => {
+    const a = avgOf(rowsA, m.k), b = avgOf(rowsB, m.k);
+    return `<tr><td>${gl(m.k)}</td><td>${n(a, m.dec)}${m.unit}</td><td>${n(b, m.dec)}${m.unit}</td><td>${deltaHtml(b, a, 1)}</td></tr>`;
+  }).join("");
+
   $("p-factory").innerHTML = `
     <div class="pageh">Fabbrica — sez. 38.1</div>
+    <div class="note">Filtra per impianto e per scenario, poi confronta due periodi qui sotto.</div>
     <div class="flist">
       <button class="${!factoryState.plantId ? 'on' : ''}" data-plant="">Tutti gli impianti</button>
       ${plants.map(p => `<button class="${factoryState.plantId === p ? 'on' : ''}" data-plant="${esc(p)}">${esc(p)}</button>`).join("")}
     </div>
+    <div class="flist">
+      <button class="${!factoryState.scenario ? 'on' : ''}" data-scen="">${gl("scenario")}: tutti</button>
+      <button class="${factoryState.scenario === 'CURRENT' ? 'on' : ''}" data-scen="CURRENT">CURRENT</button>
+      <button class="${factoryState.scenario === 'HISTORICAL' ? 'on' : ''}" data-scen="HISTORICAL">HISTORICAL</button>
+    </div>
     <div class="grid2">
-      <div class="card"><h2>SA / TSI_norm</h2>
+      <div class="card"><h2>${gl("sa_gj",{short:true})} / ${gl("tsi_norm",{short:true})}</h2>
         <div class="kpis" style="grid-template-columns:1fr 1fr;margin-bottom:0">
-          <div class="kpi navy"><div class="kpival">${n(sa,1)}</div><div class="kpilab">SA (media, GJ)</div></div>
-          <div class="kpi ${tsi !== null && tsi < 1 ? 'red' : 'navy'}"><div class="kpival">${n(tsi,3)}</div><div class="kpilab">TSI norm (media)</div><div class="kpisub">riferimento baseline = 1,00</div></div>
+          <div class="kpi navy"><div class="kpival">${n(sa,1)}</div><div class="kpilab">${gl("sa_gj",{short:true})} (media)</div></div>
+          <div class="kpi ${tsi !== null && tsi < 1 ? 'red' : 'navy'}"><div class="kpival">${n(tsi,3)}</div><div class="kpilab">${gl("tsi_norm",{short:true})} (media)</div><div class="kpisub">riferimento baseline = 1,00</div></div>
         </div>
       </div>
-      <div class="card"><h2>f_env / f_econ / f_soc / f_tech (media, GJ)</h2>${footBars}</div>
+      <div class="card"><h2>Impronte (media, GJ)</h2>${footBars}</div>
+    </div>
+    <div class="card"><h2>Confronta due periodi</h2>
+      <div class="compare-row">
+        <label>Periodo A <select id="fac-pa">${periods.map(p => `<option value="${esc(p)}" ${p===factoryState.periodA?'selected':''}>${esc(p)}</option>`).join("")}</select></label>
+        <label>Periodo B <select id="fac-pb">${periods.map(p => `<option value="${esc(p)}" ${p===factoryState.periodB?'selected':''}>${esc(p)}</option>`).join("")}</select></label>
+        <span class="note" style="margin:0">B rispetto ad A. Rispetta i filtri impianto/scenario sopra.</span>
+      </div>
+      <table><thead><tr><th>Metrica</th><th>Periodo A</th><th>Periodo B</th><th>Δ B vs A</th></tr></thead>
+      <tbody>${periods.length ? compareRows : '<tr><td colspan="4">Nessun periodo disponibile</td></tr>'}</tbody></table>
     </div>
     <h3 class="sec">Drill-down Plant → Line → Lot → Process (sez. 38.1)</h3>
-    <div class="card"><table><thead><tr><th>Plant</th><th>Line</th><th>Lot</th><th>Process</th><th>SA (GJ)</th><th>TSI norm</th></tr></thead>
+    <div class="card"><table><thead><tr><th>Plant</th><th>Line</th><th>Lot</th><th>Process</th><th>${gl("sa_gj", {short:true})}</th><th>${gl("tsi_norm", {short:true})}</th></tr></thead>
     <tbody>${drill || '<tr><td colspan="6">Nessun dato</td></tr>'}</tbody></table>
     ${filtered.length > 200 ? `<div class="note">Mostrate le prime 200 righe di ${filtered.length}.</div>` : ""}</div>`;
 
   $("p-factory").querySelectorAll("[data-plant]").forEach(b => b.onclick = () => { factoryState.plantId = b.dataset.plant || null; renderFactory(); });
+  $("p-factory").querySelectorAll("[data-scen]").forEach(b => b.onclick = () => { factoryState.scenario = b.dataset.scen || null; renderFactory(); });
+  $("fac-pa").onchange = e => { factoryState.periodA = e.target.value; renderFactory(); };
+  $("fac-pb").onchange = e => { factoryState.periodB = e.target.value; renderFactory(); };
 }
 
 /* ---------- Prodotto (sez. 38.2) ---------- */
@@ -162,8 +240,8 @@ function renderProduct() {
   $("p-product").innerHTML = `
     <div class="pageh">Prodotto — sez. 38.2</div>
     <div class="card"><h2>Cluster prodotto</h2>
-    <table><thead><tr><th>Cluster</th><th>Versione</th><th>Vendite (m²)</th><th>Trend</th>
-      <th>P-TSI (1-5)</th><th>IOAI</th><th>OPI</th><th>TQI</th></tr></thead>
+    <table><thead><tr><th>Cluster</th><th>Versione</th><th>${gl("sales_m2")}</th><th>${gl("cluster_trend", {short:true})}</th>
+      <th>${gl("p_tsi_5", {short:true})}</th><th>${gl("ioai", {short:true})}</th><th>${gl("opi", {short:true})}</th><th>${gl("tqi", {short:true})}</th></tr></thead>
     <tbody>${body || '<tr><td colspan="8">Nessun dato</td></tr>'}</tbody></table></div>
     <div class="card"><h2>Gap noti del modello (da <code>docs/powerbi/report_pages_spec.md</code>)</h2>
     <span class="badge gap">non modellato</span> <span class="note" style="display:inline">test tecnici (<code>fact_quality_test</code>) e tipo prodotto
@@ -176,7 +254,7 @@ function renderChannel() {
   const maxShare = Math.max(0.0001, ...chans.map(c => c.share ?? 0));
   const bars = chans.map(c => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
       <span class="badge ${c.channel_type === 'B2B' ? 'b2b' : 'b2c'}" style="width:50px;text-align:center">${esc(c.channel_type)}</span>
-      <div class="bar" style="flex:1"><span style="width:${(c.share ?? 0)/maxShare*100}%;background:${c.channel_type === 'B2B' ? 'var(--navy)' : 'var(--teal)'}"></span></div>
+      <div class="bar" style="flex:1"><span style="width:${(c.share ?? 0)/maxShare*100}%;background:${c.channel_type === 'B2B' ? 'var(--navy)' : 'var(--brand)'}"></span></div>
       <div style="width:110px;text-align:right;font-size:12px">${n(c.sales_m2,0)} m² (${pct(c.share)})</div></div>`).join("");
   const hhi = DATA.kpi.channel_concentration_hhi;
   $("p-channel").innerHTML = `
@@ -186,7 +264,7 @@ function renderChannel() {
     Split B2B/B2C nominato dal Piano di Sviluppo (Allegato 4, OR7.5). Vedi ADR-022.</div>
     <div class="grid2">
       <div class="card"><h2>Quota vendite per canale</h2>${bars || '<div class="note">Nessun dato canale disponibile.</div>'}</div>
-      <div class="card"><h2>Indice di concentrazione (HHI)</h2>
+      <div class="card"><h2>${gl("channel_concentration_hhi")}</h2>
         <div class="kpival">${n(hhi,3)}</div>
         <div class="note">Somma dei quadrati delle quote di canale. 1,0 = tutte le vendite in un solo canale (rischio massimo);
         1/n = ripartizione uniforme su n canali. Nessuna soglia di rischio predefinita qui — solo il numero, per lettura umana
@@ -209,17 +287,17 @@ function renderIntegrated() {
     <div class="grid3" style="margin-top:14px">
       <div class="card"><h2>Mercato</h2>
         <table><tr><td>Cluster</td><td>${esc(first.cluster_id ?? "—")}</td></tr>
-        <tr><td>Vendite (m²)</td><td>${n(avg("sales_m2"),0)}</td></tr>
-        <tr><td>Trend cluster</td><td><span class="badge ${esc(first.cluster_trend ?? 'UNKNOWN')}">${esc(first.cluster_trend ?? 'UNKNOWN')}</span></td></tr>
-        <tr><td>Allineamento trend</td><td>${n(avg("trend_alignment"),2)}</td></tr></table></div>
+        <tr><td>${gl("sales_m2")}</td><td>${n(avg("sales_m2"),0)}</td></tr>
+        <tr><td>${gl("cluster_trend")}</td><td><span class="badge ${esc(first.cluster_trend ?? 'UNKNOWN')}">${esc(first.cluster_trend ?? 'UNKNOWN')}</span></td></tr>
+        <tr><td>${gl("trend_alignment")}</td><td>${n(avg("trend_alignment"),2)}</td></tr></table></div>
       <div class="card"><h2>Prodotto</h2>
-        <table><tr><td>P-TSI (1-5)</td><td>${n(avg("p_tsi_5"),2)}</td></tr>
-        <tr><td>IOAI</td><td>${n(avg("ioai"),2)}</td></tr><tr><td>OPI</td><td>${n(avg("opi"),2)}</td></tr>
-        <tr><td>TQI</td><td>${n(avg("tqi"),2)}</td></tr></table></div>
+        <table><tr><td>${gl("p_tsi_5")}</td><td>${n(avg("p_tsi_5"),2)}</td></tr>
+        <tr><td>${gl("ioai")}</td><td>${n(avg("ioai"),2)}</td></tr><tr><td>${gl("opi")}</td><td>${n(avg("opi"),2)}</td></tr>
+        <tr><td>${gl("tqi")}</td><td>${n(avg("tqi"),2)}</td></tr></table></div>
       <div class="card"><h2>Fabbrica</h2>
-        <table><tr><td>TSI norm</td><td>${n(avg("tsi_norm"),3)}</td></tr>
-        <tr><td>f_env</td><td>${n(avg("f_env_gj"),1)} GJ</td></tr><tr><td>f_econ</td><td>${n(avg("f_econ_gj"),1)} GJ</td></tr>
-        <tr><td>f_soc</td><td>${n(avg("f_soc_gj"),1)} GJ</td></tr><tr><td>f_tech</td><td>${n(avg("f_tech_gj"),1)} GJ</td></tr></table></div>
+        <table><tr><td>${gl("tsi_norm")}</td><td>${n(avg("tsi_norm"),3)}</td></tr>
+        <tr><td>${gl("f_env_gj")}</td><td>${n(avg("f_env_gj"),1)} GJ</td></tr><tr><td>${gl("f_econ_gj")}</td><td>${n(avg("f_econ_gj"),1)} GJ</td></tr>
+        <tr><td>${gl("f_soc_gj")}</td><td>${n(avg("f_soc_gj"),1)} GJ</td></tr><tr><td>${gl("f_tech_gj")}</td><td>${n(avg("f_tech_gj"),1)} GJ</td></tr></table></div>
     </div>`;
   const s = $("integ-sel"); if (s) s.onchange = renderIntegrated;
 }
@@ -261,8 +339,68 @@ function renderBuild() {
     sarà disponibile un ambiente Power BI reale con dati live; questo viewer HTML è l'alpha 0 pratico nel frattempo (ADR-023).</div></div>`;
 }
 
+/* ---------- Guida all'uso ---------- */
+function renderGuide() {
+  const glossRows = Object.entries(DATA.glossary).map(([key, g]) => `<tr>
+      <td><code>${esc(key)}</code></td><td><b>${esc(g.full)}</b></td><td>${esc(g.unit ?? "—")}</td><td>${esc(g.desc)}</td></tr>`).join("");
+  $("p-guide").innerHTML = `
+    <div class="pageh">Guida all'uso</div>
+    <div class="guide-toc"><span>Cos'è</span><span>Come navigare</span><span>Sintetico vs reale</span>
+      <span>«Scenario» in questo viewer</span><span>Cosa manca ancora</span><span>Glossario</span></div>
+
+    <div class="card"><h2>Cos'è questo strumento</h2>
+    <div class="note" style="margin:0">Un'istantanea leggibile dello stato integrato di fabbrica e prodotto
+    (<code>mv_intelligent_industry_state</code>), in un unico file HTML che si apre in qualsiasi browser senza
+    installare nulla. Nessun numero qui è calcolato dal browser: ogni valore arriva già pronto da
+    <code>scripts/build_html_viewer.py</code> (stesso principio del modello Power BI, ADR-006/sez. 39 —
+    la BI non è un motore di calcolo).</div></div>
+
+    <div class="card"><h2>Come navigare</h2>
+    <table>
+      <tr><td><b>Panoramica</b></td><td>KPI di sintesi e copertura dei dati.</td></tr>
+      <tr><td><b>Fabbrica</b></td><td>Impronte SA/TSI_norm, filtro impianto/scenario, confronto tra due periodi,
+        drill-down Plant→Line→Lot→Process (sez. 38.1).</td></tr>
+      <tr><td><b>Prodotto</b></td><td>Cluster prodotto con vendite, trend, P-TSI/IOAI/OPI/TQI (sez. 38.2).</td></tr>
+      <tr><td><b>Canale distributivo</b></td><td>Quota B2B/B2C e indice di concentrazione HHI (ADR-022).</td></tr>
+      <tr><td><b>Integrata</b></td><td>Seleziona un prodotto e vedi Mercato/Prodotto/Fabbrica affiancati (sez. 38.3-38.4).</td></tr>
+      <tr><td><b>Edificio</b></td><td>Campo predisposto per i dati OR3/UNISS, non ancora disponibili.</td></tr>
+      <tr><td><b>Qualità &amp; Build</b></td><td>Provenienza dei dati e findings di qualità.</td></tr>
+    </table></div>
+
+    <div class="card"><h2>Sintetico vs reale</h2>
+    <div class="note" style="margin:0">Il banner in alto a destra (accanto al titolo) mostra sempre la provenienza
+    del dataset. <code>SYNTHETIC_DEMO (ADR-014)</code> significa dati generati per lo sviluppo, mai da considerare
+    reali né da usare per approvare coefficienti o soglie. Con dati reali (una volta risolti gli item collegati
+    a #3/#7), lo stesso banner riporterà l'etichetta passata con <code>--label</code> a
+    <code>build_html_viewer.py</code>.</div></div>
+
+    <div class="card"><h2>«Scenario» in questo viewer</h2>
+    <div class="note" style="margin:0">Il progetto gemello VOLT ha scenari di interruzione della supply chain
+    (S1-S4) con curve di impatto simulate. START non ha — e questo viewer non inventa — un modello equivalente
+    per la fabbrica ceramica: non esiste nella specifica né nei dati un modello di shock/interruzione approvato.
+    Qui "analisi di scenario" significa due cose realmente supportate dai dati: (1) il filtro
+    CURRENT/HISTORICAL nella pagina Fabbrica, il campo reale già presente in <code>fact_production_lot</code>
+    per il replay storico (sez. 46); (2) il confronto tra due periodi reali scelti liberamente, con la
+    variazione percentuale calcolata sugli stessi numeri già mostrati altrove — non una proiezione o
+    una previsione.</div></div>
+
+    <div class="card"><h2>Cosa manca ancora (onestà sui gap)</h2>
+    <table>
+      <tr><td>Connettori MES/SCADA/ERP/HR/LIMS reali</td><td>P0-03, issue #3, ADR-021 — bloccato, non un gap di codice.</td></tr>
+      <tr><td>Export prodotto/cluster reale (13.251 prodotti)</td><td>P0-04, issue #7 — bloccato.</td></tr>
+      <tr><td>Volumi reali di vendita per canale</td><td>ADR-022 — stesso tipo di blocco.</td></tr>
+      <tr><td>Dati involucro/comfort indoor</td><td>Dominio OR3/UNISS, tab «Edificio» — non fabbricato.</td></tr>
+      <tr><td>Test tecnici di prodotto e tipo prodotto</td><td><code>fact_quality_test</code> non è in
+        <code>mv_intelligent_industry_state</code> — stesso gap del modello Power BI, ADR-016.</td></tr>
+    </table></div>
+
+    <div class="card"><h2>Glossario completo</h2>
+    <table><thead><tr><th>Campo</th><th>Nome esteso</th><th>Unità</th><th>Definizione</th></tr></thead>
+    <tbody>${glossRows}</tbody></table></div>`;
+}
+
 /* ---------- router ---------- */
-const renderers = {overview: renderOverview, factory: renderFactory, product: renderProduct,
+const renderers = {overview: renderOverview, guide: renderGuide, factory: renderFactory, product: renderProduct,
   channel: renderChannel, integrated: renderIntegrated, building: renderBuilding, build: renderBuild};
 document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
   document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x === t));

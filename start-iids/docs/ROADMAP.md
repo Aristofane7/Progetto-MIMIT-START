@@ -15,7 +15,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 - **27 / 30** v1 acceptance criteria (spec sec. 57) — **DONE**
 - **3 / 30** — **PARTIAL** (E2C live connector, full golden-regression approval,
   BI drill-down — semantic model shipped, report pages need GUI authoring)
-- **261 tests passing** (0 skipped — the last skip, P-TSA z-score, is
+- **263 tests passing** (0 skipped — the last skip, P-TSA z-score, is
   resolved by ADR-020), 95% coverage on `src/`, CI green on `main`
 - Issue #8's Power BI GUI-authoring blocker now has a working alternative:
   a single self-contained HTML viewer (`bi/html_viewer/`,
@@ -25,7 +25,11 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
   and stays the documented path once a licensed environment + real data are
   available. Also adds a distribution-channel dimension (B2B/B2C,
   ADR-022) with a concentration-risk metric, a monitoring point requested
-  directly rather than from the spec
+  directly rather than from the spec. The viewer (ADR-024) now carries the
+  real START logo/palette, a glossary with hover tooltips for every metric
+  (no bare acronyms), a "Guida all'uso" tab, and a CURRENT/HISTORICAL +
+  period-comparison "scenario" view grounded in real fields — not a
+  fabricated disruption model like the sibling project VOLT's
 - Issue #3 (P0-03): the real MES/SCADA/ERP/HR/LIMS field/table names remain a
   genuine external blocker (checked directly against RP6.6/RP6.7/RP7.1/RP7.2,
   ADR-021) — but the Edge collector (sec. 34.1), source-agnostic Cloud
@@ -86,7 +90,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 21. Prototype test linked — DONE (schema: `fact_quality_test.prototype_id`)
 22. Design decision auditable — DONE
 23. IIDS view available — DONE
-24. BI drill-down functioning — **PARTIAL**: the Power BI semantic model (`bi/powerbi/`, ADR-016) is real and openable — `FactShadowState` + 6 conformed dimensions, display-aggregation-only measures, a `DataSourceMode` parameter switching between the ADR-014 synthetic export and a live SQL connection with no model rework. The 3 report pages/drill-down visuals themselves (sec. 38.1-38.4) are specified field-by-field in `docs/powerbi/report_pages_spec.md` but not yet built — that's a Power BI Desktop GUI step this repository can't execute or validate headlessly. **A working, tested alternative now exists**: `python3 -m scripts.build_html_viewer` (ADR-023) produces a single self-contained HTML file covering the same Factory/Product/Integrated pages plus a distribution-channel view, with no BI license needed — the same pattern the sibling project VOLT uses. Full real-data demonstration in either form still waits on issues #3/#7 — see [issue #8](https://github.com/Aristofane7/Progetto-MIMIT-START/issues/8)
+24. BI drill-down functioning — **PARTIAL**: the Power BI semantic model (`bi/powerbi/`, ADR-016) is real and openable — `FactShadowState` + 6 conformed dimensions, display-aggregation-only measures, a `DataSourceMode` parameter switching between the ADR-014 synthetic export and a live SQL connection with no model rework. The 3 report pages/drill-down visuals themselves (sec. 38.1-38.4) are specified field-by-field in `docs/powerbi/report_pages_spec.md` but not yet built — that's a Power BI Desktop GUI step this repository can't execute or validate headlessly. **A working, tested alternative now exists**: `python3 -m scripts.build_html_viewer` (ADR-023, ADR-024) produces a single self-contained HTML file covering the same Factory/Product/Integrated pages plus a distribution-channel view, a full metric glossary with tooltips, a CURRENT/HISTORICAL + period-comparison scenario view, and a user guide tab, with no BI license needed — the same visual pattern the sibling project VOLT uses. Full real-data demonstration in either form still waits on issues #3/#7 — see [issue #8](https://github.com/Aristofane7/Progetto-MIMIT-START/issues/8)
 25. No automatic actuation — DONE (structural: no write routes exist; CI greps for forbidden patterns)
 26. Coefficient/version tracked — DONE (`dim_coefficient_set`, `dim_weight_set`)
 27. calc_run reproducible — DONE (`audit_calc_run`, `make_calc_run_id`)

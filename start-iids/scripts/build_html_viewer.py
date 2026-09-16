@@ -43,6 +43,64 @@ BUILDING_PLACEHOLDER_TASKS = [
     {"id": "3.4", "title": "Multiperformance e ottimizzazione del prodotto ceramico da involucro"},
 ]
 
+# Full names + plain-language definitions for every metric shown in the
+# viewer (ADR-024) — single source of truth so the template never has to
+# guess at what an acronym means. Grounded in the implementation spec and
+# engine docstrings (src/engines/eea/formulas.py, src/engines/ptsa/formulas.py)
+# — never invented. Where the spec itself never expands an acronym (TII),
+# this describes it by its formula/purpose instead of guessing the words
+# behind the letters.
+GLOSSARY = {
+    "sa_gj": {"full": "SA — Sustainability Accounting", "unit": "GJ",
+               "desc": "Somma delle 4 impronte: SA = f_env + f_econ + f_soc + f_tech (sez. 18.1)."},
+    "tsi_norm": {"full": "TSI norm — Indice di Sostenibilità Tecnologica (normalizzato)", "unit": None,
+                  "desc": "SA del periodo corrente / SA del periodo storico di riferimento (sez. 18.2). "
+                          "1,00 = pari alla baseline; >1,00 = SA più alta del riferimento."},
+    "f_env_gj": {"full": "f_env — Impronta ambientale", "unit": "GJ",
+                  "desc": "Contributo ambientale a SA, calcolato dal motore EFA-J (sez. 18.1)."},
+    "f_econ_gj": {"full": "f_econ — Impronta economica", "unit": "GJ",
+                   "desc": "Contributo economico a SA, calcolato dal motore EcoFA-J (sez. 18.1)."},
+    "f_soc_gj": {"full": "f_soc — Impronta sociale", "unit": "GJ",
+                  "desc": "Contributo sociale a SA, calcolato dal motore SFA-J (sez. 18.1)."},
+    "f_tech_gj": {"full": "f_tech — Impronta tecnologica", "unit": "GJ",
+                   "desc": "Contributo tecnologico a SA, calcolato dal motore TEI-J (sez. 18.1)."},
+    "ioai": {"full": "IOAI — In-/Outputs Availability Index", "unit": None,
+              "desc": "Subindex di disponibilità in-/output: somma pesata degli z-score delle "
+                      "metriche SCR (Stock Coverage Rate — materie prime, prodotto finito, smalto, sez. 24.2/24.6)."},
+    "opi": {"full": "OPI — Operational Performance Index", "unit": None,
+             "desc": "Subindex di performance operativa: somma pesata degli z-score delle "
+                     "metriche PsI (Productivity Index — energia, materiale, throughput, sez. 24.3/24.6)."},
+    "tqi": {"full": "TQI — Technical Quality Index", "unit": None,
+             "desc": "Subindex di qualità tecnica: somma pesata degli z-score delle "
+                     "metriche OCR (Output Conformity Rate — flessione, rottura, superficie, sez. 24.4/24.6)."},
+    "p_tsi_z": {"full": "P-TSI (z-score) — Product Technological Sustainability Index", "unit": None,
+                 "desc": "Media semplice di IOAI/OPI/TQI (sez. 24.7). Metodo primario, su scala z-score."},
+    "p_tsi_5": {"full": "P-TSI (scoring 1-5) — Product Technological Sustainability Index", "unit": "scala 1-5",
+                 "desc": "Somma pesata (pesi AHP approvati) dei punteggi 1-5 per dimensione IOA/OP/TQ "
+                         "(sez. 24.8). Metodo secondario, usato per TII (ADR-007)."},
+    "tii": {"full": "TII", "unit": "%",
+             "desc": "Variazione percentuale di P-TSI tra il periodo corrente e quello precedente: "
+                     "(P-TSI_t / P-TSI_t-1 − 1) × 100 (sez. 24.10). Calcolato solo sulla variante "
+                     "P_TSI_5 (mai sullo z-score, regola di sicurezza ADR-007)."},
+    "sales_m2": {"full": "Vendite", "unit": "m²", "desc": "Metri quadri venduti nel periodo (fact_product_sales)."},
+    "cluster_trend": {"full": "Trend cluster", "unit": None,
+                        "desc": "Classificazione GROWTH/STABLE/DECLINE/UNKNOWN in base alla crescita "
+                                "delle vendite per prodotto del cluster (sez. 20.2). Soglie non ancora "
+                                "approvate dal responsabile di progetto (ADR-011, item 4)."},
+    "trend_alignment": {"full": "Allineamento al trend di mercato", "unit": None,
+                          "desc": "Punteggio di allineamento tra il cluster e un trend di mercato "
+                                  "osservato (bridge_cluster_trend)."},
+    "data_quality_score": {"full": "Data Quality Score", "unit": None,
+                             "desc": "Punteggio di qualità dati del calc_run che ha prodotto la riga (sez. 29/31.3)."},
+    "channel_concentration_hhi": {"full": "HHI — Indice di concentrazione canale", "unit": None,
+                                    "desc": "Somma dei quadrati delle quote di vendita per canale distributivo "
+                                            "(ADR-022). 1,0 = un solo canale; 1/n = ripartizione uniforme su n canali."},
+    "scenario": {"full": "Scenario", "unit": None,
+                  "desc": "CURRENT (stato attuale) o HISTORICAL (replay storico, sez. 46) — il campo reale "
+                          "già presente in fact_production_lot. Non è una simulazione di shock/interruzione "
+                          "come in VOLT: questo dominio non ha (ancora) un modello di scenario ipotetico."},
+}
+
 
 def _avg(values: list[float]) -> float | None:
     values = [v for v in values if v is not None]
@@ -128,6 +186,7 @@ def build_payload(engine: Engine, *, dataset_label: str, data_note: str) -> dict
         "channels": channels,
         "quality": quality,
         "building_placeholder": BUILDING_PLACEHOLDER_TASKS,
+        "glossary": GLOSSARY,
     }
 
 

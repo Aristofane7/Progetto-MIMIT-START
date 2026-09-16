@@ -29,11 +29,19 @@ Open the resulting file directly in any browser — no server needed.
 
 ## Pages
 
-Factory (sec. 38.1), Product (sec. 38.2), Canale distributivo (ADR-022,
-requested directly — not from the spec), Integrated (sec. 38.3-38.4),
-Edificio (a structural placeholder for OR3/UNISS building-envelope data,
-never fabricated — see ADR-023), and Qualità & Build (data quality findings
-+ build provenance, so nobody mistakes synthetic output for real data).
+Overview, Guida all'uso (user guide + full glossary, ADR-024), Factory
+(sec. 38.1, with a CURRENT/HISTORICAL scenario filter and a period-comparison
+tool — both grounded in real fields, not a fabricated disruption model),
+Product (sec. 38.2), Canale distributivo (ADR-022, requested directly — not
+from the spec), Integrated (sec. 38.3-38.4), Edificio (a structural
+placeholder for OR3/UNISS building-envelope data, never fabricated — see
+ADR-023), and Qualità & Build (data quality findings + build provenance, so
+nobody mistakes synthetic output for real data).
+
+Every metric acronym (SA, TSI_norm, IOAI/OPI/TQI, P-TSI, TII, HHI, ...) is
+shown with a hover tooltip and full definition, sourced from a single
+`GLOSSARY` dict in `scripts/build_html_viewer.py` (ADR-024) — never a bare,
+unexplained acronym.
 
 ## Relationship to the Power BI model
 
