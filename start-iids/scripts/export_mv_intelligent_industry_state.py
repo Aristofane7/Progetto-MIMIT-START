@@ -53,6 +53,7 @@ DIMENSION_QUERIES = {
         "SELECT DISTINCT cluster_id, cluster_version FROM mv_intelligent_industry_state "
         "WHERE cluster_id IS NOT NULL"
     ),
+    "dim_distribution_channel": "SELECT channel_id, channel_name, channel_type FROM dim_distribution_channel",
 }
 
 

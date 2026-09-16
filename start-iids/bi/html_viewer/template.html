@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>START IIDS · Digital Shadow — visualizzatore interattivo</title>
+<style>
+:root{--teal:#0F6E6E;--ink:#1A1A1A;--navy:#1F3864;--green:#2E5A34;--amber:#E0A100;
+      --red:#B23A2E;--grey:#8A8A8A;--tint:#E7F3F3;--bg:#F4F5F3;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Segoe UI',Calibri,system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+.top{background:var(--ink);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:20px;letter-spacing:.5px}
+.logo .sq{width:24px;height:24px;background:var(--teal);border-radius:5px}
+.top .sub{opacity:.75;font-size:12px}
+.top .gen{margin-left:auto;font-size:11px;opacity:.6}
+.tabs{display:flex;gap:2px;padding:0 20px;background:#fff;border-bottom:2px solid var(--teal);flex-wrap:wrap}
+.tab{padding:10px 16px;font-size:13.5px;cursor:pointer;border:none;background:none;color:#556;border-bottom:3px solid transparent;margin-bottom:-2px}
+.tab.on{color:var(--ink);font-weight:700;border-bottom-color:var(--ink)}
+.wrap{padding:18px 20px;max-width:1240px;margin:0 auto}
+.page{display:none}.page.on{display:block}
+.pageh{font-size:16px;font-weight:800;color:var(--navy);margin-bottom:4px}
+.note{font-size:12px;color:#667;margin-bottom:14px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:var(--card);border-radius:10px;padding:13px 14px;box-shadow:0 1px 3px rgba(0,0,0,.07);border-top:3px solid var(--green)}
+.kpi.amber{border-top-color:var(--amber)}.kpi.red{border-top-color:var(--red)}.kpi.navy{border-top-color:var(--navy)}
+.kpival{font-size:24px;font-weight:800}.kpilab{font-size:12.5px;font-weight:600;margin-top:2px}.kpisub{font-size:11px;color:#889}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.card{background:var(--card);border-radius:10px;padding:15px;box-shadow:0 1px 3px rgba(0,0,0,.07);margin-bottom:16px}
+.card h2{font-size:14px;color:var(--navy);margin:0 0 10px}
+h3.sec{font-size:12px;letter-spacing:.4px;text-transform:uppercase;color:var(--grey);margin:18px 0 8px;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:5px 8px;text-align:left;border-bottom:1px solid #eee}
+th{color:#fff;background:var(--ink);font-weight:600}
+tr.clickable{cursor:pointer}tr.clickable:hover{background:var(--tint)}
+.bar{background:#eee;border-radius:5px;height:16px;overflow:hidden;display:flex}
+.bar span{height:100%}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.badge.b2b{background:var(--navy);color:#fff}.badge.b2c{background:var(--teal);color:#fff}
+.badge.gap{background:#eee;color:#889;font-weight:600}
+.badge.GROWTH{background:var(--green);color:#fff}.badge.DECLINE{background:var(--red);color:#fff}
+.badge.STABLE{background:var(--grey);color:#fff}.badge.UNKNOWN{background:#ddd;color:#556}
+select,input[type=text]{font-size:13px;padding:5px 8px;border:1px solid #ccc;border-radius:6px}
+.placeholder{border:1px dashed #ccc;border-radius:8px;padding:12px;background:#fafafa;color:#778;font-size:12.5px}
+.flist{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.flist button{border:1px solid #ccc;background:#fff;border-radius:16px;padding:5px 13px;font-size:12.5px;cursor:pointer}
+.flist button.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:700}
+footer{padding:14px 20px;font-size:11px;color:#889;text-align:center}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="logo"><span class="sq"></span>START IIDS</div>
+  <div class="sub">Digital Shadow — visualizzatore interattivo (alpha 0)</div>
+  <div class="gen" id="genline"></div>
+</div>
+<div class="tabs">
+  <button class="tab on" data-k="overview">Panoramica</button>
+  <button class="tab" data-k="factory">Fabbrica</button>
+  <button class="tab" data-k="product">Prodotto</button>
+  <button class="tab" data-k="channel">Canale distributivo</button>
+  <button class="tab" data-k="integrated">Integrata</button>
+  <button class="tab" data-k="building">Edificio</button>
+  <button class="tab" data-k="build">Qualità &amp; Build</button>
+</div>
+<div class="wrap">
+  <div class="page on" id="p-overview"></div>
+  <div class="page" id="p-factory"></div>
+  <div class="page" id="p-product"></div>
+  <div class="page" id="p-channel"></div>
+  <div class="page" id="p-integrated"></div>
+  <div class="page" id="p-building"></div>
+  <div class="page" id="p-build"></div>
+</div>
+<footer>START IIDS — generato da <code>scripts/build_html_viewer.py</code>, vedi il tab «Qualità &amp; Build» per provenienza e dettagli.</footer>
+
+<script>
+const DATA = /*__DATA__*/;
+const $ = id => document.getElementById(id);
+
+/* numeri in formato italiano (it-IT): virgola decimale, uniforme in tutta la UI */
+function n(v, d) { if (v === null || v === undefined) return "—"; return Number(v).toLocaleString("it-IT", {minimumFractionDigits: d ?? 2, maximumFractionDigits: d ?? 2}); }
+function pct(v) { if (v === null || v === undefined) return "—"; return (v * 100).toLocaleString("it-IT", {minimumFractionDigits: 1, maximumFractionDigits: 1}) + "%"; }
+function esc(s) { const d = document.createElement("div"); d.textContent = s ?? ""; return d.innerHTML; }
+
+$("genline").textContent = "generato " + new Date(DATA.meta.generated_at).toLocaleString("it-IT") + " · " + DATA.meta.dataset_label;
+
+/* ---------- Panoramica ---------- */
+function renderOverview() {
+  const k = DATA.kpi;
+  $("p-overview").innerHTML = `
+    <div class="pageh">${esc(DATA.meta.title)}</div>
+    <div class="note">${esc(DATA.meta.data_note)}</div>
+    <div class="kpis">
+      <div class="kpi navy"><div class="kpival">${n(k.tsi_norm_avg, 3)}</div><div class="kpilab">TSI norm (media)</div><div class="kpisub">baseline-relativo, sec. 12</div></div>
+      <div class="kpi navy"><div class="kpival">${n(k.p_tsi_5_avg, 2)}</div><div class="kpilab">P-TSI medio (scala 1-5)</div></div>
+      <div class="kpi ${k.data_quality_score_avg !== null && k.data_quality_score_avg < 0.7 ? 'red' : 'amber'}"><div class="kpival">${n(k.data_quality_score_avg, 2)}</div><div class="kpilab">Data Quality Score (media)</div><div class="kpisub">sec. 29/31.3</div></div>
+      <div class="kpi"><div class="kpival">${n(k.channel_concentration_hhi, 2)}</div><div class="kpilab">Concentrazione canale (HHI)</div><div class="kpisub">vedi tab «Canale distributivo»</div></div>
+    </div>
+    <div class="card"><h2>Copertura record</h2>
+      <table><tr><td>Righe stato integrato (fabbrica+prodotto)</td><td><b>${k.record_count}</b></td></tr>
+      <tr><td>... con TSI_norm calcolato</td><td><b>${k.record_count_with_tsi}</b></td></tr>
+      <tr><td>Cluster prodotto distinti</td><td><b>${DATA.clusters.length}</b></td></tr>
+      <tr><td>Canali distributivi noti</td><td><b>${DATA.channels.length}</b></td></tr></table>
+    </div>
+    <div class="note">Naviga le pagine sopra: Fabbrica (sez. 38.1), Prodotto (sez. 38.2), Canale distributivo (ADR-022),
+    Integrata (sez. 38.3), Edificio (placeholder OR3/UNISS), Qualità &amp; Build (provenienza dati).</div>`;
+}
+
+/* ---------- Fabbrica (sez. 38.1) ---------- */
+let factoryState = { plantId: null };
+function renderFactory() {
+  const rows = DATA.rows;
+  const plants = DATA.dims.dim_plant.map(p => p.plant_id);
+  const filtered = factoryState.plantId ? rows.filter(r => r.plant_id === factoryState.plantId) : rows;
+  const avg = key => { const vs = filtered.map(r => r[key]).filter(v => v !== null && v !== undefined); return vs.length ? vs.reduce((a,b)=>a+b,0)/vs.length : null; };
+  const sa = avg("sa_gj"), tsi = avg("tsi_norm");
+  const foot = ["f_env_gj","f_econ_gj","f_soc_gj","f_tech_gj"].map(k => ({k, v: avg(k)}));
+  const maxFoot = Math.max(1, ...foot.map(f => Math.abs(f.v ?? 0)));
+  const footColors = {f_env_gj:"var(--green)", f_econ_gj:"var(--navy)", f_soc_gj:"var(--teal)", f_tech_gj:"var(--amber)"};
+  const footBars = foot.map(f => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <div style="width:70px;font-size:12px">${f.k.replace('_gj','').replace('f_','')}</div>
+      <div class="bar" style="flex:1"><span style="width:${Math.min(100, Math.abs(f.v ?? 0)/maxFoot*100)}%;background:${footColors[f.k]}"></span></div>
+      <div style="width:70px;text-align:right;font-size:12px">${n(f.v, 1)} GJ</div></div>`).join("");
+
+  const drill = filtered.slice(0, 200).map(r => `<tr>
+      <td>${esc(r.plant_id)}</td><td>${esc(r.line_id)}</td><td>${esc(r.lot_id)}</td><td>${esc(r.process_name ?? r.process_id)}</td>
+      <td>${n(r.sa_gj,1)}</td><td>${n(r.tsi_norm,3)}</td></tr>`).join("");
+
+  $("p-factory").innerHTML = `
+    <div class="pageh">Fabbrica — sez. 38.1</div>
+    <div class="flist">
+      <button class="${!factoryState.plantId ? 'on' : ''}" data-plant="">Tutti gli impianti</button>
+      ${plants.map(p => `<button class="${factoryState.plantId === p ? 'on' : ''}" data-plant="${esc(p)}">${esc(p)}</button>`).join("")}
+    </div>
+    <div class="grid2">
+      <div class="card"><h2>SA / TSI_norm</h2>
+        <div class="kpis" style="grid-template-columns:1fr 1fr;margin-bottom:0">
+          <div class="kpi navy"><div class="kpival">${n(sa,1)}</div><div class="kpilab">SA (media, GJ)</div></div>
+          <div class="kpi ${tsi !== null && tsi < 1 ? 'red' : 'navy'}"><div class="kpival">${n(tsi,3)}</div><div class="kpilab">TSI norm (media)</div><div class="kpisub">riferimento baseline = 1,00</div></div>
+        </div>
+      </div>
+      <div class="card"><h2>f_env / f_econ / f_soc / f_tech (media, GJ)</h2>${footBars}</div>
+    </div>
+    <h3 class="sec">Drill-down Plant → Line → Lot → Process (sez. 38.1)</h3>
+    <div class="card"><table><thead><tr><th>Plant</th><th>Line</th><th>Lot</th><th>Process</th><th>SA (GJ)</th><th>TSI norm</th></tr></thead>
+    <tbody>${drill || '<tr><td colspan="6">Nessun dato</td></tr>'}</tbody></table>
+    ${filtered.length > 200 ? `<div class="note">Mostrate le prime 200 righe di ${filtered.length}.</div>` : ""}</div>`;
+
+  $("p-factory").querySelectorAll("[data-plant]").forEach(b => b.onclick = () => { factoryState.plantId = b.dataset.plant || null; renderFactory(); });
+}
+
+/* ---------- Prodotto (sez. 38.2) ---------- */
+function renderProduct() {
+  const rows = DATA.clusters.slice().sort((a,b) => b.sales_m2_total - a.sales_m2_total);
+  const body = rows.map(c => `<tr>
+      <td>${esc(c.cluster_id)}</td><td>${esc(c.cluster_version)}</td>
+      <td>${n(c.sales_m2_total,0)}</td>
+      <td><span class="badge ${esc(c.trend_class ?? 'UNKNOWN')}">${esc(c.trend_class ?? 'UNKNOWN')}</span></td>
+      <td>${n(c.p_tsi_5_avg,2)}</td><td>${n(c.ioai_avg,2)}</td><td>${n(c.opi_avg,2)}</td><td>${n(c.tqi_avg,2)}</td></tr>`).join("");
+  $("p-product").innerHTML = `
+    <div class="pageh">Prodotto — sez. 38.2</div>
+    <div class="card"><h2>Cluster prodotto</h2>
+    <table><thead><tr><th>Cluster</th><th>Versione</th><th>Vendite (m²)</th><th>Trend</th>
+      <th>P-TSI (1-5)</th><th>IOAI</th><th>OPI</th><th>TQI</th></tr></thead>
+    <tbody>${body || '<tr><td colspan="8">Nessun dato</td></tr>'}</tbody></table></div>
+    <div class="card"><h2>Gap noti del modello (da <code>docs/powerbi/report_pages_spec.md</code>)</h2>
+    <span class="badge gap">non modellato</span> <span class="note" style="display:inline">test tecnici (<code>fact_quality_test</code>) e tipo prodotto
+    non sono in <code>mv_intelligent_industry_state</code> — non fabbricati qui, stesso gap del modello Power BI (ADR-016).</span></div>`;
+}
+
+/* ---------- Canale distributivo (ADR-022) ---------- */
+function renderChannel() {
+  const chans = DATA.channels;
+  const maxShare = Math.max(0.0001, ...chans.map(c => c.share ?? 0));
+  const bars = chans.map(c => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span class="badge ${c.channel_type === 'B2B' ? 'b2b' : 'b2c'}" style="width:50px;text-align:center">${esc(c.channel_type)}</span>
+      <div class="bar" style="flex:1"><span style="width:${(c.share ?? 0)/maxShare*100}%;background:${c.channel_type === 'B2B' ? 'var(--navy)' : 'var(--teal)'}"></span></div>
+      <div style="width:110px;text-align:right;font-size:12px">${n(c.sales_m2,0)} m² (${pct(c.share)})</div></div>`).join("");
+  const hhi = DATA.kpi.channel_concentration_hhi;
+  $("p-channel").innerHTML = `
+    <div class="pageh">Canale distributivo</div>
+    <div class="note">Punto di monitoraggio richiesto direttamente (non nella specifica): concentrazione delle vendite
+    per canale, simmetrico al rischio di concentrazione fornitori che il progetto gemello VOLT traccia a monte.
+    Split B2B/B2C nominato dal Piano di Sviluppo (Allegato 4, OR7.5). Vedi ADR-022.</div>
+    <div class="grid2">
+      <div class="card"><h2>Quota vendite per canale</h2>${bars || '<div class="note">Nessun dato canale disponibile.</div>'}</div>
+      <div class="card"><h2>Indice di concentrazione (HHI)</h2>
+        <div class="kpival">${n(hhi,3)}</div>
+        <div class="note">Somma dei quadrati delle quote di canale. 1,0 = tutte le vendite in un solo canale (rischio massimo);
+        1/n = ripartizione uniforme su n canali. Nessuna soglia di rischio predefinita qui — solo il numero, per lettura umana
+        (stessa disciplina di non inventare soglie di business non approvate, vedi ADR-011).</div>
+      </div>
+    </div>`;
+}
+
+/* ---------- Integrata (sez. 38.3) ---------- */
+function renderIntegrated() {
+  const products = DATA.dims.dim_product.map(p => p.product_id);
+  const sel = $("integ-sel") ? $("integ-sel").value : (products[0] ?? "");
+  const productRows = DATA.rows.filter(r => r.product_id === sel);
+  const avg = key => { const vs = productRows.map(r => r[key]).filter(v => v !== null && v !== undefined); return vs.length ? vs.reduce((a,b)=>a+b,0)/vs.length : null; };
+  const first = productRows[0] ?? {};
+  $("p-integrated").innerHTML = `
+    <div class="pageh">Integrata — sez. 38.3</div>
+    <div class="note">Seleziona un prodotto per vedere Mercato / Prodotto / Fabbrica affiancati (drill-down bidirezionale, sez. 38.4).</div>
+    <select id="integ-sel">${products.map(p => `<option value="${esc(p)}" ${p===sel?'selected':''}>${esc(p)}</option>`).join("")}</select>
+    <div class="grid3" style="margin-top:14px">
+      <div class="card"><h2>Mercato</h2>
+        <table><tr><td>Cluster</td><td>${esc(first.cluster_id ?? "—")}</td></tr>
+        <tr><td>Vendite (m²)</td><td>${n(avg("sales_m2"),0)}</td></tr>
+        <tr><td>Trend cluster</td><td><span class="badge ${esc(first.cluster_trend ?? 'UNKNOWN')}">${esc(first.cluster_trend ?? 'UNKNOWN')}</span></td></tr>
+        <tr><td>Allineamento trend</td><td>${n(avg("trend_alignment"),2)}</td></tr></table></div>
+      <div class="card"><h2>Prodotto</h2>
+        <table><tr><td>P-TSI (1-5)</td><td>${n(avg("p_tsi_5"),2)}</td></tr>
+        <tr><td>IOAI</td><td>${n(avg("ioai"),2)}</td></tr><tr><td>OPI</td><td>${n(avg("opi"),2)}</td></tr>
+        <tr><td>TQI</td><td>${n(avg("tqi"),2)}</td></tr></table></div>
+      <div class="card"><h2>Fabbrica</h2>
+        <table><tr><td>TSI norm</td><td>${n(avg("tsi_norm"),3)}</td></tr>
+        <tr><td>f_env</td><td>${n(avg("f_env_gj"),1)} GJ</td></tr><tr><td>f_econ</td><td>${n(avg("f_econ_gj"),1)} GJ</td></tr>
+        <tr><td>f_soc</td><td>${n(avg("f_soc_gj"),1)} GJ</td></tr><tr><td>f_tech</td><td>${n(avg("f_tech_gj"),1)} GJ</td></tr></table></div>
+    </div>`;
+  const s = $("integ-sel"); if (s) s.onchange = renderIntegrated;
+}
+
+/* ---------- Edificio (placeholder OR3/UNISS) ---------- */
+function renderBuilding() {
+  const cards = DATA.building_placeholder.map(t => `<div class="card"><h2>${esc(t.id)} — ${esc(t.title)}</h2>
+      <div class="placeholder">Dati non disponibili in questo repository — dominio OR3 (Università degli Studi di Sassari),
+      Piano di Sviluppo Allegato 4. Campo predisposto, in attesa dei dati reali di monitoraggio involucro/comfort indoor.</div></div>`).join("");
+  $("p-building").innerHTML = `
+    <div class="pageh">Edificio</div>
+    <div class="note">START copre fabbrica ceramica e prodotto; l'involucro edilizio è il dominio di un altro partner (OR3, UNISS).
+    Questa pagina resta un campo potenziale da popolare quando quei dati saranno disponibili, strutturato secondo le
+    attività reali del Piano di Sviluppo — non un dato fabbricato.</div>
+    ${cards}`;
+}
+
+/* ---------- Qualità & Build ---------- */
+function renderBuild() {
+  const q = DATA.quality;
+  const sevOrder = ["BLOCKER","ERROR","WARNING","INFO"];
+  const sevColor = {BLOCKER:"var(--red)", ERROR:"var(--red)", WARNING:"var(--amber)", INFO:"var(--grey)"};
+  const rows = sevOrder.filter(s => q[s] !== undefined).map(s => `<tr><td><span class="badge" style="background:${sevColor[s]};color:#fff">${s}</span></td><td>${q[s]}</td></tr>`).join("");
+  $("p-build").innerHTML = `
+    <div class="pageh">Qualità &amp; Build</div>
+    <div class="grid2">
+      <div class="card"><h2>Findings di qualità dati (audit_data_quality)</h2>
+        <table>${rows || '<tr><td>Nessun finding</td></tr>'}</table>
+        <div class="note">Sec. 29.3: nessun finding BLOCKER viene mai scartato silenziosamente — persistito qui.</div></div>
+      <div class="card"><h2>Provenienza build</h2>
+        <table>
+        <tr><td>Generato</td><td>${new Date(DATA.meta.generated_at).toLocaleString("it-IT")}</td></tr>
+        <tr><td>Generatore</td><td><code>${esc(DATA.meta.generator)}</code></td></tr>
+        <tr><td>Dataset</td><td>${esc(DATA.meta.dataset_label)}</td></tr>
+        <tr><td>Nota</td><td>${esc(DATA.meta.data_note)}</td></tr></table></div>
+    </div>
+    <div class="card"><h2>Percorso Power BI (non sostituito)</h2>
+    <div class="note">Il modello semantico Power BI (<code>bi/powerbi/</code>, ADR-016) resta il deliverable documentato per quando
+    sarà disponibile un ambiente Power BI reale con dati live; questo viewer HTML è l'alpha 0 pratico nel frattempo (ADR-023).</div></div>`;
+}
+
+/* ---------- router ---------- */
+const renderers = {overview: renderOverview, factory: renderFactory, product: renderProduct,
+  channel: renderChannel, integrated: renderIntegrated, building: renderBuilding, build: renderBuild};
+document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
+  document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x === t));
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("on"));
+  $("p-" + t.dataset.k).classList.add("on");
+  renderers[t.dataset.k]();
+});
+renderOverview();
+</script>
+</body>
+</html>

@@ -23,6 +23,11 @@
 -- beyond sec. 26.2's "campi minimi" (a floor, not a ceiling): the Factory page
 -- drill-down Plant→Line→Lot→Process required by sec. 38.1 has no field to
 -- drill into without them. Same first-process-of-the-lot join as line_id.
+--
+-- channel_id/channel_type (ADR-022) are the same kind of passthrough addition:
+-- not in sec. 26.2's field list, added because the distribution channel
+-- (B2B/B2C) is a monitoring point named directly in the Piano di Sviluppo
+-- (OR7.5's B2C-CR/B2B-CR) with no field to surface it without this join.
 
 CREATE VIEW mv_intelligent_industry_state AS
 SELECT
@@ -53,6 +58,8 @@ SELECT
     ptsa.tii                                        AS tii,
 
     sales.sales_m2                                  AS sales_m2,
+    sales.channel_id                                AS channel_id,
+    chan.channel_type                               AS channel_type,
     cperf.trend_class                               AS cluster_trend,
     ctrend.alignment_score                          AS trend_alignment,
 
@@ -85,6 +92,8 @@ LEFT JOIN fact_product_sales sales
     ON sales.product_id = lot.product_id
    AND lot.start_ts >= sales.period_start
    AND lot.start_ts <  sales.period_end
+LEFT JOIN dim_distribution_channel chan
+    ON chan.channel_id = sales.channel_id
 LEFT JOIN fact_cluster_performance cperf
     ON cperf.cluster_id = prod.cluster_id
    AND cperf.cluster_version = prod.cluster_version

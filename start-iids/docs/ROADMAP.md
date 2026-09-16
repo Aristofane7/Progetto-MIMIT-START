@@ -15,8 +15,17 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 - **27 / 30** v1 acceptance criteria (spec sec. 57) — **DONE**
 - **3 / 30** — **PARTIAL** (E2C live connector, full golden-regression approval,
   BI drill-down — semantic model shipped, report pages need GUI authoring)
-- **251 tests passing** (0 skipped — the last skip, P-TSA z-score, is
+- **261 tests passing** (0 skipped — the last skip, P-TSA z-score, is
   resolved by ADR-020), 95% coverage on `src/`, CI green on `main`
+- Issue #8's Power BI GUI-authoring blocker now has a working alternative:
+  a single self-contained HTML viewer (`bi/html_viewer/`,
+  `scripts/build_html_viewer.py`, ADR-023), the same pattern the sibling
+  project VOLT uses — buildable and testable headlessly, no BI license
+  needed. The Power BI semantic model (`bi/powerbi/`, ADR-016) is unchanged
+  and stays the documented path once a licensed environment + real data are
+  available. Also adds a distribution-channel dimension (B2B/B2C,
+  ADR-022) with a concentration-risk metric, a monitoring point requested
+  directly rather than from the spec
 - Issue #3 (P0-03): the real MES/SCADA/ERP/HR/LIMS field/table names remain a
   genuine external blocker (checked directly against RP6.6/RP6.7/RP7.1/RP7.2,
   ADR-021) — but the Edge collector (sec. 34.1), source-agnostic Cloud
@@ -52,7 +61,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 | 5 — Product intelligence | sales, cluster performance, trend | **DONE** (schema + CQS + trend classification + SCD2 catalog) |
 | 6 — P-TSA | SCR/PsI/OCR/z-score/AHP/P-TSI/TII | **DONE** (engine + tests); z-score golden regression now real, validated against the RP7.4 report's own Tabelle 3-7 (ADR-020, issue #6) |
 | 7 — Product Design workflow | project/option/prototype/test/decision | **DONE** (schema + state machine + decision enum) |
-| 8 — Integrated mart | IIDS view, read-only API | **DONE** (`mv_intelligent_industry_state`, FastAPI read-only endpoints); Power BI semantic model **PARTIAL** — TMDL model + measures + CSV/SQL data-source switch shipped (`bi/powerbi/`, ADR-016); the 3 report pages (sec. 38.1-38.3) are a GUI-authoring step against the shipped model + `docs/powerbi/report_pages_spec.md` |
+| 8 — Integrated mart | IIDS view, read-only API | **DONE** (`mv_intelligent_industry_state`, FastAPI read-only endpoints, now with a `channel_id`/`channel_type` passthrough, ADR-022); Power BI semantic model **PARTIAL** — TMDL model + measures + CSV/SQL data-source switch shipped (`bi/powerbi/`, ADR-016); the 3 report pages (sec. 38.1-38.3) are a GUI-authoring step against the shipped model + `docs/powerbi/report_pages_spec.md`. **A working alternative is `DONE`**: a self-contained HTML viewer (`bi/html_viewer/`, `scripts/build_html_viewer.py`, ADR-023) covers Factory/Product/Channel/Integrated/Building-placeholder/Quality in one always-buildable file, VOLT-style |
 | 9 — Validation | regression, audit, performance, UAT | **PARTIAL** — unit/integration/regression suite in place; audit persistence (`audit_data_quality`/`audit_lineage`) and blocker-rule detection now proven with real inserts, not just schema (ADR-017); `scripts/stage9_validation_checklist.py` reports live status against issue #9's 21-item checklist (12 PASS/5 PARTIAL/4 BLOCKED); performance/UAT against real infrastructure remain out of this repository's scope by construction |
 
 ## Acceptance criteria (spec sec. 57) — status
@@ -77,7 +86,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 21. Prototype test linked — DONE (schema: `fact_quality_test.prototype_id`)
 22. Design decision auditable — DONE
 23. IIDS view available — DONE
-24. BI drill-down functioning — **PARTIAL**: the Power BI semantic model (`bi/powerbi/`, ADR-016) is real and openable — `FactShadowState` + 6 conformed dimensions, display-aggregation-only measures, a `DataSourceMode` parameter switching between the ADR-014 synthetic export and a live SQL connection with no model rework. The 3 report pages/drill-down visuals themselves (sec. 38.1-38.4) are specified field-by-field in `docs/powerbi/report_pages_spec.md` but not yet built — that's a Power BI Desktop GUI step this repository can't execute or validate headlessly. Full real-data demonstration still waits on issues #3/#7 — see [issue #8](https://github.com/Aristofane7/Progetto-MIMIT-START/issues/8)
+24. BI drill-down functioning — **PARTIAL**: the Power BI semantic model (`bi/powerbi/`, ADR-016) is real and openable — `FactShadowState` + 6 conformed dimensions, display-aggregation-only measures, a `DataSourceMode` parameter switching between the ADR-014 synthetic export and a live SQL connection with no model rework. The 3 report pages/drill-down visuals themselves (sec. 38.1-38.4) are specified field-by-field in `docs/powerbi/report_pages_spec.md` but not yet built — that's a Power BI Desktop GUI step this repository can't execute or validate headlessly. **A working, tested alternative now exists**: `python3 -m scripts.build_html_viewer` (ADR-023) produces a single self-contained HTML file covering the same Factory/Product/Integrated pages plus a distribution-channel view, with no BI license needed — the same pattern the sibling project VOLT uses. Full real-data demonstration in either form still waits on issues #3/#7 — see [issue #8](https://github.com/Aristofane7/Progetto-MIMIT-START/issues/8)
 25. No automatic actuation — DONE (structural: no write routes exist; CI greps for forbidden patterns)
 26. Coefficient/version tracked — DONE (`dim_coefficient_set`, `dim_weight_set`)
 27. calc_run reproducible — DONE (`audit_calc_run`, `make_calc_run_id`)
@@ -93,7 +102,13 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 - The 3 Power BI report pages' actual visual layout (sec. 38.1-38.3) —
   a GUI-authoring step in Power BI Desktop against the semantic model in
   `bi/powerbi/` (ADR-016) and the spec in `docs/powerbi/report_pages_spec.md`;
-  not something this repository can produce or validate headlessly
+  not something this repository can produce or validate headlessly. The
+  self-contained HTML viewer (`bi/html_viewer/`, ADR-023) covers the same
+  pages without that GUI step, so this gap now has a working alternative,
+  not just a documented one
+- Real building/envelope data in the HTML viewer's "Edificio" tab — that is
+  OR3's domain (UNISS), a different partner in the Piano di Sviluppo; the
+  tab is a structural placeholder listing OR3's own tasks, not fabricated
 - Re-clustering pipeline running on a schedule (sec. 19.6 — cluster versions are imported on request)
 
 ## Next steps for whoever continues this work
@@ -154,3 +169,9 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
    (currently `DRAFT`) — a gap ADR-017 found: the RP7.3 aggregate model has used
    this baseline since ADR-012, but it was never a governed artifact the way
    the coefficient/weight sets are (ADR-013).
+8. ~~Build a working alternative to the Power BI GUI-authoring step for
+   issue #8~~ — **done, ADR-023**: `python3 -m scripts.build_html_viewer`
+   (self-contained HTML, VOLT pattern). Remaining: real per-channel sales
+   volumes for the new "Canale distributivo" tab (ADR-022, same class of
+   external blocker as P0-03/P0-04) and real building/envelope data for the
+   "Edificio" tab once OR3/UNISS shares it.

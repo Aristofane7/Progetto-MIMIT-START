@@ -218,7 +218,7 @@ def build_synthetic_dataset(seed: int = SEED) -> Dataset:
                 "product_sales_id": sales_id, "product_id": product_id,
                 "period_start": period_start, "period_end": period_end,
                 "sales_m2": sales_m2, "revenue_eur": round(sales_m2 * rng.uniform(8, 15), 2),
-                "source_system": SOURCE_SYSTEM,
+                "source_system": SOURCE_SYSTEM, "channel_id": rng.choice(["B2B", "B2C"]),
             })
             cluster_sales.setdefault((cluster_id, period_idx), []).append(sales_m2)
 
