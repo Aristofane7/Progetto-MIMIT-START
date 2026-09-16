@@ -36,9 +36,14 @@ body {
     line-height: 1.45;
     color: #1A1A1A;
 }
-h1 { color: #1F3864; font-size: 20pt; border-bottom: 3px solid #67C271; padding-bottom: 6px; }
-h2 { color: #1F3864; font-size: 14.5pt; margin-top: 26px; border-bottom: 1px solid #ddd; padding-bottom: 3px; }
-h3 { color: #1F3864; font-size: 12pt; margin-top: 16px; }
+p, li {
+    text-align: justify;
+    hyphens: auto;
+    -weasy-hyphens: auto;
+}
+h1 { color: #1F3864; font-size: 20pt; border-bottom: 3px solid #67C271; padding-bottom: 6px; text-align: left; }
+h2 { color: #1F3864; font-size: 14.5pt; margin-top: 26px; border-bottom: 1px solid #ddd; padding-bottom: 3px; text-align: left; }
+h3 { color: #1F3864; font-size: 12pt; margin-top: 16px; text-align: left; }
 h1:first-of-type { margin-top: 0; }
 a { color: #3E8A48; }
 table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; font-size: 9pt; }

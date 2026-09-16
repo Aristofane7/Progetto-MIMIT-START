@@ -4,7 +4,6 @@
 **Progetto:** START | SusTainable dAta-dRiven manufacTuring (DM 31 dicembre 2021, Accordi per l'Innovazione)
 **Documento:** guida tecnico-narrativa al repository `start-iids`
 **Versione:** 1.0 — 2026-09-16
-**Responsabile di progetto:** Davide Settembre Blundo (Gresmalt, Innovation Program Manager)
 
 ---
 
