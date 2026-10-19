@@ -33,7 +33,7 @@ Per D020, periodo **gennaio – data di cessazione luglio 2025** (indicare il gi
 3. termini dei quattro moduli in MJ (TEI: loss_MTS, loss_MTO, inv, qual_MTS, qual_MTO;
    EFA: RI, IEQ, WEX, CIRC; EcoFA: VA, econ_in, INV; SFA: SV, train, lost, CO2);
 4. Ψ (o Ex_useful) per il periodo;
-5. **gli stessi termini per il 2022 sul medesimo periodo gennaio–luglio** (vedi § 4).
+5. **gli stessi termini (produzione, energia, moduli, Ψ) per il 2022 sul medesimo periodo gennaio – data di cessazione** (richiesti dall'opzione A, § 4).
 
 Non ricavare questi valori riproporzionando quelli di anno pieno: sarebbe un dato
 costruito, non misurato. Se un dato non è disponibile, va dichiarato come tale.
@@ -46,16 +46,25 @@ Se si inseriscono i valori di sette mesi del 2025 contro un riferimento di dodic
 mesi del 2022, la differenza diventa artificialmente enorme: D020 risulterebbe in
 fortissimo "miglioramento" solo perché ha prodotto meno mesi.
 
-Opzioni (scegliere con il responsabile e registrare la scelta in un ADR):
+**DECISIONE PRESA (responsabile di progetto): opzione A — riferimento omologo.**
 
-- **A (raccomandata)** — riferimento omologo: per D020 2025 il termine `_ref` è il
-  2022 sullo stesso periodo gennaio–luglio. Richiede i dati del § 3.5.
-- **B** — normalizzazione per m²: termini 2025 e riferimento 2022 espressi per m²
-  prodotto, poi riportati alla produzione del periodo. Va dichiarata come scelta
-  metodologica, perché cambia la definizione del modulo.
-- **C** — esclusione: D020 2025 non calcolato; per D020 la serie si ferma al 2024 e
-  TSI_rel diventa 2024/2023 (oggi 1,176). È la più semplice, ma riduce i "6 TSI
-  calcolati" del KPI.
+- Per D020 2025 il termine `_ref` di ciascun modulo è il **2022 sullo stesso periodo
+  gennaio – data di cessazione**, non il 2022 annuale. Servono quindi i dati del § 3.5.
+- Per D020 2023 e 2024, e per D060 e D240 in tutti gli anni, il riferimento resta il
+  2022 annuale: nulla cambia.
+- Ψ di D020 2025 è quello del periodo di attività; Ex_ref è calcolato sui consumi del
+  periodo.
+- Nel codice il riferimento va reso esplicito per unità/anno (es. foglio
+  `Riferimento` o colonne `ref_period_start/ref_period_end`), non sostituito
+  sovrascrivendo la riga 2022 di D020: la riga 2022 annuale serve ancora per il 2023
+  e il 2024.
+- L'ADR del § 5 registra questa scelta, la fonte dei dati 2022 di periodo e il motivo
+  (evitare che la minore durata dell'esercizio appaia come miglioramento).
+- Se i dati 2022 gennaio–luglio di D020 non sono reperibili, fermarsi e segnalarlo:
+  non ricavarli dal 2022 annuale per quota di mesi.
+
+Opzioni scartate, per memoria: B (normalizzazione per m²) e C (esclusione di D020
+2025, con TSI_rel D020 = 2024/2023).
 
 Con qualsiasi opzione, TSI_abs, Φ e Ψ restano confrontabili perché sono rapporti.
 Ex_ref, SA_raw, SA_w e i contributi f_i di D020 2025 **non** sono confrontabili con
@@ -86,10 +95,10 @@ gli anni pieni.
 
 ## 6. Interventi sul testo della RP 7.3
 
-Nuova versione **RV.2** (data di revisione da decidere), stesse sezioni:
+Nuova versione **RV.2** (data di revisione da decidere), stesse sezioni. Il testo deve dichiarare l'opzione A (riferimento omologo 2022 sullo stesso periodo per D020 2025).
 
 - § 1.3 *Perimetro*: D020 in esercizio fino a luglio 2025, poi riconvertita; opzione
-  metodologica adottata.
+  metodologica adottata (opzione A).
 - Tabella 1 *Disponibilità dati*: D020 2025 = gennaio–luglio.
 - Tabella 4 *Bilancio exergetico*: produzione per anno; valori D020 2025 del periodo,
   con nota di non confrontabilità.
