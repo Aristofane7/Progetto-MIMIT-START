@@ -43,22 +43,35 @@ DATA_PLACEHOLDER = "/*__DATA__*/"
 # Narrative "Relazione Parziale" / "Attività" deliverables deposited at the
 # repository root (one per Obiettivo Realizzativo task, Piano di Sviluppo
 # Allegato 4) — discovered by filename, never hand-listed, so this never goes
-# stale or invents a document that was not actually deposited.
-_SOURCE_FILENAME_RE = re.compile(r"^(RP\s?\d|Attività\s?\d)", re.IGNORECASE)
-_SOURCE_EXCLUDE = {"RPX.Y Titolo_Relazione_Parziale_data.docx"}
+# stale or invents a document that was not actually deposited. Some RPs are
+# namespaced in their own folder (e.g. `RP8.6/`, `Attivita_7.10/`, each its
+# own small project with its own pipeline) rather than a loose root file; one
+# directory level is scanned in that case, but never into `start-iids/`
+# itself (this repository's own code, not a deliverable).
+_SOURCE_FILENAME_RE = re.compile(r"^(RP\s?\d|Attivit[aà])", re.IGNORECASE)
+_SOURCE_EXCLUDE = {
+    "RPX.Y Titolo_Relazione_Parziale_data.docx",  # blank template, not a deliverable
+    "rp_format_reference.docx",  # formatting template, not a deliverable
+}
 _SOURCE_EXTENSIONS = {".pdf", ".docx"}
+_SOURCE_SKIP_DIRS = {"start-iids", ".git", ".github"}
+
+
+def _is_source_file(p: pathlib.Path) -> bool:
+    return p.is_file() and p.suffix.lower() in _SOURCE_EXTENSIONS and p.name not in _SOURCE_EXCLUDE
 
 
 def _discover_sources() -> list[dict]:
-    found = [
-        p for p in REPO_ROOT.iterdir()
-        if p.is_file()
-        and p.suffix.lower() in _SOURCE_EXTENSIONS
-        and p.name not in _SOURCE_EXCLUDE
-        and _SOURCE_FILENAME_RE.match(p.name)
-    ]
+    found: list[pathlib.Path] = []
+    for p in REPO_ROOT.iterdir():
+        if p.name in _SOURCE_SKIP_DIRS:
+            continue
+        if p.is_file() and _is_source_file(p) and _SOURCE_FILENAME_RE.match(p.name):
+            found.append(p)
+        elif p.is_dir() and _SOURCE_FILENAME_RE.match(p.name):
+            found.extend(sub for sub in p.rglob("*") if _is_source_file(sub))
     return [
-        {"filename": p.name, "ext": p.suffix.lower().lstrip(".")}
+        {"filename": p.name, "ext": p.suffix.lower().lstrip("."), "draft": "draft" in p.name.lower()}
         for p in sorted(found, key=lambda p: p.name)
     ]
 

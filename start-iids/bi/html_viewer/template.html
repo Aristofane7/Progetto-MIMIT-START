@@ -365,7 +365,7 @@ function renderBuild() {
 function renderGuide() {
   const glossRows = Object.entries(DATA.glossary).map(([key, g]) => `<tr>
       <td><code>${esc(key)}</code></td><td><b>${esc(g.full)}</b></td><td>${esc(g.unit ?? "—")}</td><td>${esc(g.desc)}</td></tr>`).join("");
-  const sourceItems = (DATA.sources ?? []).map(s => `<li>${esc(s.filename)}</li>`).join("")
+  const sourceItems = (DATA.sources ?? []).map(s => `<li>${esc(s.filename)}${s.draft ? ' <i>(bozza)</i>' : ''}</li>`).join("")
       || '<li>Nessuna relazione trovata in questa build.</li>';
   $("p-guide").innerHTML = `
     <div class="pageh">Guida all'uso</div>

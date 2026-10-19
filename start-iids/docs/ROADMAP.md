@@ -61,6 +61,11 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
   synthetic per-lot rows (ADR-026); its Guida tab lists every `RP*`/`Attività*`
   relazione actually deposited at the repository root, discovered by filename
   rather than hand-maintained
+- 4 more RP deliverable branches consolidated (RP 7.6, RP 7.9 draft, RP 8.6
+  rebuild, Attività 7.10 — ADR-027), each brought in by file rather than a
+  full merge to avoid resurrecting deleted files or colliding with this
+  repository's own root files; `Attivita_7.10/` isolates that branch's own
+  scratch project the same way `RP8.6/` already isolated its own
 - Nothing in `src/` writes to the physical system — enforced structurally and
   by a CI guard (ADR-001)
 

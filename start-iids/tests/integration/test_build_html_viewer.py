@@ -52,11 +52,18 @@ def test_real_plants_has_the_three_real_plants(payload):
 
 
 def test_sources_lists_only_real_deposited_files(payload):
-    # ADR-026: discovered by filename at build time, never hand-typed.
+    # ADR-026/ADR-027: discovered by filename at build time, never hand-typed,
+    # including one level into namespaced deliverable folders (RP8.6/, Attivita_7.10/).
     filenames = {s["filename"] for s in payload["sources"]}
     assert filenames  # the repo root has real RP*/Attività* deliverables
     assert "RPX.Y Titolo_Relazione_Parziale_data.docx" not in filenames
+    assert "rp_format_reference.docx" not in filenames
     assert all(f.lower().endswith((".pdf", ".docx")) for f in filenames)
+    assert "RP7.10_AI_Business_Model.docx" in filenames
+    assert "RP8.6_Assessment_Impatto.docx" in filenames
+    draft = {s["filename"]: s["draft"] for s in payload["sources"]}
+    assert draft["RP 7.9 Report tecnico delle nuove collezioni.draft.docx"] is True
+    assert draft["RP 7.6 Report tecnico di adeguamento impianti_31-10-26.docx"] is False
 
 
 def test_scenario_passthrough_only_has_real_values(payload):
