@@ -118,13 +118,16 @@ def _box(ax,x,y,w,h,t,fc=GREENH,fs=8):
     ax.text(x+w/2,y+h/2,t,ha="center",va="center",color="white",fontsize=fs)
 def _arr(ax,x1,y1,x2,y2): ax.add_patch(FancyArrowPatch((x1,y1),(x2,y2),arrowstyle="-|>",mutation_scale=12,lw=1.3,color=GREYH))
 def figures():
-    # fig1 pipeline
-    fig,ax=plt.subplots(figsize=(9,1.9)); ax.axis("off"); ax.set_xlim(0,10); ax.set_ylim(0,2)
-    steps=["Dati primari\n(ERP/MES + E2C)","Armonizzazione","4 moduli -J","AHP (pesi, CR)","Sustainability\nAccounting","Layer exergico\nΦ, Ψ","TSI"]
-    w=1.22;gap=.13;x=.15
+    # fig1 pipeline — riquadri larghi uniformi, testo su due righe, niente debordamento
+    steps=["Dati primari\n(ERP/MES, E2C)","Armonizzazione","4 moduli -J","AHP\n(pesi, CR)",
+           "Sustainability\nAccounting","Layer exergico\n(Φ, Ψ)","TSI"]
+    w=1.85; gap=.17; h=1.0; y=.5
+    total=len(steps)*w+(len(steps)-1)*gap+.2
+    fig,ax=plt.subplots(figsize=(10.5,2.0)); ax.axis("off"); ax.set_xlim(0,total); ax.set_ylim(0,2.2)
+    x=.1
     for i,s in enumerate(steps):
-        _box(ax,x,.6,w,.8,s,fc=(TEAL if i in(3,6) else GREENH),fs=7.4)
-        if i<len(steps)-1:_arr(ax,x+w,1,x+w+gap,1)
+        _box(ax,x,y,w,h,s,fc=(TEAL if i in(3,6) else GREENH),fs=8.5)
+        if i<len(steps)-1:_arr(ax,x+w,y+h/2,x+w+gap,y+h/2)
         x+=w+gap
     ax.set_title("Figura 1 — Pipeline EEA+ beta",color=GREENH,fontsize=10,loc="left"); _save(fig,"fig1")
     # fig2 moduli — box larghi (nome+contributo dentro), frecce ancorate al bordo dei box
