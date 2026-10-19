@@ -56,3 +56,20 @@ FROM fact_process_observation o
 JOIN dim_variable v ON v.variable_code = o.variable_code
 WHERE o.canonical_unit IS NULL
    OR (v.canonical_unit IS NOT NULL AND o.canonical_unit != v.canonical_unit);
+
+-- 8. Temporal window mismatch between a run and its baseline (ADR-015).
+-- BLOCKER: "TEMPORAL_MISMATCH — current window length != baseline window length".
+-- A partial production period (e.g. D020 Jan->July 2025, after the July 2025
+-- cessation) must be compared against the SAME-length homologous window of the
+-- reference year (option A), never against a full annual baseline — otherwise the
+-- shorter exercise reads as a spurious improvement. This mirrors the engine guard
+-- `src/engines/eea/aggregate.py` (ErrorCategory.TEMPORAL_MISMATCH). Tolerance: 2 days.
+SELECT r.calc_run_id, r.baseline_id,
+       (julianday(r.period_end) - julianday(r.period_start)) AS run_days,
+       (julianday(b.end_date)   - julianday(b.start_date))   AS baseline_days
+FROM audit_calc_run r
+JOIN dim_baseline b ON b.baseline_id = r.baseline_id
+WHERE r.status = 'RUNNING'
+  AND b.start_date IS NOT NULL AND b.end_date IS NOT NULL
+  AND ABS( (julianday(r.period_end) - julianday(r.period_start))
+         - (julianday(b.end_date)   - julianday(b.start_date)) ) > 2;

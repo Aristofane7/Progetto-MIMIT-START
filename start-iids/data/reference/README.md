@@ -3,14 +3,28 @@
 Real project data files, copied verbatim from the repository root, used to
 validate and drive the ADR-012 aggregate EEA+/TSI model:
 
-- `RP7.3_data_collection_20232025.xlsx` — plant master data, annual energy
-  consumption, pre-aggregated TEI/EFA/EcoFA/SFA module terms, coefficient
-  library, and AHP pairwise matrix for D020/D060/D240, 2022 (baseline)-2025.
-- `RP7.3_calculation_log.xlsx` — 93 logged reference results (`R001`-`R093`)
-  used as the golden regression target in
-  `tests/regression/test_rp73_calculation_log.py`.
+- `RP7.3_data_collection_20232025.xlsx` — plant master data (**per-year**
+  production, ADR-015), annual energy consumption, pre-aggregated
+  TEI/EFA/EcoFA/SFA module terms, coefficient library, and AHP pairwise matrix for
+  D020/D060/D240, 2022 (baseline)-2025. Since **ADR-015** it also carries a
+  `Periodo` sheet (activity window / `months_active` per plant/year) and a
+  `Riferimento` sheet (homologous same-window baseline — option A — for D020/2025,
+  which is the Jan–July period after D020's July 2025 cessation).
+- `RP7.3_calculation_log.xlsx` — 93 logged reference results (`R001`-`R093`),
+  **beta-1.2** (ADR-015, D020/2025 now the partial-period, homologous-baselined
+  figures), the golden target of `tests/regression/test_rp73_calculation_log.py`.
+- `RP7.3_D020_partial_year_data_collection.xlsx` — data-collection sheet listing
+  the exact **real** inputs to be measured for D020's Jan–cessation 2025 window
+  and the homologous 2022 Jan–July window, to replace the provisional values that
+  currently exercise the model (ADR-015 §6).
 - `ahp_weights.xlsx` — AHP pairwise comparison matrix and resulting weights for
   the `env`/`econ`/`soc`/`tech` dimensions.
+
+The previous **beta-1.1** workbook and log are archived under
+`tests/fixtures/rp73/` and pinned by
+`tests/regression/test_rp73_calculation_log_beta_1_1_fixture.py`. The beta-1.1 → beta-1.2
+migration is scripted: `python3 -m scripts.apply_adr015_d020_partial_year`. Both
+mirror copies (repo root and this folder) are kept in sync.
 
 **Data collection round: still labeled provisional by its own source.** Per
 the `Istruzioni` sheet in the data collection file: *"I valori inseriti sono
