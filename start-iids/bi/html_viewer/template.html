@@ -60,6 +60,13 @@ th .gloss:hover::after{color:#fff}
 .guide-toc span{background:var(--tint);color:var(--navy);border-radius:14px;padding:4px 11px;font-size:12px;font-weight:600}
 .srclist{column-width:280px;column-gap:24px;margin:0;padding-left:18px;font-size:13px;line-height:1.7}
 tr.rp-partial td{background:#FFF8E6}
+.simbanner{background:#FFF4D9;border:1px solid var(--amber);color:#6b4e00;border-radius:8px;padding:10px 14px;
+  font-size:12.5px;font-weight:700;margin-bottom:14px}
+.simrow{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.simrow label{width:230px;font-size:12.5px;color:#445;flex:none}
+.simrow input[type=range]{flex:1;min-width:160px;accent-color:var(--amber)}
+.simval{width:70px;text-align:right;font-weight:700;font-size:12.5px}
+.simresult{border-top:3px solid var(--amber) !important}
 </style>
 </head>
 <body>
@@ -84,6 +91,7 @@ tr.rp-partial td{background:#FFF8E6}
   <button class="tab" data-k="product">Prodotto</button>
   <button class="tab" data-k="channel">Canale distributivo</button>
   <button class="tab" data-k="integrated">Integrata</button>
+  <button class="tab" data-k="simulation">Simulazione</button>
   <button class="tab" data-k="building">Edificio</button>
   <button class="tab" data-k="build">Qualità &amp; Build</button>
 </div>
@@ -94,6 +102,7 @@ tr.rp-partial td{background:#FFF8E6}
   <div class="page" id="p-product"></div>
   <div class="page" id="p-channel"></div>
   <div class="page" id="p-integrated"></div>
+  <div class="page" id="p-simulation"></div>
   <div class="page" id="p-building"></div>
   <div class="page" id="p-build"></div>
 </div>
@@ -150,6 +159,12 @@ function renderOverview() {
     Integrata (sez. 38.3), Edificio (placeholder OR3/UNISS), Qualità &amp; Build (provenienza dati).
     Nuovo qui? Apri il tab «Guida all'uso» per una spiegazione passo-passo e il glossario completo.</div>`;
 }
+
+/* ---------- Simulazione (ADR-028) ---------- */
+let simState = {
+  dEnv: 0, dEcon: 0, dSoc: 0, dTech: 0,            // % sui 4 footprint sintetici
+  plantId: "D020", year: 2025, dPsi: 0, dExRef: 0,  // impianto reale RP7.3
+};
 
 /* ---------- Fabbrica (sez. 38.1) ---------- */
 let factoryState = { plantId: null, scenario: null, periodA: null, periodB: null };
@@ -324,6 +339,95 @@ function renderIntegrated() {
   const s = $("integ-sel"); if (s) s.onchange = renderIntegrated;
 }
 
+/* ---------- Simulazione (ADR-028): sandbox what-if su formule reali ---------- */
+function renderSimulation() {
+  const rows = DATA.rows;
+  const baseEnv = avgOf(rows, "f_env_gj"), baseEcon = avgOf(rows, "f_econ_gj");
+  const baseSoc = avgOf(rows, "f_soc_gj"), baseTech = avgOf(rows, "f_tech_gj");
+  const baseSa = (baseEnv ?? 0) + (baseEcon ?? 0) + (baseSoc ?? 0) + (baseTech ?? 0);
+  const simEnv = (baseEnv ?? 0) * (1 + simState.dEnv / 100);
+  const simEcon = (baseEcon ?? 0) * (1 + simState.dEcon / 100);
+  const simSoc = (baseSoc ?? 0) * (1 + simState.dSoc / 100);
+  const simTech = (baseTech ?? 0) * (1 + simState.dTech / 100);
+  const simSa = simEnv + simEcon + simSoc + simTech;
+  const baseTsiNorm = avgOf(rows, "tsi_norm");
+  const simTsiNorm = baseSa > 0 ? simSa / baseSa * (baseTsiNorm ?? 1) : null;
+
+  const plants = (DATA.real_plants ?? []);
+  const plantIds = [...new Set(plants.map(p => p.plant_id))];
+  const years = [...new Set(plants.filter(p => p.plant_id === simState.plantId).map(p => p.year))].sort();
+  const base = plants.find(p => p.plant_id === simState.plantId && p.year === simState.year);
+  const baseline2023 = plants.find(p => p.plant_id === simState.plantId && p.year === 2023);
+  let simPhi = null, simTsiAbs = null, simTsiRel = null, simPsi = null, simExRef = null;
+  if (base) {
+    simPsi = base.psi + simState.dPsi;
+    simExRef = base.ex_ref_gj * (1 + simState.dExRef / 100);
+    simPhi = simExRef > 0 ? base.sa_w_gj / simExRef : null;
+    simTsiAbs = simPhi !== null ? 0.5 * simPhi + 0.5 * simPsi : null;
+    if (baseline2023 && simTsiAbs !== null && baseline2023.tsi_abs) simTsiRel = simTsiAbs / baseline2023.tsi_abs;
+  }
+
+  $("p-simulation").innerHTML = `
+    <div class="pageh">Simulazione — what-if su formule reali (ADR-028)</div>
+    <div class="simbanner">⚠ SIMULAZIONE — valori ipotetici, non osservati. Le cinque formule applicate
+      (SA, TSI_norm, Φ, TSI_abs, TSI_rel) sono reali e già documentate nel glossario; solo l'entità della
+      variazione è dichiarata da te, non misurata né inventata dallo strumento. Vedi «Guida all'uso» per la
+      differenza con gli scenari S1-S4 di VOLT.</div>
+
+    <h3 class="sec">Fabbrica/Prodotto — impronte medie dei lotti (dati sintetici)</h3>
+    <div class="card">
+      <div class="simrow"><label>${gl("f_env_gj",{short:true})} Δ%</label>
+        <input type="range" id="sim-env" min="-50" max="50" step="5" value="${simState.dEnv}">
+        <span class="simval" id="sim-env-v">${simState.dEnv}%</span></div>
+      <div class="simrow"><label>${gl("f_econ_gj",{short:true})} Δ%</label>
+        <input type="range" id="sim-econ" min="-50" max="50" step="5" value="${simState.dEcon}">
+        <span class="simval" id="sim-econ-v">${simState.dEcon}%</span></div>
+      <div class="simrow"><label>${gl("f_soc_gj",{short:true})} Δ%</label>
+        <input type="range" id="sim-soc" min="-50" max="50" step="5" value="${simState.dSoc}">
+        <span class="simval" id="sim-soc-v">${simState.dSoc}%</span></div>
+      <div class="simrow"><label>${gl("f_tech_gj",{short:true})} Δ%</label>
+        <input type="range" id="sim-tech" min="-50" max="50" step="5" value="${simState.dTech}">
+        <span class="simval" id="sim-tech-v">${simState.dTech}%</span></div>
+      <div class="kpis" style="grid-template-columns:1fr 1fr;margin-top:10px">
+        <div class="kpi simresult"><div class="kpival">${n(simSa,1)} GJ</div><div class="kpilab">${gl("sa_gj",{short:true})} simulata</div>
+          <div class="kpisub">base: ${n(baseSa,1)} GJ — ${deltaHtml(simSa, baseSa, 1)}</div></div>
+        <div class="kpi simresult"><div class="kpival">${n(simTsiNorm,3)}</div><div class="kpilab">${gl("tsi_norm",{short:true})} simulato</div>
+          <div class="kpisub">base: ${n(baseTsiNorm,3)} — ${deltaHtml(simTsiNorm, baseTsiNorm, 1)}</div></div>
+      </div>
+    </div>
+
+    <h3 class="sec">Impianto reale — RP7.3 (D020/D060/D240)</h3>
+    <div class="card">
+      <div class="flist">${plantIds.map(p => `<button class="${simState.plantId===p?'on':''}" data-simplant="${esc(p)}">${esc(p)}</button>`).join("")}</div>
+      <div class="flist">${years.map(y => `<button class="${simState.year===y?'on':''}" data-simyear="${y}">${y}</button>`).join("")}</div>
+      ${base ? `
+      <div class="simrow"><label>Ψ (Psi) — Δ assoluto</label>
+        <input type="range" id="sim-psi" min="-0.05" max="0.05" step="0.005" value="${simState.dPsi}">
+        <span class="simval" id="sim-psi-v">${n(simState.dPsi,3)}</span></div>
+      <div class="simrow"><label>Ex_ref — Δ%</label>
+        <input type="range" id="sim-exref" min="-30" max="30" step="5" value="${simState.dExRef}">
+        <span class="simval" id="sim-exref-v">${simState.dExRef}%</span></div>
+      <div class="kpis" style="grid-template-columns:repeat(3,1fr);margin-top:10px">
+        <div class="kpi simresult"><div class="kpival">${n(simPhi,4)}</div><div class="kpilab">${gl("phi",{short:true})} simulato</div>
+          <div class="kpisub">base: ${n(base.phi,4)}</div></div>
+        <div class="kpi simresult"><div class="kpival">${n(simTsiAbs,4)}</div><div class="kpilab">${gl("tsi_abs",{short:true})} simulato</div>
+          <div class="kpisub">base: ${n(base.tsi_abs,4)} — ${deltaHtml(simTsiAbs, base.tsi_abs, 1)}</div></div>
+        <div class="kpi simresult"><div class="kpival">${simTsiRel !== null ? n(simTsiRel,4) : '—'}</div><div class="kpilab">${gl("tsi_rel",{short:true})} simulato</div>
+          <div class="kpisub">${baseline2023 ? `base: ${n(base.tsi_rel,4) ?? '—'}` : 'baseline 2023 non disponibile per questo impianto'}</div></div>
+      </div>` : '<div class="note">Nessun dato reale per questa selezione.</div>'}
+    </div>`;
+
+  const bind = (id, key, isInt) => { const el = $(id); if (!el) return; el.oninput = e => {
+    simState[key] = isInt ? parseInt(e.target.value, 10) : parseFloat(e.target.value); renderSimulation(); }; };
+  bind("sim-env", "dEnv", true); bind("sim-econ", "dEcon", true);
+  bind("sim-soc", "dSoc", true); bind("sim-tech", "dTech", true);
+  bind("sim-psi", "dPsi", false); bind("sim-exref", "dExRef", true);
+  $("p-simulation").querySelectorAll("[data-simplant]").forEach(b => b.onclick = () => {
+    simState.plantId = b.dataset.simplant; simState.year = 2025; renderSimulation(); });
+  $("p-simulation").querySelectorAll("[data-simyear]").forEach(b => b.onclick = () => {
+    simState.year = parseInt(b.dataset.simyear, 10); renderSimulation(); });
+}
+
 /* ---------- Edificio (placeholder OR3/UNISS) ---------- */
 function renderBuilding() {
   const cards = DATA.building_placeholder.map(t => `<div class="card"><h2>${esc(t.id)} — ${esc(t.title)}</h2>
@@ -370,7 +474,7 @@ function renderGuide() {
   $("p-guide").innerHTML = `
     <div class="pageh">Guida all'uso</div>
     <div class="guide-toc"><span>Cos'è</span><span>Come navigare</span><span>Sintetico vs reale</span>
-      <span>«Scenario» in questo viewer</span><span>Cosa manca ancora</span><span>Glossario</span>
+      <span>«Scenario» e simulazione</span><span>Cosa manca ancora</span><span>Glossario</span>
       <span>Fonti di progetto</span></div>
 
     <div class="card"><h2>Cos'è questo strumento</h2>
@@ -388,6 +492,8 @@ function renderGuide() {
       <tr><td><b>Prodotto</b></td><td>Cluster prodotto con vendite, trend, P-TSI/IOAI/OPI/TQI (sez. 38.2).</td></tr>
       <tr><td><b>Canale distributivo</b></td><td>Quota B2B/B2C e indice di concentrazione HHI (ADR-022).</td></tr>
       <tr><td><b>Integrata</b></td><td>Seleziona un prodotto e vedi Mercato/Prodotto/Fabbrica affiancati (sez. 38.3-38.4).</td></tr>
+      <tr><td><b>Simulazione</b></td><td>Sandbox what-if: sposta gli slider e rivedi SA/TSI_norm/Φ/TSI_abs/TSI_rel
+        ricalcolati dalle stesse formule reali (ADR-028) — sempre segnalato come ipotetico, mai confuso con i dati osservati.</td></tr>
       <tr><td><b>Edificio</b></td><td>Campo predisposto per i dati OR3/UNISS, non ancora disponibili.</td></tr>
       <tr><td><b>Qualità &amp; Build</b></td><td>Provenienza dei dati e findings di qualità.</td></tr>
     </table></div>
@@ -399,15 +505,25 @@ function renderGuide() {
     a #3/#7), lo stesso banner riporterà l'etichetta passata con <code>--label</code> a
     <code>build_html_viewer.py</code>.</div></div>
 
-    <div class="card"><h2>«Scenario» in questo viewer</h2>
+    <div class="card"><h2>«Scenario» e simulazione in questo viewer</h2>
     <div class="note" style="margin:0">Il progetto gemello VOLT ha scenari di interruzione della supply chain
-    (S1-S4) con curve di impatto simulate. START non ha — e questo viewer non inventa — un modello equivalente
-    per la fabbrica ceramica: non esiste nella specifica né nei dati un modello di shock/interruzione approvato.
-    Qui "analisi di scenario" significa due cose realmente supportate dai dati: (1) il filtro
-    CURRENT/HISTORICAL nella pagina Fabbrica, il campo reale già presente in <code>fact_production_lot</code>
-    per il replay storico (sez. 46); (2) il confronto tra due periodi reali scelti liberamente, con la
-    variazione percentuale calcolata sugli stessi numeri già mostrati altrove — non una proiezione o
-    una previsione.</div></div>
+    (S1-S4) con curve di impatto <b>pre-autorate</b>: la forma e l'entità dello shock sono decise una volta dagli
+    autori del modello VOLT e restano fisse. START non ha un catalogo di scenari equivalente per la fabbrica
+    ceramica — non esiste nella specifica né nei dati un modello di shock/interruzione approvato, e inventarne
+    uno violerebbe la stessa regola di non fabbricare input (sez. 64). Qui ci sono invece due strumenti distinti,
+    entrambi reali:</div>
+    <table style="margin-top:10px">
+      <tr><td><b>«Scenario» (Fabbrica)</b></td><td>Il filtro CURRENT/HISTORICAL, il campo reale già presente in
+        <code>fact_production_lot</code> per il replay storico (sez. 46); e il confronto tra due periodi reali
+        scelti liberamente, con la variazione calcolata sugli stessi numeri già mostrati altrove — non una
+        proiezione.</td></tr>
+      <tr><td><b>Simulazione (what-if, ADR-028)</b></td><td>Qui sei tu a dichiarare esplicitamente una variazione
+        ipotetica (uno slider) su un numero reale di partenza, e lo strumento ricalcola dal vivo la stessa formula
+        reale già nel glossario (SA, TSI_norm, Φ, TSI_abs, TSI_rel) — mai l'intera catena TEI/EFA/EcoFA/SFA, che
+        resta lato server. A differenza di VOLT, nessuna curva d'impatto è pre-decisa dallo strumento: l'entità
+        dello shock è sempre e solo quella che imposti tu, e il risultato è marcato «SIMULAZIONE» per non essere
+        mai scambiato per un dato osservato.</td></tr>
+    </table></div>
 
     <div class="card"><h2>Cosa manca ancora (onestà sui gap)</h2>
     <table>
@@ -433,7 +549,8 @@ function renderGuide() {
 
 /* ---------- router ---------- */
 const renderers = {overview: renderOverview, guide: renderGuide, factory: renderFactory, product: renderProduct,
-  channel: renderChannel, integrated: renderIntegrated, building: renderBuilding, build: renderBuild};
+  channel: renderChannel, integrated: renderIntegrated, simulation: renderSimulation, building: renderBuilding,
+  build: renderBuild};
 document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
   document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x === t));
   document.querySelectorAll(".page").forEach(p => p.classList.remove("on"));

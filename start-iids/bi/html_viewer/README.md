@@ -34,10 +34,26 @@ index — see below), Factory (sec. 38.1, with a CURRENT/HISTORICAL scenario
 filter, a period-comparison tool — both grounded in real fields, not a
 fabricated disruption model — and a real RP7.3 plant-level data card,
 ADR-026), Product (sec. 38.2), Canale distributivo (ADR-022, requested
-directly — not from the spec), Integrated (sec. 38.3-38.4), Edificio (a
-structural placeholder for OR3/UNISS building-envelope data, never fabricated
-— see ADR-023), and Qualità & Build (data quality findings + build
-provenance, so nobody mistakes synthetic output for real data).
+directly — not from the spec), Integrated (sec. 38.3-38.4), Simulazione (a
+what-if sandbox — see below, ADR-028), Edificio (a structural placeholder
+for OR3/UNISS building-envelope data, never fabricated — see ADR-023), and
+Qualità & Build (data quality findings + build provenance, so nobody mistakes
+synthetic output for real data).
+
+## Simulazione — what-if sandbox (ADR-028)
+
+Unlike the sibling project VOLT's pre-authored S1-S4 disruption curves, this
+tab has no canned scenario catalogue — there still isn't an approved
+shock/disruption model for this domain (ADR-024 still holds on that point).
+Instead the user declares a hypothetical delta (a slider) on a real baseline
+number, and the tab recomputes, live in the browser, one of five already-real,
+already-documented single-line formulas (`SA`, `TSI_norm`, `Φ`, `TSI_abs`,
+`TSI_rel` — all in `DATA.glossary`): a plain sum, two plain ratios, and a
+fixed-weight linear blend. It never re-derives the inputs to those formulas
+(the TEI/EFA/EcoFA/SFA engines, `Ex_ref`'s coefficient-set dependency, the AHP
+weighting behind `SA_w`) — those stay server-side only. Every simulated
+number is visually marked and never mixed with the real/synthetic rows shown
+elsewhere.
 
 ## Real RP7.3 plant data and the sources index (ADR-026)
 

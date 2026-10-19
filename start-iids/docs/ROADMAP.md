@@ -66,6 +66,11 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
   full merge to avoid resurrecting deleted files or colliding with this
   repository's own root files; `Attivita_7.10/` isolates that branch's own
   scratch project the same way `RP8.6/` already isolated its own
+- A new "Simulazione" tab (ADR-028) lets the user run a what-if sandbox:
+  slider deltas on real baseline numbers, recomputed live by 5 already-real,
+  already-documented formulas (SA, TSI_norm, Φ, TSI_abs, TSI_rel) — never the
+  heavier per-lot engines, and never a VOLT-style pre-authored disruption
+  catalogue (ADR-024's "no fabricated shock model" still holds)
 - Nothing in `src/` writes to the physical system — enforced structurally and
   by a CI guard (ADR-001)
 
