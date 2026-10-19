@@ -16,11 +16,16 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 - **2 / 30** — **PARTIAL** (E2C live connector, full golden-regression approval)
 - **1 / 30** — **NOT STARTED** (Power BI semantic model — a BI-tool artifact
   outside this Python/SQL repository)
-- **178 tests passing** (1 skipped, documented — see ADR-011), 95% coverage on
+- **191 tests passing** (1 skipped, documented — see ADR-011), 95% coverage on
   `src/`, CI green on `main`
 - Real RP7.3 aggregate EEA+/TSI model (ADR-012) **validated against 66 real,
   non-fabricated data points**; its coefficient/weight sets are **APPROVED**
   by the project owner (ADR-013, 2026-09-01)
+- **D020 (Viano) partial production year 2025** (ceased July 2025) is reconciled
+  with a homologous same-window baseline (**ADR-015**, option A): per-year
+  production, a `months_active` activity window, a `TEMPORAL_MISMATCH` duration
+  guard, and the golden log bumped to **beta-1.3** (beta-1.1 archived as a
+  regression fixture)
 - Nothing in `src/` writes to the physical system — enforced structurally and
   by a CI guard (ADR-001)
 
