@@ -127,25 +127,32 @@ def figures():
         if i<len(steps)-1:_arr(ax,x+w,1,x+w+gap,1)
         x+=w+gap
     ax.set_title("Figura 1 — Pipeline EEA+ beta",color=GREENH,fontsize=10,loc="left"); _save(fig,"fig1")
-    # fig2 moduli
-    fig,ax=plt.subplots(figsize=(7,3.1)); ax.axis("off"); ax.set_xlim(0,10); ax.set_ylim(0,6)
-    for (m,d),y in zip([("TEI-J","f_tech (MTS/MTO)"),("EFA-J","f_env (RI,WEX,IEQ,CIRC)"),("EcoFA-J","f_econ (VA,input,INV)"),("SFA-J","f_soc (stakeholder,lavoro,CO₂)")],[4.6,3.4,2.2,1.0]):
-        _box(ax,.2,y,2,.9,m,fs=10); ax.text(2.4,y+.45,d,va="center",fontsize=8,color="#222"); _arr(ax,6.7,y+.45,7.8,3.0)
-    _box(ax,7.8,2.4,1.9,1.2,"Sustainability\nAccounting",fc=TEAL,fs=8)
+    # fig2 moduli — box larghi (nome+contributo dentro), frecce ancorate al bordo dei box
+    fig,ax=plt.subplots(figsize=(8.4,3.0)); ax.axis("off"); ax.set_xlim(0,10); ax.set_ylim(0.4,6)
+    labels=["TEI-J  —  f_tech (MTS/MTO)","EFA-J  —  f_env (RI, WEX, IEQ, CIRC)",
+            "EcoFA-J  —  f_econ (VA, input, INV)","SFA-J  —  f_soc (stakeholder, lavoro, CO₂)"]
+    ys=[4.7,3.5,2.3,1.1]
+    for lab,y in zip(labels,ys):
+        _box(ax,.2,y,5.1,.9,lab,fs=9.5)
+        _arr(ax,5.45,y+.45,6.98,2.85)
+    _box(ax,7.0,2.15,2.6,1.4,"Sustainability\nAccounting (SA)",fc=TEAL,fs=9)
     ax.set_title("Figura 2 — Integrazione dei moduli",color=GREENH,fontsize=10,loc="left"); _save(fig,"fig2")
-    # fig3 TSI per anno
-    fig,ax=plt.subplots(figsize=(6.4,3.5)); x=range(len(PLANTS)); wd=.26
+    # fig3 TSI per anno — legenda FUORI dal grafico (niente sovrapposizione)
+    fig,ax=plt.subplots(figsize=(7.2,3.5)); x=range(len(PLANTS)); wd=.26
     for k,y in enumerate(YEARS):
         ax.bar([i+(k-1)*wd for i in x],[R[(p,y)]["TSI_abs"] for p in PLANTS],wd,label=str(y),color=YCOL[y])
-    ax.set_xticks(list(x)); ax.set_xticklabels(PLANTS); ax.set_ylabel("TSI_abs (adim.)")
-    ax.legend(frameon=False); ax.set_title("Figura 3 — TSI_abs per unità e anno",color=GREENH,loc="left",fontsize=10)
+    ax.set_xticks(list(x)); ax.set_xticklabels(PLANTS); ax.set_ylabel("TSI_abs (adim.)"); ax.set_ylim(0,0.14)
+    ax.legend(frameon=False,loc="upper left",bbox_to_anchor=(1.01,1.0),title="Anno")
+    ax.set_title("Figura 3 — TSI_abs per unità e anno",color=GREENH,loc="left",fontsize=10)
     ax.spines[["top","right"]].set_visible(False); _save(fig,"fig3")
-    # fig4 contributi 2025
-    fig,ax=plt.subplots(figsize=(6.6,3.5)); x=range(len(PLANTS)); bot=[0]*len(PLANTS)
+    # fig4 contributi 2025 — legenda FUORI dal grafico + margine superiore
+    fig,ax=plt.subplots(figsize=(7.8,3.5)); x=range(len(PLANTS)); bot=[0]*len(PLANTS)
     for kk,lab in [("f_env","Ambientale"),("f_econ","Economica"),("f_soc","Sociale"),("f_tech","Tecnologica")]:
         vals=[R[(p,2025)][kk] for p in PLANTS]; ax.bar(list(x),vals,.55,bottom=bot,label=lab,color=CMAP[kk]); bot=[a+b for a,b in zip(bot,vals)]
     ax.set_xticks(list(x)); ax.set_xticklabels(PLANTS); ax.set_ylabel("Contributo (GJ)")
-    ax.legend(frameon=False,ncol=2,fontsize=8); ax.set_title("Figura 4 — Contributi 2025 (D020 = periodo gen–lug)",color=GREENH,loc="left",fontsize=10)
+    ax.set_ylim(0, max(bot)*1.12)
+    ax.legend(frameon=False,fontsize=8,loc="upper left",bbox_to_anchor=(1.01,1.0),title="Dimensione")
+    ax.set_title("Figura 4 — Contributi 2025 (D020 = periodo gen–lug)",color=GREENH,loc="left",fontsize=10)
     ax.spines[["top","right"]].set_visible(False); _save(fig,"fig4")
     # fig5 Phi-Psi
     fig,ax=plt.subplots(figsize=(5.8,3.6))
