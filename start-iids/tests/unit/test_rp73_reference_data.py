@@ -43,7 +43,8 @@ def test_production_is_per_year_and_d020_2025_is_partial():
     # earlier years stay at the full annual figure.
     data = load_rp73_reference_data(DATA_DIR / "RP7.3_data_collection_20232025.xlsx")
     assert data.production_m2("D020", 2023) == 3800000
-    assert data.production_m2("D020", 2025) == 2382600
+    # real measured Jan-July 2025 period production (ADR-015, delivered 2026-10-19)
+    assert data.production_m2("D020", 2025) == 2317845
     assert data.production_m2("D020", 2025) < data.production_m2("D020", 2024)
 
 

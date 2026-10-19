@@ -66,6 +66,18 @@ real output.
    **homologous 2022 Jan–July** window before project close. Until then these six
    D020/2025 numbers are not a golden acceptance data point.
 
+   **Update (2026-10-19): real data delivered and loaded.** The project owner
+   supplied the measured D020 period data (ERP/MES/HSE consolidation; cessation
+   **2025-07-31**; both windows Jan 1 → Jul 31, 212 days). They replaced the
+   provisional values via `python3 -m scripts.load_d020_real_period_data`; the log
+   is now **beta-1.3**. D020 is confirmed MTO-only (`loss_MTS = qual_MTS = 0`).
+   Result (real): D020/2025 `TSI_abs = 0.1212`, `TSI_rel = 1.398`,
+   `Ex_ref = 114,990 GJ`, `Ψ = 0.164`; Group `TSI_rel = 1.345`; ordering by
+   `TSI_abs` still D240 > D060 > D020. Note for RP7.3 RV.2: with real data the
+   per-plant `TSI_rel` interval widens to ≈ 1.32–1.40 (D020's 1.398 is the
+   highest, i.e. D020 improved most vs. its 2023 baseline), so the previous
+   "1.32–1.36" wording must be corrected.
+
 7. **Governance unchanged.** The APPROVED `COEFF_RP73_PROVISIONAL_2026` /
    `EEA_AHP_RP73_1` sets are **untouched** (only data changed, not coefficients —
    sec. 11.3 point 4). The previous golden log (`beta-1.1`) and its workbook are

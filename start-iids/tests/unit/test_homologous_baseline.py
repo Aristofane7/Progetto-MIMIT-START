@@ -26,13 +26,15 @@ def _state(data, plant, year):
 
 
 def test_d020_2025_uses_homologous_reference_and_stays_comparable():
-    """Option A keeps the intensive ratios (Phi, Psi, TSI_abs) invariant to the
-    partial window: D020/2025's TSI_abs matches the pre-ADR-015 value, while the
-    extensive Ex_ref is scaled down to the Jan-July period."""
+    """Option A: D020/2025 is computed against the homologous 2022 Jan-July
+    baseline and reproduces the golden log. The intensive ratios (Phi, Psi,
+    TSI_abs) stay on the comparable 0.1x scale of the full-year plants, while the
+    extensive Ex_ref is scaled down to the ~7-month period (not a full year)."""
     state = _state(DATASET, "D020", 2025)
-    assert state.tsi_abs == pytest.approx(0.118, abs=2e-3)   # invariant ratio
-    assert state.phi == pytest.approx(0.072, abs=2e-3)       # invariant ratio
-    assert state.ex_ref_gj < 130_000                          # extensive, partial-window (~115,556)
+    assert state.tsi_abs == pytest.approx(LOG[("D020", 2025, "TSI_abs")], abs=2e-3)
+    assert state.phi == pytest.approx(LOG[("D020", 2025, "Phi")], abs=2e-3)
+    assert state.ex_ref_gj == pytest.approx(LOG[("D020", 2025, "Ex_ref")], rel=1e-3)
+    assert state.ex_ref_gj < 130_000                          # partial-window, not a full year
 
 
 def test_duration_mismatch_without_override_is_blocked():

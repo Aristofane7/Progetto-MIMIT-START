@@ -24,7 +24,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 - **D020 (Viano) partial production year 2025** (ceased July 2025) is reconciled
   with a homologous same-window baseline (**ADR-015**, option A): per-year
   production, a `months_active` activity window, a `TEMPORAL_MISMATCH` duration
-  guard, and the golden log bumped to **beta-1.2** (beta-1.1 archived as a
+  guard, and the golden log bumped to **beta-1.3** (beta-1.1 archived as a
   regression fixture)
 - Nothing in `src/` writes to the physical system — enforced structurally and
   by a CI guard (ADR-001)
