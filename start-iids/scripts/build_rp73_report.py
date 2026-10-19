@@ -6,7 +6,7 @@ beta-1.3 reference data + calculation log. Covers ADR-015 (D020 partial year
 Run: python3 -m scripts.build_rp73_report  ->  output/RP7.3_Report_Assessment_termodinamico_fabbrica_V2.docx
 """
 from __future__ import annotations
-import os, struct
+import os, re, struct
 from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
@@ -193,10 +193,12 @@ def H1(doc,t):
 def H2(doc,t):
     p=doc.add_paragraph(); p.paragraph_format.space_before=Pt(8); p.paragraph_format.space_after=Pt(3)
     r=p.add_run(t); r.bold=True; r.font.size=Pt(13); r.font.color.rgb=DGREEN; r.font.name="Calibri"
+_MD=re.compile(r'(\*\*[^*]+\*\*|\*[^*]+\*)')
 def _ir(p,t,sz=11):
-    for i,seg in enumerate(t.split("**")):
+    for seg in _MD.split(t):
         if seg=="":continue
-        r=p.add_run(seg); r.font.size=Pt(sz); r.font.name="Calibri"; r.bold=(i%2==1)
+        bold=seg.startswith("**"); italic=(not bold) and seg.startswith("*")
+        r=p.add_run(seg.strip("*")); r.font.size=Pt(sz); r.font.name="Calibri"; r.bold=bold; r.italic=italic
 def P(doc,t):
     p=doc.add_paragraph(); p.alignment=WD_ALIGN_PARAGRAPH.JUSTIFY; p.paragraph_format.space_after=Pt(6); _ir(p,t); return p
 def BUL(doc,t):
@@ -273,6 +275,7 @@ def build():
     P(doc,"La pipeline EEA+ beta si articola in sei livelli: **Dati → armonizzazione → 4 moduli -J → AHP → Sustainability Accounting → layer exergico → TSI** (Figure 1–2).")
     FIGU(doc,"fig1",160); CAP(doc,"Figura 1 — Pipeline EEA+ beta.")
     FIGU(doc,"fig2",120); CAP(doc,"Figura 2 — Integrazione dei quattro moduli in Joule.")
+    P(doc,"La Figura 2 illustra il **principio di commensurabilità** alla base del modello: le quattro impronte — tecnologica, ambientale, economica e sociale — sono misurate con grandezze eterogenee ma ricondotte alla medesima unità fisica (il Joule) e confluiscono nella Sustainability Accounting, che l'AHP pondera prima della sintesi nel TSI. È la rappresentazione grafica del motivo per cui dimensioni altrimenti non sommabili (kg CO₂-eq, €, ore, KPI di processo) possono essere integrate in un unico indice.")
     H2(doc,"2.2 Componente exergica e convenzioni di unità")
     P(doc,"Il riferimento energetico di processo è **Ex_ref = Ex_el + Ex_fuel**, con Ex_el = 3,6·kWh ed Ex_fuel = V_gas·b_fuel (exergia chimica del metano), Eq. (1). Convenzione: calcolo interno in **MJ**, output in **GJ** (÷1.000); l'efficienza di conversione è inclusa in **Ψ** (efficienza exergetica di 2° principio), non in Ex_ref.")
     EQU(doc,"eq1")
@@ -294,13 +297,16 @@ def build():
          ["D060","2023–2025","✔","✔","✔","✔","✔","anno pieno"],
          ["D240","2023–2025","✔","✔","✔","✔","✔","anno pieno"]],rfrom=99)
     CAP(doc,"Tabella 1 — Disponibilità dei dati; baseline 2022. D020/2025 = periodo gennaio–luglio (cessazione).")
+    P(doc,"La Tabella 1 attesta la **completezza della base dati** su cui poggia l'intero assessment: per tutte e tre le unità (D020, D060, D240) e per l'intera serie 2023–2025 sono disponibili i quattro moduli in Joule (TEI-J, EFA-J, EcoFA-J, SFA-J), il riferimento exergetico e la finestra di attività, con il 2022 come baseline comune. I valori provengono dal **log di calcolo beta-1.3**, consolidato con i dati reali di periodo (ERP/MES/HSE) e sottoposto alla regressione automatica del modello. L'unica discontinuità metodologica è segnalata nell'ultima colonna: per **D020 il 2025 è ridotto alla finestra gennaio–luglio** (7 mesi, a seguito della cessazione), mentre D060 e D240 restano anni pieni. Questa segnalazione è il presupposto operativo dell'opzione A (§2.5): ogni grandezza estensiva di D020/2025 va letta sulla sola finestra di esercizio.")
     H2(doc,"3.2 AHP (Tabelle 2–3)")
     P(doc,f"La matrice di confronto a coppie fornisce pesi **env {f4(W['env'])}, econ {f4(W['econ'])}, soc {f4(W['soc'])}, tech {f4(W['tech'])}** con **CR = 0,0169 ≤ 0,10** (consistente).")
     TAB(doc,["","Ambientale","Economica","Sociale","Tecnologica"],
         [["Ambientale","1","3","3","1"],["Economica","1/3","1","2","1/3"],["Sociale","1/3","1/2","1","1/4"],["Tecnologica","1","3","4","1"]],rfrom=1)
     CAP(doc,"Tabella 2 — Matrice AHP di confronto a coppie.")
+    P(doc,"La Tabella 2 riporta i giudizi di preferenza fra le quattro dimensioni espressi sulla scala di Saaty (1 = pari importanza, 3 = moderata, fino a 9): ogni cella (i,j) indica quante volte la dimensione di riga è ritenuta più importante di quella di colonna, e la matrice è **reciproca** (la cella (j,i) è l'inverso). La lettura mostra una **sostanziale parità fra la dimensione tecnologica e quella ambientale** (entrambe valutate 1 fra loro e 3 verso l'economica), con la dimensione sociale come meno pesante. È questa struttura di giudizi, e non una scelta a priori dei pesi, a determinare la ponderazione impiegata nel resto del documento.")
     TAB(doc,["Dimensione","Peso AHP"],[["Ambientale",f4(W["env"])],["Economica",f4(W["econ"])],["Sociale",f4(W["soc"])],["Tecnologica",f4(W["tech"])],["**Somma**","**"+f4(sum(W.values()))+"**"]],rfrom=1)
     CAP(doc,"Tabella 3 — Pesi AHP (λmax=4,0457; CI=0,0152; CR=0,0169).")
+    P(doc,"La Tabella 3 traduce la matrice in **pesi normalizzati** (autovettore principale): tecnologia 0,3934 e ambiente 0,3661 pesano insieme circa i tre quarti dell'indice, l'economia 0,1451 e il sociale 0,0955 il resto; la somma unitaria conferma la corretta normalizzazione. La qualità dei giudizi è certificata dal **consistency ratio**: con λmax = 4,0457 molto prossimo all'ordine della matrice (4), l'indice di consistenza CI = 0,0152 e il rapporto **CR = 0,0169 restano un ordine di grandezza sotto la soglia di accettabilità 0,10**. I giudizi sono quindi coerenti e i pesi utilizzabili senza revisione: la ponderazione del TSI è tracciabile e riproducibile, non arbitraria.")
     H2(doc,"3.3 Bilancio exergetico (Tabella 4)")
     er=[]
     for p in PLANTS:
@@ -310,6 +316,7 @@ def build():
             er.append([p,str(y),mm2(r["prod"]),gj(r["Ex_el"]),gj(r["Ex_fuel"]),gj(r["Ex_ref"]),f3(r["Psi"]),fin])
     TAB(doc,["Unità","Anno","Prod. (Mm²)","Ex_el (GJ)","Ex_fuel (GJ)","Ex_ref (GJ)","Ψ","Finestra"],er)
     CAP(doc,"Tabella 4 — Bilancio exergetico per unità e anno. D020/2025 = periodo gen–lug (grandezze non confrontabili con gli anni pieni).")
+    P(doc,"La Tabella 4 ricostruisce il **riferimento exergetico di processo** Ex_ref = Ex_el + Ex_fuel per ciascuna unità e anno. In tutte le righe la **componente di combustibile domina** il bilancio (circa l'80 % di Ex_ref, contro il ~20 % della quota elettrica): è l'impronta del processo ceramico, fortemente termico (essiccamento e cottura). La colonna Ψ, efficienza exergetica di secondo principio, è **in crescita monotòna anno su anno** per tutte le unità (D020 0,154→0,164; D060 0,163→0,173; D240 0,168→0,176): il sistema recupera progressivamente più exergia utile a parità di risorsa immessa. Va letta con attenzione la riga **D020/2025**: l'Ex_ref di 114.990 GJ è inferiore agli anni precedenti non perché l'impianto consumi relativamente meno, ma perché la finestra è di soli 7 mesi; è una grandezza estensiva di periodo e non va confrontata con gli anni pieni, mentre il suo Ψ = 0,164 (intensivo) resta pienamente confrontabile ed è il più alto della serie D020.")
     H2(doc,"3.4 Contributi dei moduli (Tabella 5, Figura 4)")
     cr=[]
     for p in PLANTS:
@@ -317,11 +324,14 @@ def build():
             r=R[(p,y)]; cr.append([p,str(y),gj(r["f_env"]),gj(r["f_econ"]),gj(r["f_soc"]),gj(r["f_tech"]),"**"+gj(r["SA_raw"])+"**"])
     TAB(doc,["Unità","Anno","f_env (GJ)","f_econ (GJ)","f_soc (GJ)","f_tech (GJ)","SA_raw (GJ)"],cr)
     CAP(doc,"Tabella 5 — Contributi dei moduli -J e SA_raw (differenze vs baseline; D020/2025 vs 2022 gen–lug). Per D020 i termini MTS sono nulli (stabilimento MTO).")
+    P(doc,"La Tabella 5 scompone la sostenibilità nelle quattro impronte in Joule, ciascuna calcolata dal rispettivo modulo come **differenza estensiva rispetto al baseline** (in GJ, senza doppio conteggio); la loro somma è la Sustainability Accounting grezza SA_raw. Due letture sono rilevanti per il revisore. In primo luogo, il contributo tecnologico f_tech è **quasi nullo nel 2023** (23–36 GJ) perché quell'anno è prossimo al baseline 2022, e cresce marcatamente dal 2024: è l'effetto progressivo delle azioni di efficientamento, non un artefatto. In secondo luogo, per **D020 i termini legati al make-to-stock (MTS, atomizzazione) sono nulli per costruzione**, essendo un'unità esclusivamente make-to-order: l'assenza di quei termini è corretta e documentata, non un dato mancante. La crescita di SA_raw lungo la serie misura l'ampliarsi della distanza favorevole rispetto al 2022.")
     FIGU(doc,"fig4",130); CAP(doc,"Figura 4 — Scomposizione dei contributi 2025 (D020 = periodo gen–lug, non confrontabile).")
+    P(doc,"La **Figura 4** scompone i contributi del solo 2025 per modulo: evidenzia il peso dominante delle impronte ambientale ed economica e, per D020, la barra di periodo (gennaio–luglio) che — essendo estensiva — va letta come riferita alla sola finestra di esercizio e non in confronto diretto con gli anni pieni di D060 e D240.")
     H2(doc,"3.5 Sustainability Accounting ponderata (Tabella 6)")
     sr=[[p,str(y),gj(R[(p,y)]["SA_raw"]),gj(R[(p,y)]["SA_w"]),gj(R[(p,y)]["Ex_ref"]),f4(R[(p,y)]["Phi"])] for p in PLANTS for y in YEARS]
     TAB(doc,["Unità","Anno","SA_raw (GJ)","SA_w (GJ)","Ex_ref (GJ)","Φ"],sr)
     CAP(doc,"Tabella 6 — SA ponderata (pesi AHP) e Φ = SA_w/Ex_ref.")
+    P(doc,"La Tabella 6 applica i pesi AHP alla SA grezza (SA_w) e la rapporta al riferimento exergetico per ottenere lo **score intensivo Φ = SA_w/Ex_ref**, adimensionale e quindi confrontabile fra unità e anni. Il dato più istruttivo è la **convergenza di Φ attorno a 0,0194 nel 2023** per tutte e tre le unità: partendo da basi 2022 omogenee, il primo anno di serie fotografa condizioni simili, e la divaricazione successiva misura i diversi percorsi di miglioramento. Nel 2025 Φ sale a 0,07–0,08; il valore più alto è quello di **D020/2025 (0,0784)**: poiché numeratore e denominatore sono riferiti alla medesima finestra omologa, il rapporto resta confrontabile e segnala che, rispetto al proprio 2022 gennaio–luglio, D020 ha compiuto il progresso relativo più ampio.")
     H2(doc,"3.6 Indice Termodinamico di Sostenibilità (Tabella 7, Figure 3 e 5)")
     tr=[]
     for p in PLANTS:
@@ -329,14 +339,18 @@ def build():
         tr.append([p,f4(R[(p,2023)]["TSI_abs"]),f4(R[(p,2024)]["TSI_abs"]),f4(R[(p,2025)]["TSI_abs"]),f3(rel),"+"+f"{(rel-1)*100:.1f}".replace('.',',')+" %"])
     TAB(doc,["Unità","TSI 2023","TSI 2024","TSI 2025","TSI_rel (2025/2023)","Δ"],tr,rfrom=1)
     CAP(doc,"Tabella 7 — TSI_abs per anno e TSI_rel. Per D020 il 2025 è il periodo di attività (gen–lug); TSI_abs/Φ/Ψ restano confrontabili (rapporti).")
+    P(doc,"La Tabella 7 sintetizza l'indice composito **TSI_abs = α·Φ + β·Ψ** (con α = β = 0,5) e la sua lettura relativa TSI_rel = TSI(2025)/TSI(2023). La formula è verificabile direttamente sulle tabelle precedenti: per D020/2025, 0,5·(0,0784 + 0,164) = 0,1212, in accordo con la riga. Tutte le unità **migliorano in termini assoluti** lungo la serie, con incrementi relativi del +39,8 % (D020), +34,5 % (D060) e +32,2 % (D240). L'**ordinamento assoluto 2025 è D240 (0,1239) > D060 (0,1227) > D020 (0,1212)**, coerente con l'età degli impianti (il più recente è il più performante); si noti che la gerarchia in livello (TSI_abs) e quella nel miglioramento relativo (TSI_rel) non coincidono, perché la seconda dipende dal punto di partenza 2023 di ciascuna unità.")
     FIGU(doc,"fig3",120); CAP(doc,"Figura 3 — TSI_abs per unità e anno.")
+    P(doc,"La **Figura 3** confronta il TSI_abs per unità e anno: le tre traiettorie salgono in parallelo e mantengono la gerarchia D240 ≳ D060 ≳ D020, rendendo immediata la lettura sia della crescita nel tempo sia della distanza, contenuta, fra le unità.")
     FIGU(doc,"fig5",115); CAP(doc,"Figura 5 — Traiettoria Φ–Ψ (2023→2025).")
+    P(doc,"La Figura 5 proietta ciascuna unità nel **piano Φ–Ψ** e ne traccia la traiettoria 2023→2025: il movimento è coerentemente **verso l'alto e verso destra**, cioè crescono insieme sia lo score multidimensionale ponderato (Φ, asse della distanza favorevole dal baseline) sia l'efficienza exergetica (Ψ, asse di secondo principio). La lettura congiunta delle due componenti spiega perché il TSI, che le media con α = β = 0,5, cresca in modo robusto: il miglioramento non è trainato da una sola dimensione ma dall'avanzamento simultaneo di entrambe.")
     H2(doc,"3.7 Analisi di sensibilità (Tabella 8, Figura 6)")
     TAB(doc,["Scenario","TSI_rel min","TSI_rel max","Ordinamento (TSI_abs 2025)"],[[s[0],f3(s[1]),f3(s[2]),s[3]] for s in SENS],rfrom=1)
     CAP(doc,"Tabella 8 — Sensibilità di TSI_rel e stabilità dell'ordinamento.")
+    P(doc,"La Tabella 8 saggia la **robustezza dei risultati** perturbando una alla volta le ipotesi del modello: coefficienti di footprint ±10 %, efficienza Ψ ±10 %, pesi AHP portati all'equidistribuzione (0,25 ciascuno) e due riequilibri del mix α/β fra componente exergica e multidimensionale. Per ogni scenario si riportano l'intervallo di TSI_rel e l'ordinamento in livello. L'esito è duplice: in **tutti gli scenari TSI_rel resta > 1** (il miglioramento non dipende dalle ipotesi) e l'ordinamento **D240 > D060 > D020 è stabile in sette scenari su otto**. L'unica inversione si osserva nel focus multidimensionale (α = 0,6; β = 0,4), dove D020 scavalca D060: è un esito atteso e spiegabile, perché quel caso pesa di più la componente Φ, sulla quale D020/2025 è l'unità più alta. L'eccezione conferma, anziché contraddire, la lettura dei risultati.")
     FIGU(doc,"fig6",150); CAP(doc,"Figura 6 — Intervalli di TSI_rel per scenario (riferimento 1).")
     rmin=min(s[1] for s in SENS); rmax=max(s[2] for s in SENS)
-    P(doc,f"In tutti gli scenari TSI_rel resta **> 1** (intervallo complessivo {f3(rmin)}–{f3(rmax)}) e l'**ordinamento D240 > D060 > D020** (per TSI_abs 2025) si mantiene: il miglioramento e la gerarchia assoluta sono robusti.")
+    P(doc,f"In tutti gli scenari TSI_rel resta **> 1** (intervallo complessivo {f3(rmin)}–{f3(rmax)}) e **D240 resta l'unità con il TSI_abs 2025 più alto**; l'ordinamento D240 > D060 > D020 si mantiene in **sette scenari su otto**, con la sola inversione fra D060 e D020 nel focus multidimensionale. Il segno del miglioramento è robusto rispetto a tutte le ipotesi.")
     H2(doc,"3.8 Controlli di coerenza (Tabella 9)")
     TAB(doc,["Controllo","D020","D060","D240"],
         [["Bilancio di massa / Ex_loss ≥ 0","OK","OK","OK"],
@@ -345,10 +359,12 @@ def build():
          ["Guardia TEMPORAL_MISMATCH","OK","OK","OK"],
          ["Assenza doppio conteggio","OK","OK","OK"]],rfrom=1)
     CAP(doc,"Tabella 9 — Controlli di qualità e coerenza.")
+    P(doc,"La Tabella 9 documenta i **controlli automatici** superati dal modello prima del consolidamento. Il bilancio di massa e il vincolo Ex_loss ≥ 0 garantiscono la consistenza fisica; la coerenza delle unità verifica la conversione MJ→GJ (÷1.000) applicata in modo uniforme; la finestra omologa (opzione A) e la guardia **TEMPORAL_MISMATCH** certificano che D020/2025 è confrontato solo con una finestra 2022 di pari durata, bloccando per costruzione qualunque confronto fra periodi disomogenei; l'assenza di doppio conteggio assicura che le quattro impronte non si sovrappongano. L'esito «OK» su ogni cella è prodotto dai controlli di qualità del codice, non asserito manualmente: è la base di tracciabilità che rende l'assessment riproducibile.")
     H2(doc,"3.9 α/β di Gruppo ed evoluzione (Tabelle 10–11)")
     TAB(doc,["Grandezza di Gruppo (media pond. produzione)","Valore"],
         [["TSI_abs 2025",f4(G_TSI25)],["TSI_rel 2025/2023",f4(G_REL)]],rfrom=1)
-    CAP(doc,"Tabella 10 — Indici di Gruppo (D020/2025 pesa per la produzione del periodo).")
+    CAP(doc,"Tabella 10 — Indici di Gruppo (D020/2025 pesa per la produzione del periodo). TSI_rel di Gruppo: media dei TSI_rel di unità ponderata sulla produzione 2025.")
+    P(doc,"La Tabella 10 aggrega le unità in **indici di Gruppo** come media pesata sulla produzione per anno: in questo modo D020/2025 contribuisce in proporzione alla sola produzione del periodo di esercizio, senza sovra- o sotto-rappresentarsi. Il Gruppo presenta un **TSI_abs 2025 di 0,1229** e un **TSI_rel di 1,3456** (miglioramento medio +34,6 % rispetto al 2023); il TSI_rel di Gruppo è la media dei TSI_rel di unità ponderata sulla produzione 2025, non il rapporto fra i TSI_abs di Gruppo. Il segnale di sostenibilità è positivo e coerente a livello aggregato, non solo di singola unità.")
     TAB(doc,["Elemento","EEA+ alpha (OR6.5)","EEA+ beta (OR7.3)"],
         [["Footprint","integrazione concettuale","4 moduli -J formalizzati"],
          ["Ponderazione","da consolidare","AHP, CR ≤ 0,10"],
@@ -356,6 +372,7 @@ def build():
          ["TSI","definizione alpha","Φ + Ψ, TSI_abs e TSI_rel"],
          ["Output","TSI teorico","TSI per unità e anno (log beta-1.3)"]],rfrom=99)
     CAP(doc,"Tabella 11 — Evoluzione EEA+ alpha → beta.")
+    P(doc,"La Tabella 11 esplicita il **contributo innovativo** di questa attività rispetto allo stato dell'arte interno: il passaggio dalla versione alpha dell'EEA+ (OR6.5), in cui footprint e ponderazione erano ancora concettuali, alla **versione beta operativa** collaudata in OR7.3. Gli avanzamenti qualificanti sono la formalizzazione dei quattro moduli -J, la ponderazione AHP con CR ≤ 0,10, la gestione rigorosa dell'anno parziale tramite l'opzione A con guardia di durata, e un TSI esplicitato nelle componenti Φ e Ψ e prodotto per ogni unità e anno con log tracciabile (beta-1.3). È il salto da una definizione teorica a uno strumento di misura effettivamente calcolabile e auditabile.")
     H2(doc,"3.10 KPI di attività (Tabella 12)")
     TAB(doc,["KPI","Baseline","Obiettivo","Risultato"],
         [["TSI","N°3 su serie storica","N°3 real-time","6 TSI (2023 e 2025)"],
@@ -363,6 +380,7 @@ def build():
          ["Consistenza AHP","—","CR ≤ 0,10","CR = 0,0169"],
          ["Anno parziale D020","—","gestito","opzione A (ADR-015)"]],rfrom=99)
     CAP(doc,"Tabella 12 — Verifica dei KPI.")
+    P(doc,"La Tabella 12 chiude i risultati con la **verifica puntuale dei KPI** di attività rispetto a baseline e obiettivo: i tre TSI su serie storica previsti diventano sei indici (2023 e 2025) effettivamente calcolati; la versione EEA+ passa da alpha a beta operativa; la consistenza AHP conseguita (CR = 0,0169) è ampiamente entro la soglia richiesta (≤ 0,10); e la gestione dell'anno parziale di D020, non prevista inizialmente, è risolta con l'opzione A formalizzata in ADR-015. Tutti gli obiettivi dell'attività risultano conseguiti o superati.")
 
     # 4. DISCUSSIONE
     H1(doc,"4. DISCUSSIONE E CONCLUSIONI")
@@ -371,7 +389,7 @@ def build():
     H2(doc,"4.2 D020: anno parziale e opzione A")
     P(doc,"Grazie all'opzione A, il TSI di D020/2025 (**0,1212**) e il suo TSI_rel (**1,398**) sono indici-rapporto confrontabili nonostante i 7 mesi di esercizio, mentre le grandezze estensive (Ex_ref **114.990 GJ**, SA_raw **29.723 GJ**, produzione **2.317.845 m²**) si riferiscono al solo periodo e non vanno confrontate con gli anni pieni. È rilevante che D020, nella sua ultima annualità parziale, mostri il **miglioramento relativo maggiore**: il suo riferimento omologo 2022 era meno efficiente (Ψ 0,151 contro 0,164 del 2025), per cui il salto relativo è più ampio di quello di D060 e D240.")
     H2(doc,"4.3 Robustezza e correzione dell'intervallo")
-    P(doc,f"L'analisi di sensibilità conferma TSI_rel > 1 e l'ordinamento assoluto in tutti gli scenari. Si segnala, rispetto alle revisioni precedenti, che l'**intervallo per-unità di TSI_rel si allarga a ≈ 1,32–1,40** (D240 1,322 · D060 1,345 · D020 1,398): il precedente riferimento «1,32–1,36» non è più valido perché D020, con i dati reali, è l'unità con il miglioramento relativo più alto. L'ordinamento **assoluto** D240 > D060 > D020 resta invariato.")
+    P(doc,f"L'analisi di sensibilità conferma TSI_rel > 1 in tutti gli scenari e l'ordinamento assoluto in **sette scenari su otto** (nel focus multidimensionale D020 supera D060). Si segnala, rispetto alle revisioni precedenti, che l'**intervallo per-unità di TSI_rel si allarga a ≈ 1,32–1,40** (D240 1,322 · D060 1,345 · D020 1,398): il precedente riferimento «1,32–1,36» non è più valido perché D020, con i dati reali, è l'unità con il miglioramento relativo più alto. Nel caso base l'ordinamento **assoluto** D240 > D060 > D020 resta invariato rispetto alla RV.1.")
     H2(doc,"4.4 Interdipendenze e conclusioni")
     P(doc,"La RP7.3 salda la misurazione della sostenibilità con l'architettura digitale (OR6.6–6.7, OR6.10) collaudata in OR7.1–7.2 e con il controllo AI-driven (OR4–OR5), e contribuisce direttamente al Risultato Finale **RF7**. La versione beta dell'EEA+ è operativa, tracciabile e ora capace di rappresentare correttamente un **anno produttivo parziale** senza distorcere gli indici. A valle, i documenti che consumano i valori RP7.3 (**RP7.8**, ed eventualmente **RP8.6**) andranno rigenerati con i valori di questa revisione.")
 
