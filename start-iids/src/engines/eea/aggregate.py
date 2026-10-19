@@ -30,9 +30,46 @@ from src.engines.eea.formulas import (
     compute_tsi_abs,
 )
 from src.engines.efa.formulas import compute_f_env
+from src.engines.errors import EngineError, ErrorCategory
 from src.engines.sfa.formulas import compute_f_soc
 from src.engines.tei.formulas import compute_f_tech
 from src.ingestion.rp73_reference_data import BASELINE_YEAR, RP73ReferenceData
+
+
+def _baseline_terms(reference_data: RP73ReferenceData, plant_id: str, year: int) -> dict[str, float]:
+    """Module baseline terms for a plant/year (ADR-012/ADR-025).
+
+    Uses the homologous same-window override (`Riferimento` sheet) when present —
+    option A for partial production years such as D020/2025 — otherwise the fixed
+    annual `BASELINE_YEAR` (2022) rows. Guards that current and baseline windows
+    have the same duration: comparing extensive module terms across windows of
+    different length is a ``TEMPORAL_MISMATCH`` blocker (ADR-025), since the
+    shorter window would otherwise read as a spurious improvement.
+    """
+    record_key = f"{plant_id}-{year}"
+    cur_months = reference_data.months_active(plant_id, year)
+    base_months = reference_data.baseline_months(plant_id, year)
+    if cur_months != base_months:
+        raise EngineError(
+            ErrorCategory.TEMPORAL_MISMATCH,
+            f"current window ({cur_months} mo) != baseline window ({base_months} mo); "
+            f"an homologous same-window reference is required (ADR-025 option A)",
+            record_key=record_key,
+        )
+    override = reference_data.baseline_override.get((plant_id, year))
+    if override is not None:
+        return override.terms
+    tei_b = reference_data.tei[(plant_id, BASELINE_YEAR)]
+    efa_b = reference_data.efa[(plant_id, BASELINE_YEAR)]
+    eco_b = reference_data.ecofa[(plant_id, BASELINE_YEAR)]
+    sfa_b = reference_data.sfa[(plant_id, BASELINE_YEAR)]
+    return {
+        "loss_MTS_MJ": tei_b.loss_mts_mj, "loss_MTO_MJ": tei_b.loss_mto_mj, "inv_MJ": tei_b.inv_mj,
+        "qual_MTS_MJ": tei_b.qual_mts_mj, "qual_MTO_MJ": tei_b.qual_mto_mj,
+        "RI_MJ": efa_b.ri_mj, "IEQ_MJ": efa_b.ieq_mj, "WEX_MJ": efa_b.wex_mj, "CIRC_MJ": efa_b.circ_mj,
+        "VA_MJ": eco_b.va_mj, "econ_in_MJ": eco_b.econ_in_mj, "INV_MJ": eco_b.inv_mj,
+        "SV_MJ": sfa_b.sv_mj, "train_MJ": sfa_b.train_mj, "lost_MJ": sfa_b.lost_mj, "CO2_MJ": sfa_b.co2_mj,
+    }
 
 
 @dataclass(frozen=True)
@@ -67,30 +104,27 @@ def compute_aggregate_state(
     `Ex_useful` derivation exists in this corpus yet).
     """
     record_key = f"{plant_id}-{year}"
-    tei_base = reference_data.tei[(plant_id, BASELINE_YEAR)]
+    base = _baseline_terms(reference_data, plant_id, year)
     tei_cur = reference_data.tei[(plant_id, year)]
-    efa_base = reference_data.efa[(plant_id, BASELINE_YEAR)]
     efa_cur = reference_data.efa[(plant_id, year)]
-    ecofa_base = reference_data.ecofa[(plant_id, BASELINE_YEAR)]
     ecofa_cur = reference_data.ecofa[(plant_id, year)]
-    sfa_base = reference_data.sfa[(plant_id, BASELINE_YEAR)]
     sfa_cur = reference_data.sfa[(plant_id, year)]
     energy = reference_data.energy[(plant_id, year)]
 
     f_env_mj = compute_f_env(
-        efa_cur.ri_mj, efa_base.ri_mj, efa_cur.circ_mj, efa_base.circ_mj,
-        efa_cur.ieq_mj, efa_base.ieq_mj, efa_cur.wex_mj, efa_base.wex_mj,
+        efa_cur.ri_mj, base["RI_MJ"], efa_cur.circ_mj, base["CIRC_MJ"],
+        efa_cur.ieq_mj, base["IEQ_MJ"], efa_cur.wex_mj, base["WEX_MJ"],
     )
     f_econ_mj = compute_f_econ(
-        ecofa_cur.va_mj, ecofa_base.va_mj, ecofa_cur.econ_in_mj, ecofa_base.econ_in_mj,
-        ecofa_cur.inv_mj, ecofa_base.inv_mj,
+        ecofa_cur.va_mj, base["VA_MJ"], ecofa_cur.econ_in_mj, base["econ_in_MJ"],
+        ecofa_cur.inv_mj, base["INV_MJ"],
     )
     f_soc_mj = compute_f_soc(
-        sfa_cur.sv_mj, sfa_base.sv_mj, sfa_cur.train_mj, sfa_base.train_mj,
-        sfa_cur.lost_mj, sfa_base.lost_mj, sfa_cur.co2_mj, sfa_base.co2_mj,
+        sfa_cur.sv_mj, base["SV_MJ"], sfa_cur.train_mj, base["train_MJ"],
+        sfa_cur.lost_mj, base["lost_MJ"], sfa_cur.co2_mj, base["CO2_MJ"],
     )
     f_tech_mj = compute_f_tech(
-        ex_loss_base_mts_mj=tei_base.loss_mts_mj, ex_loss_base_mto_mj=tei_base.loss_mto_mj,
+        ex_loss_base_mts_mj=base["loss_MTS_MJ"], ex_loss_base_mto_mj=base["loss_MTO_MJ"],
         ex_loss_mts_mj=tei_cur.loss_mts_mj, ex_loss_mto_mj=tei_cur.loss_mto_mj,
         ex_inv_mj=tei_cur.inv_mj, ex_qual_mts_mj=tei_cur.qual_mts_mj, ex_qual_mto_mj=tei_cur.qual_mto_mj,
     )

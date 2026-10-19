@@ -58,6 +58,8 @@ th .gloss:hover::after{color:#fff}
 .compare-row label{font-size:12px;color:#556}
 .guide-toc{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
 .guide-toc span{background:var(--tint);color:var(--navy);border-radius:14px;padding:4px 11px;font-size:12px;font-weight:600}
+.srclist{column-width:280px;column-gap:24px;margin:0;padding-left:18px;font-size:13px;line-height:1.7}
+tr.rp-partial td{background:#FFF8E6}
 </style>
 </head>
 <body>
@@ -188,6 +190,25 @@ function renderFactory() {
     return `<tr><td>${gl(m.k)}</td><td>${n(a, m.dec)}${m.unit}</td><td>${n(b, m.dec)}${m.unit}</td><td>${deltaHtml(b, a, 1)}</td></tr>`;
   }).join("");
 
+  // --- dati reali di impianto (RP7.3, ADR-012/ADR-025) — granularità annuale
+  // per i 3 impianti reali, separata dai lotti sintetici sopra, mai mescolata ---
+  const realRows = (DATA.real_plants ?? []).map(r => `<tr${r.partial_period ? ' class="rp-partial"' : ''}>
+      <td>${esc(r.plant_id)}</td><td>${r.year}</td>
+      <td>${r.partial_period ? `parziale (${r.months_active} mesi)` : 'anno intero'}</td>
+      <td>${n(r.sa_w_gj,1)}</td><td>${n(r.ex_ref_gj,1)}</td><td>${n(r.phi,4)}</td><td>${n(r.psi,3)}</td>
+      <td>${n(r.tsi_abs,4)}</td><td>${r.tsi_rel !== null ? n(r.tsi_rel,4) : '—'}</td></tr>`).join("");
+  const realPlantSection = `
+    <h3 class="sec">Dati reali di impianto — RP7.3 (D020 / D060 / D240)</h3>
+    <div class="note">Granularità annuale di stabilimento, dal modello aggregato EEA+/TSI reale (ADR-012),
+      <b>non</b> dai lotti sintetici di questa pagina — le due fonti non vengono mai mescolate. D020/2025 è un
+      periodo parziale (gennaio-luglio, impianto cessato — ADR-025): le grandezze estensive (${gl("sa_gj",{short:true})},
+      Ex_ref) non sono confrontabili con gli anni interi, solo gli indici intensivi (Φ, Ψ, TSI) lo sono.</div>
+    <div class="card"><table><thead><tr><th>Impianto</th><th>Anno</th><th>Periodo</th>
+      <th>${gl("sa_gj",{short:true})} pesata</th><th>${gl("ex_ref_gj",{short:true})}</th>
+      <th>${gl("phi",{short:true})}</th><th>${gl("psi",{short:true})}</th>
+      <th>${gl("tsi_abs",{short:true})}</th><th>${gl("tsi_rel",{short:true})}</th></tr></thead>
+      <tbody>${realRows || '<tr><td colspan="9">Nessun dato</td></tr>'}</tbody></table></div>`;
+
   $("p-factory").innerHTML = `
     <div class="pageh">Fabbrica — sez. 38.1</div>
     <div class="note">Filtra per impianto e per scenario, poi confronta due periodi qui sotto.</div>
@@ -221,7 +242,8 @@ function renderFactory() {
     <h3 class="sec">Drill-down Plant → Line → Lot → Process (sez. 38.1)</h3>
     <div class="card"><table><thead><tr><th>Plant</th><th>Line</th><th>Lot</th><th>Process</th><th>${gl("sa_gj", {short:true})}</th><th>${gl("tsi_norm", {short:true})}</th></tr></thead>
     <tbody>${drill || '<tr><td colspan="6">Nessun dato</td></tr>'}</tbody></table>
-    ${filtered.length > 200 ? `<div class="note">Mostrate le prime 200 righe di ${filtered.length}.</div>` : ""}</div>`;
+    ${filtered.length > 200 ? `<div class="note">Mostrate le prime 200 righe di ${filtered.length}.</div>` : ""}</div>
+    ${realPlantSection}`;
 
   $("p-factory").querySelectorAll("[data-plant]").forEach(b => b.onclick = () => { factoryState.plantId = b.dataset.plant || null; renderFactory(); });
   $("p-factory").querySelectorAll("[data-scen]").forEach(b => b.onclick = () => { factoryState.scenario = b.dataset.scen || null; renderFactory(); });
@@ -343,10 +365,13 @@ function renderBuild() {
 function renderGuide() {
   const glossRows = Object.entries(DATA.glossary).map(([key, g]) => `<tr>
       <td><code>${esc(key)}</code></td><td><b>${esc(g.full)}</b></td><td>${esc(g.unit ?? "—")}</td><td>${esc(g.desc)}</td></tr>`).join("");
+  const sourceItems = (DATA.sources ?? []).map(s => `<li>${esc(s.filename)}</li>`).join("")
+      || '<li>Nessuna relazione trovata in questa build.</li>';
   $("p-guide").innerHTML = `
     <div class="pageh">Guida all'uso</div>
     <div class="guide-toc"><span>Cos'è</span><span>Come navigare</span><span>Sintetico vs reale</span>
-      <span>«Scenario» in questo viewer</span><span>Cosa manca ancora</span><span>Glossario</span></div>
+      <span>«Scenario» in questo viewer</span><span>Cosa manca ancora</span><span>Glossario</span>
+      <span>Fonti di progetto</span></div>
 
     <div class="card"><h2>Cos'è questo strumento</h2>
     <div class="note" style="margin:0">Un'istantanea leggibile dello stato integrato di fabbrica e prodotto
@@ -396,7 +421,14 @@ function renderGuide() {
 
     <div class="card"><h2>Glossario completo</h2>
     <table><thead><tr><th>Campo</th><th>Nome esteso</th><th>Unità</th><th>Definizione</th></tr></thead>
-    <tbody>${glossRows}</tbody></table></div>`;
+    <tbody>${glossRows}</tbody></table></div>
+
+    <div class="card"><h2>Fonti di progetto depositate nel repository</h2>
+    <div class="note">Le relazioni parziali (RP) e gli allegati del Piano di Sviluppo effettivamente presenti
+    nel repository a questa build — scoperti per nome file, non un elenco scritto a mano, così questa lista non
+    invecchia né inventa documenti mai depositati. Il prefisso numerico segue l'Obiettivo Realizzativo (RP6.x =
+    OR6, RP7.x = OR7, RP8.x = OR8).</div>
+    <ul class="srclist">${sourceItems}</ul></div>`;
 }
 
 /* ---------- router ---------- */

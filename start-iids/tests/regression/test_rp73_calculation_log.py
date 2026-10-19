@@ -105,7 +105,21 @@ EX_USEFUL_GJ_TABELLA4 = {
 }
 
 
-@pytest.mark.parametrize("plant_id,year", REFERENCE_DATA.plant_years())
+@pytest.mark.parametrize(
+    "plant_id,year",
+    [
+        pv
+        for pv in REFERENCE_DATA.plant_years()
+        # D020/2025 is excluded: ADR-025 reconciled it to a Jan-Jul partial
+        # period (real data, beta-1.3), so its Ex_ref/Psi are no longer on the
+        # same (annual) footing as EX_USEFUL_GJ_TABELLA4's 30225 GJ, which is
+        # the original full-year figure from the RV.1 report. The regenerated
+        # RV.2 report (ADR-025) replaced this Ex_useful column with Psi
+        # reported directly, so there is no updated full-year-equivalent
+        # figure to cross-check against for this cell.
+        if pv != ("D020", 2025)
+    ],
+)
 def test_ex_useful_from_report_matches_psi_times_ex_ref_from_log(plant_id, year):
     """Closes ADR-012's open item (issue #5): Psi/Ex_ref from the calculation
     log and Ex_useful from the narrative report are two independently-labeled

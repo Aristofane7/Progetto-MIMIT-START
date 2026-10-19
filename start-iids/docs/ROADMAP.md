@@ -15,7 +15,7 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 - **27 / 30** v1 acceptance criteria (spec sec. 57) — **DONE**
 - **3 / 30** — **PARTIAL** (E2C live connector, full golden-regression approval,
   BI drill-down — semantic model shipped, report pages need GUI authoring)
-- **263 tests passing** (0 skipped — the last skip, P-TSA z-score, is
+- **274 tests passing** (0 skipped — the last skip, P-TSA z-score, is
   resolved by ADR-020), 95% coverage on `src/`, CI green on `main`
 - Issue #8's Power BI GUI-authoring blocker now has a working alternative:
   a single self-contained HTML viewer (`bi/html_viewer/`,
@@ -50,6 +50,17 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 - The 22 real RP6.8 product clusters are loaded (ADR-015); the 13,251-product
   export with cluster assignment (issue #7) remains an external blocker, not
   a code gap — see `data/reference/README.md`
+- **D020 (Viano) partial production year 2025** (ceased production July 2025,
+  reconversion to a logistics hub) is reconciled with a homologous
+  same-window baseline (ADR-025, option A): per-year production, a
+  `months_active` activity window, a `TEMPORAL_MISMATCH` duration guard, and
+  real measured period data loaded — the golden log is now **beta-1.3**
+  (beta-1.1 archived as a regression fixture, `tests/fixtures/rp73/`)
+- The HTML viewer's Fabbrica tab now also shows this real RP7.3 plant/year
+  data (D020/D060/D240, 2022-2025) in its own card, kept separate from the
+  synthetic per-lot rows (ADR-026); its Guida tab lists every `RP*`/`Attività*`
+  relazione actually deposited at the repository root, discovered by filename
+  rather than hand-maintained
 - Nothing in `src/` writes to the physical system — enforced structurally and
   by a CI guard (ADR-001)
 

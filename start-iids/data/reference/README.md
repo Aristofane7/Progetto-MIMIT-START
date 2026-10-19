@@ -3,14 +3,33 @@
 Real project data files, copied verbatim from the repository root, used to
 validate and drive the ADR-012 aggregate EEA+/TSI model:
 
-- `RP7.3_data_collection_20232025.xlsx` — plant master data, annual energy
-  consumption, pre-aggregated TEI/EFA/EcoFA/SFA module terms, coefficient
-  library, and AHP pairwise matrix for D020/D060/D240, 2022 (baseline)-2025.
-- `RP7.3_calculation_log.xlsx` — 93 logged reference results (`R001`-`R093`)
-  used as the golden regression target in
-  `tests/regression/test_rp73_calculation_log.py`.
+- `RP7.3_data_collection_20232025.xlsx` — plant master data (**per-year**
+  production, ADR-025), annual energy consumption, pre-aggregated
+  TEI/EFA/EcoFA/SFA module terms, coefficient library, and AHP pairwise matrix
+  for D020/D060/D240, 2022 (baseline)-2025. Since **ADR-025** it also carries a
+  `Periodo` sheet (activity window / `months_active` per plant/year) and a
+  `Riferimento` sheet (homologous same-window baseline — option A — for
+  D020/2025, the Jan-July period after D020's July 2025 cessation).
+- `RP7.3_calculation_log.xlsx` — 93 logged reference results (`R001`-`R093`),
+  **beta-1.3** (ADR-025, D020/2025 now the partial-period, homologous-baselined
+  figures), the golden target of `tests/regression/test_rp73_calculation_log.py`.
+- `RP7.3_D020_partial_year_data_collection.xlsx` — the **filled**
+  data-collection sheet (delivered by the project owner 2026-10-19, ERP/MES/HSE)
+  with the real measured D020 Jan-cessation 2025 and homologous 2022 Jan-July
+  inputs now loaded into the model (ADR-025 §6).
 - `ahp_weights.xlsx` — AHP pairwise comparison matrix and resulting weights for
   the `env`/`econ`/`soc`/`tech` dimensions.
+
+The previous **beta-1.1** workbook and log are archived under
+`tests/fixtures/rp73/` and pinned by
+`tests/regression/test_rp73_calculation_log_beta_1_1_fixture.py`. The migration
+is scripted: `python3 -m scripts.apply_adr015_d020_partial_year` builds the
+ADR-025 structure (beta-1.2, provisional values); `python3 -m
+scripts.load_d020_real_period_data` loads the real measured data (**beta-1.3**).
+Both mirror copies (repo root and this folder) are kept in sync (identical md5).
+(The script module names keep their original `adr015` label from the branch
+where this was developed — see the numbering note in
+`docs/decisions/ADR-025-d020-partial-year-2025.md`.)
 
 **Data collection round: still labeled provisional by its own source.** Per
 the `Istruzioni` sheet in the data collection file: *"I valori inseriti sono

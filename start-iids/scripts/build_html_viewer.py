@@ -21,17 +21,87 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import re
 from datetime import datetime, timezone
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 
 from scripts.export_mv_intelligent_industry_state import DIMENSION_QUERIES, build_synthetic_engine
+from src.core.coefficients import load_coefficient_set
+from src.core.weights import load_weight_set
+from src.engines.eea.aggregate import compute_aggregate_state
+from src.engines.eea.formulas import compute_tsi_rel
+from src.ingestion.rp73_reference_data import load_rp73_calculation_log, load_rp73_reference_data
 from src.product.sales.channel_concentration import compute_channel_concentration
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+REPO_ROOT = ROOT.parent
 TEMPLATE_PATH = ROOT / "bi" / "html_viewer" / "template.html"
 DATA_PLACEHOLDER = "/*__DATA__*/"
+
+# Narrative "Relazione Parziale" / "Attività" deliverables deposited at the
+# repository root (one per Obiettivo Realizzativo task, Piano di Sviluppo
+# Allegato 4) — discovered by filename, never hand-listed, so this never goes
+# stale or invents a document that was not actually deposited.
+_SOURCE_FILENAME_RE = re.compile(r"^(RP\s?\d|Attività\s?\d)", re.IGNORECASE)
+_SOURCE_EXCLUDE = {"RPX.Y Titolo_Relazione_Parziale_data.docx"}
+_SOURCE_EXTENSIONS = {".pdf", ".docx"}
+
+
+def _discover_sources() -> list[dict]:
+    found = [
+        p for p in REPO_ROOT.iterdir()
+        if p.is_file()
+        and p.suffix.lower() in _SOURCE_EXTENSIONS
+        and p.name not in _SOURCE_EXCLUDE
+        and _SOURCE_FILENAME_RE.match(p.name)
+    ]
+    return [
+        {"filename": p.name, "ext": p.suffix.lower().lstrip(".")}
+        for p in sorted(found, key=lambda p: p.name)
+    ]
+
+
+def _load_real_plant_data() -> list[dict]:
+    """Real RP7.3 plant/year aggregate EEA+ state (D020/D060/D240, ADR-012/ADR-025)
+    — factory-level annual data, distinct from the synthetic per-lot records used
+    elsewhere in this viewer (never mixed with them). D020/2025 is a partial
+    period (Jan-Jul, plant ceased production — ADR-025) and is flagged as such;
+    its extensive quantities are not comparable to the other, full-year rows.
+    """
+    data_dir = ROOT / "data" / "reference"
+    config_dir = ROOT / "config"
+    reference_data = load_rp73_reference_data(data_dir / "RP7.3_data_collection_20232025.xlsx")
+    calculation_log = load_rp73_calculation_log(data_dir / "RP7.3_calculation_log.xlsx")
+    coefficient_set = load_coefficient_set(config_dir / "coefficients" / "rp73_provisional_2026.yaml")
+    weight_set = load_weight_set(config_dir / "weights" / "eea_ahp_rp73.yaml")
+
+    states = {}
+    for plant_id, year in reference_data.plant_years():
+        psi = calculation_log[(plant_id, year, "Psi")]
+        states[(plant_id, year)] = compute_aggregate_state(
+            plant_id, year, reference_data, coefficient_set, weight_set, psi=psi,
+        )
+
+    rows = []
+    for (plant_id, year), state in sorted(states.items()):
+        tsi_rel = None
+        if year == 2025 and (plant_id, 2023) in states:
+            tsi_rel = round(
+                compute_tsi_rel(state.tsi_abs, states[(plant_id, 2023)].tsi_abs, record_key=plant_id), 4,
+            )
+        months_active = reference_data.months_active(plant_id, year)
+        rows.append({
+            "plant_id": plant_id, "year": year, "months_active": months_active,
+            "partial_period": months_active < 12,
+            "f_env_gj": round(state.f_env_gj, 2), "f_econ_gj": round(state.f_econ_gj, 2),
+            "f_soc_gj": round(state.f_soc_gj, 2), "f_tech_gj": round(state.f_tech_gj, 2),
+            "sa_w_gj": round(state.sa_w_gj, 2), "ex_ref_gj": round(state.ex_ref_gj, 2),
+            "phi": round(state.phi, 4), "psi": round(state.psi, 4),
+            "tsi_abs": round(state.tsi_abs, 4), "tsi_rel": tsi_rel,
+        })
+    return rows
 
 # OR3/UNISS (Piano di Sviluppo, Allegato 4) task titles — the "Edificio" tab is
 # a structural placeholder for that partner's real data, not a fabricated
@@ -99,6 +169,20 @@ GLOSSARY = {
                   "desc": "CURRENT (stato attuale) o HISTORICAL (replay storico, sez. 46) — il campo reale "
                           "già presente in fact_production_lot. Non è una simulazione di shock/interruzione "
                           "come in VOLT: questo dominio non ha (ancora) un modello di scenario ipotetico."},
+    "ex_ref_gj": {"full": "Ex_ref — Exergia di riferimento di impianto", "unit": "GJ",
+                   "desc": "Ex_ref = Ex_el + Ex_fuel, l'input exergetico di processo dell'impianto nell'anno "
+                           "(RP7.3 Eq. 18, ADR-012/ADR-019)."},
+    "phi": {"full": "Φ (Phi) — Intensità di sostenibilità", "unit": None,
+             "desc": "Φ = SA_w / Ex_ref: il contributo di sostenibilità pesato per unità di exergia di "
+                     "riferimento (ADR-012)."},
+    "psi": {"full": "Ψ (Psi) — Efficienza exergetica di secondo principio", "unit": None,
+             "desc": "Ψ = Ex_useful / Ex_ref, riportato direttamente dal rilievo RP7.3 (non derivato da un "
+                     "coefficiente di produzione — ADR-019)."},
+    "tsi_abs": {"full": "TSI_abs — Indice di Sostenibilità Tecnologica (assoluto)", "unit": None,
+                 "desc": "TSI_abs = α·Φ + β·Ψ (α=β=0,5 nei run RP7.3 — ADR-012)."},
+    "tsi_rel": {"full": "TSI_rel — Indice di Sostenibilità Tecnologica (relativo alla baseline)", "unit": None,
+                 "desc": "TSI_rel = TSI_abs(anno corrente) / TSI_abs(anno baseline) — la versione reale, "
+                         "a livello di impianto, di tsi_norm (ADR-012)."},
 }
 
 
@@ -187,6 +271,8 @@ def build_payload(engine: Engine, *, dataset_label: str, data_note: str) -> dict
         "quality": quality,
         "building_placeholder": BUILDING_PLACEHOLDER_TASKS,
         "glossary": GLOSSARY,
+        "real_plants": _load_real_plant_data(),
+        "sources": _discover_sources(),
     }
 
 

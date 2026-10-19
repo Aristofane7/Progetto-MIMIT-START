@@ -23,7 +23,7 @@ def _embedded_json(html: str) -> dict:
 
 def test_payload_has_expected_shape(payload):
     for key in ("meta", "kpi", "dims", "rows", "clusters", "channels", "quality",
-                "building_placeholder", "glossary"):
+                "building_placeholder", "glossary", "real_plants", "sources"):
         assert key in payload
     assert payload["meta"]["dataset_label"] == "TEST_LABEL"
     assert payload["kpi"]["record_count"] == len(payload["rows"])
@@ -33,10 +33,30 @@ def test_glossary_covers_every_metric_shown_in_the_viewer(payload):
     # ADR-024: every acronym rendered in the template must resolve to a real,
     # spec-grounded definition — never a bare, unexplained acronym.
     for key in ("sa_gj", "tsi_norm", "f_env_gj", "f_econ_gj", "f_soc_gj", "f_tech_gj",
-                "ioai", "opi", "tqi", "p_tsi_5", "tii", "channel_concentration_hhi", "scenario"):
+                "ioai", "opi", "tqi", "p_tsi_5", "tii", "channel_concentration_hhi", "scenario",
+                "ex_ref_gj", "phi", "psi", "tsi_abs", "tsi_rel"):
         assert key in payload["glossary"]
         assert payload["glossary"][key]["full"]
         assert payload["glossary"][key]["desc"]
+
+
+def test_real_plants_has_the_three_real_plants(payload):
+    # ADR-026: real RP7.3 plant-level data (D020/D060/D240), kept separate
+    # from the synthetic per-lot rows — never fabricated, never mixed in.
+    plant_ids = {r["plant_id"] for r in payload["real_plants"]}
+    assert plant_ids == {"D020", "D060", "D240"}
+    assert len(payload["real_plants"]) == 9  # 3 plants x (2023, 2024, 2025)
+    d020_2025 = next(r for r in payload["real_plants"] if r["plant_id"] == "D020" and r["year"] == 2025)
+    assert d020_2025["partial_period"] is True
+    assert d020_2025["months_active"] == 7
+
+
+def test_sources_lists_only_real_deposited_files(payload):
+    # ADR-026: discovered by filename at build time, never hand-typed.
+    filenames = {s["filename"] for s in payload["sources"]}
+    assert filenames  # the repo root has real RP*/Attività* deliverables
+    assert "RPX.Y Titolo_Relazione_Parziale_data.docx" not in filenames
+    assert all(f.lower().endswith((".pdf", ".docx")) for f in filenames)
 
 
 def test_scenario_passthrough_only_has_real_values(payload):
