@@ -39,7 +39,7 @@ class ChecklistItem:
 def _pytest_passes(*paths: str) -> bool:
     result = subprocess.run(
         [sys.executable, "-m", "pytest", "-q", *paths],
-        cwd=ROOT, capture_output=True, text=True,
+        cwd=ROOT, capture_output=True, text=True, check=False,
     )
     return result.returncode == 0
 

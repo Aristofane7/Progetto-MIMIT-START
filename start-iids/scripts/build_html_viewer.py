@@ -22,7 +22,7 @@ import argparse
 import json
 import pathlib
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
@@ -264,7 +264,7 @@ def build_payload(engine: Engine, *, dataset_label: str, data_note: str) -> dict
     return {
         "meta": {
             "title": "START IIDS — Digital Shadow viewer",
-            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
             "generator": "scripts/build_html_viewer.py",
             "dataset_label": dataset_label,
             "data_note": data_note,

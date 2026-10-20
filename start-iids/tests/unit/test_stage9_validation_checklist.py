@@ -4,7 +4,10 @@ script itself does; tests/ already covers every check it wraps individually).
 Just proves the checklist stays well-formed: 21 items matching issue #9's
 own checklist, valid statuses, gated items actually gate.
 """
+import dataclasses
 from unittest.mock import patch
+
+import pytest
 
 from scripts.stage9_validation_checklist import ChecklistItem, build_checklist, main
 
@@ -41,9 +44,5 @@ def test_ungated_items_never_fail_the_exit_code_on_their_own():
 
 def test_checklist_item_is_immutable():
     item = ChecklistItem(1, "x", "PASS", "evidence")
-    try:
+    with pytest.raises(dataclasses.FrozenInstanceError):
         item.status = "BLOCKED"  # type: ignore[misc]
-    except Exception:
-        pass
-    else:
-        raise AssertionError("ChecklistItem should be frozen")

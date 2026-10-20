@@ -6,12 +6,12 @@ does not exist in this repository, see ADR-015).
 """
 from pathlib import Path
 
-from src.engines.errors import Severity
 from scripts.import_rp68_product_master_data import (
     build_product_insert_sql,
     load_cluster_master_csv,
     load_product_master_csv,
 )
+from src.engines.errors import Severity
 
 ROOT = Path(__file__).resolve().parents[2]
 CLUSTER_CSV = ROOT / "data" / "reference" / "rp68_cluster_master.csv"

@@ -82,11 +82,11 @@ def build_workbook():
     wb.remove(wb["Unita"])
     ws = wb.create_sheet("Unita"); _move_first(wb, ws)
     ws.append(["plant", "year", "produzione_m2", "descrizione"])
-    for plant in PLANT_PROD:
+    for plant, prod_base in PLANT_PROD.items():
         for year in (2022, 2023, 2024, 2025):
-            prod = PLANT_PROD[plant]
+            prod = prod_base
             if plant == "D020" and year == 2025:
-                prod = round(PLANT_PROD[plant] * FRAC)        # period production
+                prod = round(prod_base * FRAC)        # period production
             ws.append([plant, year, prod, desc.get(plant, "")])
 
     # 2) Periodo sheet (plant, year, period_start, period_end, months_active)

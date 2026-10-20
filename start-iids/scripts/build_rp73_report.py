@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Build RP7.3 V2 (RV.2) DOCX on the official START template, from the live
 beta-1.3 reference data + calculation log. Covers ADR-025 (D020 partial year
 2025, option A). Equations as vector SVG (PNG fallback); 6 figures; 12 tables.
@@ -6,23 +5,26 @@ beta-1.3 reference data + calculation log. Covers ADR-025 (D020 partial year
 Run: python3 -m scripts.build_rp73_report  ->  output/RP7.3_Report_Assessment_termodinamico_fabbrica_V2.docx
 """
 from __future__ import annotations
-import os, struct
+
+import struct
 from pathlib import Path
+
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 from docx import Document
-from docx.shared import Pt, RGBColor, Cm, Mm
-from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
-from docx.oxml.ns import qn
-from docx.oxml import parse_xml, OxmlElement
-from docx.opc.part import Part
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.opc.packuri import PackURI
+from docx.opc.part import Part
+from docx.oxml import OxmlElement, parse_xml
+from docx.oxml.ns import qn
+from docx.shared import Cm, Mm, Pt, RGBColor
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
-from src.ingestion.rp73_reference_data import load_rp73_reference_data, load_rp73_calculation_log
 from src.core.weights import load_weight_set
+from src.ingestion.rp73_reference_data import load_rp73_calculation_log, load_rp73_reference_data
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO = ROOT.parent
@@ -52,20 +54,19 @@ G_TSI25=sum(R[(p,2025)]["TSI_abs"]*R[(p,2025)]["prod"] for p in PLANTS)/Pg
 G_REL=sum(R[(p,2025)]["TSI_rel"]*R[(p,2025)]["prod"] for p in PLANTS)/Pg
 
 def sensitivity():
-    base={p:dict(f={k:R[(p,y)][f"f_{k}"] for k in("env","econ","soc","tech")},exr=R[(p,y)]["Ex_ref"],psi=R[(p,y)]["Psi"]) for p in PLANTS for y in YEARS if False}
     def tsi(p,y,w,a,b,fp,ps):
         f={k:R[(p,y)][f"f_{k}"] for k in("env","econ","soc","tech")}
         saw=sum(w[k]*f[k] for k in f)*fp
         return a*(saw/R[(p,y)]["Ex_ref"])+b*R[(p,y)]["Psi"]*ps
     weq={k:0.25 for k in W}
-    scen=[("Caso base (pesi AHP; α=β=0,5)",dict(w=W,a=.5,b=.5,fp=1,ps=1)),
-          ("Coefficienti footprint +10%",dict(w=W,a=.5,b=.5,fp=1.1,ps=1)),
-          ("Coefficienti footprint −10%",dict(w=W,a=.5,b=.5,fp=.9,ps=1)),
-          ("Efficienza exergica Ψ +10%",dict(w=W,a=.5,b=.5,fp=1,ps=1.1)),
-          ("Efficienza exergica Ψ −10%",dict(w=W,a=.5,b=.5,fp=1,ps=.9)),
-          ("Pesi AHP equidistribuiti (0,25)",dict(w=weq,a=.5,b=.5,fp=1,ps=1)),
-          ("Focus exergico (α=0,4; β=0,6)",dict(w=W,a=.4,b=.6,fp=1,ps=1)),
-          ("Focus multidimensionale (α=0,6; β=0,4)",dict(w=W,a=.6,b=.4,fp=1,ps=1))]
+    scen=[("Caso base (pesi AHP; α=β=0,5)",{"w": W,"a": .5,"b": .5,"fp": 1,"ps": 1}),
+          ("Coefficienti footprint +10%",{"w": W,"a": .5,"b": .5,"fp": 1.1,"ps": 1}),
+          ("Coefficienti footprint −10%",{"w": W,"a": .5,"b": .5,"fp": .9,"ps": 1}),
+          ("Efficienza exergica Ψ +10%",{"w": W,"a": .5,"b": .5,"fp": 1,"ps": 1.1}),
+          ("Efficienza exergica Ψ −10%",{"w": W,"a": .5,"b": .5,"fp": 1,"ps": .9}),
+          ("Pesi AHP equidistribuiti (0,25)",{"w": weq,"a": .5,"b": .5,"fp": 1,"ps": 1}),
+          ("Focus exergico (α=0,4; β=0,6)",{"w": W,"a": .4,"b": .6,"fp": 1,"ps": 1}),
+          ("Focus multidimensionale (α=0,6; β=0,4)",{"w": W,"a": .6,"b": .4,"fp": 1,"ps": 1})]
     out=[]
     for name,kw in scen:
         rel={p:tsi(p,2025,**kw)/tsi(p,2023,**kw) for p in PLANTS}
@@ -100,7 +101,7 @@ def render_eqs():
         fig=plt.figure(figsize=(0.1,0.1)); fig.patch.set_alpha(0)
         fig.text(0.5,0.5,t,fontsize=16,ha="center",va="center")
         for ext,dpi in ((".svg",None),(".png",300)):
-            kw=dict(bbox_inches="tight",pad_inches=0.06,transparent=True)
+            kw={"bbox_inches": "tight","pad_inches": 0.06,"transparent": True}
             if dpi: kw["dpi"]=dpi
             fig.savefig(FIG/(k+ext),**kw)
         plt.close(fig)
@@ -181,10 +182,11 @@ _svgN={"n":0}
 def add_svg(par,doc,svg,png,width_mm):
     run=par.add_run(); run.add_picture(str(png),width=Mm(width_mm))
     _svgN["n"]+=1; pn=PackURI(f"/word/media/svgR{_svgN['n']}.svg")
-    sp=Part(pn,"image/svg+xml",open(svg,"rb").read(),doc.part.package)
+    with open(svg,"rb") as f: svg_bytes=f.read()
+    sp=Part(pn,"image/svg+xml",svg_bytes,doc.part.package)
     rId=doc.part.relate_to(sp,"http://schemas.openxmlformats.org/officeDocument/2006/relationships/image")
     blip=run._element.findall(".//"+qn("a:blip"))[-1]
-    blip.append(parse_xml('<a:extLst xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:ext uri="{96DAC541-7F89-4952-8B84-B3F5B99F14F2}"><asvg:svgBlip xmlns:asvg="http://schemas.microsoft.com/office/drawing/2016/SVG/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="%s"/></a:ext></a:extLst>'%rId))
+    blip.append(parse_xml(f'<a:extLst xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:ext uri="{{96DAC541-7F89-4952-8B84-B3F5B99F14F2}}"><asvg:svgBlip xmlns:asvg="http://schemas.microsoft.com/office/drawing/2016/SVG/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="{rId}"/></a:ext></a:extLst>'))
 def pngsize(p):
     with open(p,"rb") as f: f.read(16); return struct.unpack(">II",f.read(8))
 def H1(doc,t):
@@ -305,7 +307,7 @@ def build():
     er=[]
     for p in PLANTS:
         for y in YEARS:
-            r=R[(p,y)]; lab=("storico" if y==2023 else ("—" if y==2024 else "real-time"))
+            r=R[(p,y)]
             fin = "gen–lug" if (p=="D020" and y==2025) else "anno"
             er.append([p,str(y),mm2(r["prod"]),gj(r["Ex_el"]),gj(r["Ex_fuel"]),gj(r["Ex_ref"]),f3(r["Psi"]),fin])
     TAB(doc,["Unità","Anno","Prod. (Mm²)","Ex_el (GJ)","Ex_fuel (GJ)","Ex_ref (GJ)","Ψ","Finestra"],er)
@@ -371,7 +373,7 @@ def build():
     H2(doc,"4.2 D020: anno parziale e opzione A")
     P(doc,"Grazie all'opzione A, il TSI di D020/2025 (**0,1212**) e il suo TSI_rel (**1,398**) sono indici-rapporto confrontabili nonostante i 7 mesi di esercizio, mentre le grandezze estensive (Ex_ref **114.990 GJ**, SA_raw **29.723 GJ**, produzione **2.317.845 m²**) si riferiscono al solo periodo e non vanno confrontate con gli anni pieni. È rilevante che D020, nella sua ultima annualità parziale, mostri il **miglioramento relativo maggiore**: il suo riferimento omologo 2022 era meno efficiente (Ψ 0,151 contro 0,164 del 2025), per cui il salto relativo è più ampio di quello di D060 e D240.")
     H2(doc,"4.3 Robustezza e correzione dell'intervallo")
-    P(doc,f"L'analisi di sensibilità conferma TSI_rel > 1 e l'ordinamento assoluto in tutti gli scenari. Si segnala, rispetto alle revisioni precedenti, che l'**intervallo per-unità di TSI_rel si allarga a ≈ 1,32–1,40** (D240 1,322 · D060 1,345 · D020 1,398): il precedente riferimento «1,32–1,36» non è più valido perché D020, con i dati reali, è l'unità con il miglioramento relativo più alto. L'ordinamento **assoluto** D240 > D060 > D020 resta invariato.")
+    P(doc,"L'analisi di sensibilità conferma TSI_rel > 1 e l'ordinamento assoluto in tutti gli scenari. Si segnala, rispetto alle revisioni precedenti, che l'**intervallo per-unità di TSI_rel si allarga a ≈ 1,32–1,40** (D240 1,322 · D060 1,345 · D020 1,398): il precedente riferimento «1,32–1,36» non è più valido perché D020, con i dati reali, è l'unità con il miglioramento relativo più alto. L'ordinamento **assoluto** D240 > D060 > D020 resta invariato.")
     H2(doc,"4.4 Interdipendenze e conclusioni")
     P(doc,"La RP7.3 salda la misurazione della sostenibilità con l'architettura digitale (OR6.6–6.7, OR6.10) collaudata in OR7.1–7.2 e con il controllo AI-driven (OR4–OR5), e contribuisce direttamente al Risultato Finale **RF7**. La versione beta dell'EEA+ è operativa, tracciabile e ora capace di rappresentare correttamente un **anno produttivo parziale** senza distorcere gli indici. A valle, i documenti che consumano i valori RP7.3 (**RP7.8**, ed eventualmente **RP8.6**) andranno rigenerati con i valori di questa revisione.")
 
