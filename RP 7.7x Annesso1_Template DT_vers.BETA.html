@@ -1,0 +1,1201 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Template operativo · Protocollo DT data-driven, versione beta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,400;0,6..12,600;0,6..12,700;0,6..12,800;1,6..12,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#161a17; --ink-2:#454e48; --ink-3:#879088;
+  --paper:#f6faf7; --card:#fff; --rule:#dfe9e1; --rule-2:#c5d4c9;
+  --scuro:#0e1f13; --verde-vivo:#5bc87b; --verde:#2c8a4c; --verde-50:#e9f5ec;
+  --ambra:#8a6a10; --ambra-50:#fbf4e3; --ambra-br:#eadfc0;
+  --sans:'Nunito Sans',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding:0 26px 120px}
+.topbar{position:sticky;top:0;z-index:60;background:rgba(246,250,247,.95);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--rule)}
+.topbar-in{max-width:1180px;margin:0 auto;padding:10px 26px;display:flex;align-items:center;
+  justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:9px}
+.brand svg{width:26px;height:26px;display:block}
+.brand span{font-weight:800;font-size:17px;letter-spacing:.05em}
+.brand .v{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#fff;
+  background:var(--verde);border-radius:999px;padding:2px 8px;margin-left:2px}
+.acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button,.btn{font-family:var(--sans);font-size:13px;font-weight:700;display:inline-flex;align-items:center;
+  gap:6px;line-height:1;color:var(--ink);background:var(--card);border:1px solid var(--rule-2);
+  border-radius:999px;padding:8px 15px;cursor:pointer;transition:.14s}
+button:hover,.btn:hover{border-color:var(--verde);color:var(--verde);background:var(--verde-50)}
+button:focus-visible,.btn:focus-visible{outline:2px solid var(--verde);outline-offset:2px}
+.btn-p{background:var(--verde);border-color:var(--verde);color:#fff}
+.btn-p:hover{background:#237040;border-color:#237040;color:#fff}
+.btn-sm{font-size:12px;padding:6px 12px;font-weight:700}
+input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
+.hero{background:var(--paper);border-bottom:1px solid var(--rule)}
+.hero-in{max-width:1180px;margin:0 auto;padding:32px 26px 26px}
+.eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--verde)}
+h1{font-size:clamp(23px,3.1vw,33px);font-weight:800;letter-spacing:-.025em;line-height:1.12;margin:11px 0 0}
+.hero .sub{margin-top:11px;font-size:15px;color:var(--ink-2);max-width:680px}
+.metaband{background:var(--scuro);color:#fff}
+.metaband-in{max-width:1180px;margin:0 auto;padding:22px 26px;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:20px}
+.metaband .mk{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--verde-vivo);margin-bottom:6px}
+.metaband .mv{font-size:14px;color:#e6ece7}
+.metaband input{width:100%;font-family:var(--sans);font-size:14px;color:#fff;background:transparent;
+  border:0;border-bottom:1px solid #3d5744;padding:2px 0}
+.metaband input:focus{outline:0;border-bottom-color:var(--verde-vivo)}
+.metaband input::placeholder{color:#7d907f}
+.fixed-note{background:var(--card);border:1px solid var(--rule);border-left:3px solid var(--rule-2);
+  border-radius:3px;padding:14px 18px;margin-top:14px;font-size:13px;color:var(--ink-2)}
+.fixed-note b{color:var(--ink);font-weight:700}
+section{margin-top:46px}
+.sh{display:flex;align-items:baseline;gap:12px;padding-bottom:10px;border-bottom:2px solid var(--scuro);
+  margin-bottom:20px;flex-wrap:wrap}
+.sh h2{font-size:21px;font-weight:800;letter-spacing:-.02em;margin:0}
+.sh .tag{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+h3{font-size:16px;font-weight:800;margin:28px 0 12px}
+h4{font-size:13.5px;font-weight:700;margin:18px 0 8px;color:var(--ink-2)}
+.fld{margin-bottom:16px}
+.fld>label{display:block;font-size:13px;font-weight:700;color:var(--ink-2);margin-bottom:5px}
+.hint{font-size:12.5px;color:var(--ink-3);margin:-2px 0 8px}
+input[type=text],textarea,select{width:100%;font-family:var(--sans);font-size:14.5px;color:var(--ink);
+  background:var(--card);border:1px solid var(--rule-2);border-radius:3px;padding:8px 10px}
+input[type=text]:focus,textarea:focus{outline:0;border-color:var(--verde);box-shadow:0 0 0 3px var(--verde-50)}
+textarea{resize:vertical;min-height:60px;line-height:1.5;overflow:hidden}
+.inline{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.inline .u{font-size:13px;color:var(--ink-3);font-weight:700;white-space:nowrap}
+.w-sm{max-width:104px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:820px){.grid2,.grid3,.grid4{grid-template-columns:1fr}}
+.opts{display:flex;gap:6px;flex-wrap:wrap}
+.opts.vert{flex-direction:column;align-items:stretch;gap:5px}
+.opts.vert .opt{justify-content:flex-start;width:100%}
+.opt{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;border:1px solid var(--rule-2);
+  background:var(--card);border-radius:999px;padding:6px 13px;cursor:pointer;user-select:none;white-space:nowrap}
+.opt input{margin:0;accent-color:var(--verde)}
+.opt:has(input:checked){border-color:var(--verde);background:var(--verde-50);color:var(--verde);font-weight:700}
+.opt.sm{font-size:12px;padding:4px 10px}
+.scale{display:flex;gap:4px}
+.scale label{width:29px;height:29px;display:grid;place-items:center;font-size:13px;font-weight:700;
+  border:1px solid var(--rule-2);border-radius:3px;cursor:pointer;background:var(--card);position:relative}
+.scale label:has(input:checked){background:var(--verde);border-color:var(--verde);color:#fff}
+.scale input{position:absolute;opacity:0;width:100%;height:100%;left:0;top:0;margin:0;cursor:pointer}
+.box{background:var(--card);border:1px solid var(--rule);border-radius:3px;padding:18px 20px;margin-bottom:14px}
+.box-h{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;
+  padding-bottom:10px;border-bottom:1px solid var(--rule)}
+.box-h .t{font-size:14.5px;font-weight:800;letter-spacing:-.01em}
+.box-h .t .code{color:var(--verde);margin-left:6px}
+.rm{border-color:#e2c9c1;color:#8f4429}
+.rm:hover{background:#faeee9;border-color:#8f4429;color:#8f4429}
+.empty-t{padding:22px;text-align:center;color:var(--ink-3);font-size:13.5px;background:var(--card);
+  border:1px dashed var(--rule-2);border-radius:3px}
+.tw{overflow-x:auto;border:1px solid var(--rule);border-radius:3px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:9px 11px;text-align:left;border-bottom:1px solid var(--rule);border-right:1px solid var(--rule);
+  vertical-align:top}
+th:last-child,td:last-child{border-right:0}
+tr:last-child td{border-bottom:0}
+thead th{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);font-weight:700;
+  background:var(--paper)}
+td input[type=text],td textarea{border-color:var(--rule);font-size:13.5px;padding:6px 8px}
+td textarea{min-height:54px}
+td .crit{font-weight:700;font-size:13.5px}
+.subf{display:grid;gap:5px}
+.subf .r{display:grid;grid-template-columns:92px 1fr;gap:6px;align-items:center}
+.subf .r span{font-size:11.5px;font-weight:700;color:var(--ink-3)}
+.annui{display:grid;grid-template-columns:24px 1fr;gap:5px;align-items:center;margin-top:8px}
+.annui .u{font-size:12px}
+.pvlist{display:flex;flex-direction:column;gap:4px;align-items:stretch}
+.pvlist .opt{font-size:12px;padding:4px 10px;justify-content:flex-start}
+.dblbox{display:grid;gap:5px}
+.dblbox .r{display:grid;grid-template-columns:16px 1fr;gap:5px;align-items:center}
+.dblbox .r span{font-size:11px;font-weight:700;color:var(--ink-3)}
+.matrix td:first-child,.matrix th:first-child{background:var(--paper);min-width:140px}
+.matrix input{text-align:center}
+.rowrm{text-align:center}
+.prtxt{display:none}
+/* larghezze: ampie per il testo libero, compresse per selezioni e valori brevi */
+.c-num{width:76px}.c-sint{width:24%}.c-ev{width:120px}.c-imp{width:46%}
+.c-fonte{width:150px}.c-punti{width:36%}.c-trad{width:44%}
+.c-crit{width:210px}.c-sc{width:88px}.c-motiv{width:44%}
+.c-tj{width:132px}.c-pr{width:176px}.c-esr{width:168px}
+.c-liv{width:56px}.c-desc{width:auto}
+.c-prod{width:96px}.c-proto{width:120px}.c-prove{width:200px}.c-acc{width:38%}
+.c-mis{width:118px}.c-esito{width:104px}
+.c-nc{width:26%}.c-az{width:44%}.c-st{width:112px}
+.c-gr{width:210px}.c-val{width:120px}.c-met{width:130px}.c-req{width:130px}
+.c-nat{width:180px}.c-note{width:40%}
+.reg{background:var(--ambra-50);border:1px solid var(--ambra-br);border-left:3px solid #c9a23a;
+  border-radius:3px;padding:14px 17px;margin-top:22px}
+.reg .h{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ambra);
+  margin-bottom:4px}
+.reg .d{font-size:12.5px;color:var(--ink-2);margin-bottom:8px}
+.reg textarea{background:#fffdf7;border-color:#e3d5ae}
+details.desc{border:1px solid var(--rule);border-radius:3px;background:var(--card);margin-bottom:8px}
+details.desc summary{cursor:pointer;padding:11px 16px;font-size:13.5px;font-weight:700;list-style:none}
+details.desc summary::-webkit-details-marker{display:none}
+details.desc summary::before{content:'+';display:inline-block;width:14px;color:var(--verde);font-weight:800}
+details.desc[open] summary::before{content:'–'}
+details.desc[open] summary{border-bottom:1px solid var(--rule)}
+details.desc .body{padding:4px 16px 14px}
+details.desc .anc{font-size:12.5px;color:var(--ink-2);margin:10px 0 12px}
+details.desc .anc b{color:var(--ink)}
+.livs{display:grid;gap:7px}
+.livs .l{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start}
+.livs .n{width:24px;height:24px;display:grid;place-items:center;font-size:12px;font-weight:800;
+  border-radius:3px;background:var(--verde-50);color:var(--verde)}
+.livs .t{font-size:13px;color:var(--ink-2);line-height:1.5}
+.conv{background:var(--card);border:1px solid var(--rule);border-left:3px solid var(--verde-vivo);
+  border-radius:3px;padding:16px 19px;margin-top:14px;font-size:13px;color:var(--ink-2)}
+.conv b{color:var(--ink)}
+.savebar{position:fixed;bottom:0;left:0;right:0;z-index:70;background:rgba(14,31,19,.96);color:#fff;
+  padding:11px 26px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+  font-size:13px}
+.savebar .st{color:#b8ccbd}
+.savebar .st b{color:var(--verde-vivo)}
+.savebar button{background:transparent;border-color:#3d5744;color:#fff}
+.savebar button:hover{background:#1a3320;border-color:var(--verde-vivo);color:var(--verde-vivo)}
+.savebar .btn-p{background:var(--verde-vivo);border-color:var(--verde-vivo);color:#0e1f13}
+.savebar .btn-p:hover{background:#7ad695;border-color:#7ad695;color:#0e1f13}
+footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--ink-3)}
+.foot-meta{margin-top:18px;padding-top:16px;border-top:3px solid var(--verde-vivo)}
+.foot-meta p{margin:0 0 5px;font-size:12px;line-height:1.5}
+@media print{
+  .topbar,.savebar,.acts,.rm,.addbtn,.rowrm{display:none !important}
+  body{background:#fff;font-size:10pt;line-height:1.38;color:#000}
+  .wrap{max-width:none;padding:0 0 10pt}
+  .hero{border-bottom:1.5pt solid #2c8a4c}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .hero-in,.metaband-in{padding-left:0;padding-right:0}
+  .hero-in{padding-top:0;padding-bottom:10pt}
+  h1{font-size:20pt;line-height:1.1}
+  .hero .sub{font-size:10pt}
+  .metaband{background:none;color:#000;border-top:.75pt solid #2c8a4c;border-bottom:.75pt solid #2c8a4c}
+  .metaband-in{padding-top:8pt;padding-bottom:8pt;gap:12pt}
+  .metaband .mk{color:#2c8a4c;font-size:7.5pt}
+  .metaband .mv{color:#000;font-size:9.5pt}
+  .eyebrow{color:#2c8a4c;font-size:8pt}
+  /* riquadri: bordi tracciati, nessun fondino */
+  .box,.conv,.reg,.fixed-note,details.desc{background:none !important;
+    border:.6pt solid #c6d8ca !important;border-radius:0}
+  .reg{border-left:2pt solid #5bc87b !important}
+  .reg .h{color:#2c8a4c}
+  .conv{border-left:2pt solid #2c8a4c !important}
+  .fixed-note{border-left:2pt solid #c6d8ca !important;font-size:9pt}
+  .hint{color:#3a3a3a;font-size:8.5pt}
+  .fld>label,h4{color:#000}
+  /* impaginazione: ogni sezione numerata apre una pagina */
+  /* ogni sezione numerata apre una pagina, compresa la prima */
+  section{break-before:page;margin-top:0;padding-top:0;break-inside:auto}
+  .sh{margin-bottom:12pt;break-after:avoid;border-bottom:1.5pt solid #2c8a4c}
+  .sh h2{font-size:15pt;color:#0e1f13}
+  .sh .tag{color:#2c8a4c}
+  h3{color:#0e1f13}
+  h3::before{content:'';display:inline-block;width:5pt;height:5pt;background:#5bc87b;
+    margin-right:5pt;vertical-align:1.5pt}
+  h4{color:#2c8a4c}
+  h3,h4,.hint{break-after:avoid}
+  h3{font-size:12pt;margin-top:14pt}
+  /* i riquadri alti possono spezzarsi: l'unità da non dividere è il singolo campo */
+  .box{break-inside:auto}
+  .fld,.grid2>div,.grid3>div,.grid4>div,.livs .l{break-inside:avoid}
+  .conv,.reg,.fixed-note,details.desc{break-inside:avoid}
+  .tw{overflow:visible !important;border:.6pt solid #c6d8ca;border-radius:0;break-inside:auto}
+  table{width:100% !important;min-width:0 !important;table-layout:fixed}
+  th,td{min-width:0 !important;width:auto;word-break:break-word;overflow-wrap:anywhere;hyphens:auto;
+    padding:3pt 4pt;font-size:8pt;vertical-align:top;border-color:#d3e2d7}
+  thead th{font-size:7.5pt;letter-spacing:.05em;color:#2c8a4c;background:#f2f8f4;
+    border-bottom:1pt solid #2c8a4c}
+  thead{display:table-header-group}
+  tr{break-inside:avoid}
+  /* le percentuali di ciascuna tabella sommano a 100: con impaginazione fissa una
+     somma superiore provoca compressioni impreviste e andate a capo scomposte */
+  .c-num{width:6% !important}.c-sint{width:22% !important}
+  .c-tj{width:13% !important}.c-pr{width:17% !important}.c-imp{width:42% !important}
+  .c-fonte{width:14% !important}.c-punti{width:38% !important}.c-trad{width:48% !important}
+  .c-crit{width:22% !important}.c-sc{width:8% !important}.c-motiv{width:54% !important}
+  .c-liv{width:7% !important}
+  .c-prod{width:7% !important}.c-proto{width:11% !important}.c-prove{width:26% !important}.c-acc{width:44% !important}
+  .c-mis{width:9.5% !important}.c-esito{width:11% !important}
+  .c-nc{width:24% !important}.c-az{width:42% !important}.c-st{width:14% !important}
+  .c-gr{width:26% !important}.c-val{width:16% !important}.c-met{width:18% !important}.c-req{width:18% !important}
+  .c-esr{width:21% !important}.c-nat{width:21% !important}.c-note{width:36% !important}
+  #t62 th:not(.c-prod),#t62 td:not(:first-child){width:31% !important}
+  /* colonne strette: corpo ridotto e sillabazione, per almeno due parole per riga */
+  .c-tj,.c-pr,.c-mis,.c-esito,.c-esr,.c-nat,.c-st{font-size:7.5pt}
+  .c-tj .opt,.c-pr .opt,.c-esr .opt,.c-nat .opt,.c-esito .opt,.c-st .opt{font-size:7.5pt}
+  td,th{-webkit-hyphens:auto;hyphens:auto}
+  td .opt,th{word-break:normal;overflow-wrap:break-word}
+  .subf .r{grid-template-columns:50pt 1fr;gap:2pt}
+  .subf .r span{font-size:7pt;white-space:normal;line-height:1.2}
+  /* le etichette delle scelte devono poter andare a capo: in colonna stretta
+     un testo non interrompibile sfonderebbe nella colonna accanto */
+  .opt{white-space:normal !important;align-items:flex-start;line-height:1.25}
+  .opts,.opts.vert,.pvlist{max-width:100%}
+  .inline{flex-wrap:wrap}
+  .inline .u{white-space:normal}
+  td>*,th>*{max-width:100%}
+  .annui{grid-template-columns:16pt 1fr;gap:2pt;margin-top:3pt}
+  .livs .n{background:#f2f8f4 !important;border:.6pt solid #2c8a4c;color:#2c8a4c !important;
+    width:14pt;height:14pt;font-size:8.5pt}
+  .livs .t{font-size:9pt}
+  details.desc summary{font-size:10pt;color:#0e1f13;border-bottom:.6pt solid #c6d8ca}
+  details.desc summary::before{content:''}
+  details.desc .anc{font-size:8.5pt}
+
+  /* ============ modalità COMPILATO ============
+     i valori sostituiscono i controlli, e delle scelte resta la sola opzione selezionata */
+  body:not(.pb) input[type=text],body:not(.pb) textarea{display:none !important}
+  body:not(.pb) .prtxt{display:block !important;white-space:pre-wrap;word-break:break-word;
+    font-size:9pt;line-height:1.35;min-height:11pt;border-bottom:.6pt solid #c6d8ca;padding:1pt 0}
+  body:not(.pb) .opt:has(input:checked)::before{content:'\2713\00a0';color:#2c8a4c;font-weight:700}
+  body:not(.pb) .scale label:has(input:checked){color:#2c8a4c !important;font-weight:800}
+  body:not(.pb) .opt{border:0;padding:1pt 8pt 1pt 0;background:none !important;color:#000 !important}
+  body:not(.pb) .opt:not(:has(input:checked)){display:none}
+  body:not(.pb) .opts.vert .opt,body:not(.pb) .pvlist .opt{width:auto}
+  body:not(.pb) .scale{gap:0}
+  body:not(.pb) .scale label{width:auto;height:auto;border:0;background:none !important;
+    color:#000 !important;font-size:10pt;padding:0}
+  body:not(.pb) .scale label:not(:has(input:checked)){display:none}
+  body:not(.pb) .scale input{display:none}
+  body:not(.pb) .empty-t{display:none}
+
+  /* ============ modalità MODULO VUOTO ============
+     i campi restano visibili come aree da compilare e tutte le scelte sono elencate */
+  body.pb .prtxt{display:none !important}
+  body.pb input[type=text]{display:block !important;background:none;border:0;
+    border-bottom:.6pt solid #9fbfa8;border-radius:0;padding:1pt 0;height:13pt;font-size:9pt;color:#000}
+  body.pb textarea{display:block !important;background:none;border:.6pt solid #c6d8ca;border-radius:0;
+    padding:2pt 3pt;font-size:9pt;color:#000;overflow:hidden;resize:none}
+  body.pb textarea{height:34pt}
+  body.pb textarea[rows="2"]{height:26pt}
+  body.pb textarea[rows="3"]{height:38pt}
+  body.pb textarea[rows="4"]{height:50pt}
+  body.pb textarea[rows="5"]{height:62pt}
+  body.pb textarea[rows="6"]{height:74pt}
+  body.pb .opt{display:inline-flex !important;align-items:center;border:0;border-radius:0;
+    padding:1pt 10pt 1pt 0;background:none !important;color:#000 !important;font-weight:400 !important;
+    font-size:8.5pt}
+  body.pb .opt input{display:none}
+  body.pb .opt::before{content:'';display:inline-block;width:7.5pt;height:7.5pt;
+    border:.75pt solid #2c8a4c;margin-right:3.5pt;flex:0 0 auto;margin-top:1.5pt}
+  body.pb .opt:has(input[type=radio])::before{border-radius:50%}
+  body.pb .opts.vert{gap:2pt}
+  body.pb .pvlist{gap:1.5pt}
+  body.pb .scale{gap:2pt}
+  body.pb .scale label{display:grid !important;place-items:center;width:14pt;height:14pt;
+    border:.6pt solid #2c8a4c;background:#f2f8f4 !important;color:#2c8a4c !important;
+    font-size:8.5pt;padding:0}
+  body.pb .scale input{display:none}
+  body.pb .empty-t{display:none}
+
+  @page{margin:15mm 11mm}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none !important}}
+</style>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2.5" y="2.5" width="27" height="27" rx="3.5" fill="none" stroke="#2c8a4c" stroke-width="3"/><path d="M16 8.5 L23 22 H9 Z" fill="none" stroke="#2c8a4c" stroke-width="2"/><path d="M14.2 13.8h3.6M12.6 17h6.8M11 20.2h10" stroke="#2c8a4c" stroke-width="2" stroke-linecap="round"/></svg>
+      <span>START</span><span class="v">beta</span>
+    </div>
+    <div class="acts">
+      <label class="btn" for="load">Apri JSON</label>
+      <input type="file" id="load" accept=".json">
+      <button id="save" class="btn-p">Salva JSON</button>
+      <button id="print">Stampa compilato</button>
+      <button id="printBlank">Stampa modulo vuoto</button>
+      <button id="clear">Nuovo</button>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-in">
+    <p class="eyebrow">Annesso 1 · Template operativo · versione beta</p>
+    <h1>Protocollo di Product Design Thinking<br>data-driven</h1>
+    <p class="sub">Progetto nuova linea di prodotto. Versione beta del Protocollo, rilasciata a seguito del collaudo della versione alpha su prototipi fisici.</p>
+    <div class="grid2" style="margin-top:22px;max-width:680px">
+      <div class="fld"><label for="op">Operatore</label><input type="text" id="op" data-k="meta.operatore"></div>
+      <div class="fld"><label for="dt">Data</label><input type="text" id="dt" data-k="meta.data" placeholder="gg / mm / aaaa"></div>
+    </div>
+  </div>
+</div>
+
+<div class="metaband">
+  <div class="metaband-in">
+    <div><div class="mk">Versione del documento</div><div class="mv">versione beta</div></div>
+    <div><div class="mk">Data di revisione</div><input type="text" data-k="meta.rev" placeholder="gg.mm.aaaa"></div>
+    <div><div class="mk">Responsabilità</div><div class="mv">Gresmalt, Capofila</div></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="fixed-note">
+    <p><b>Raccordo con le fasi del protocollo.</b> Le sezioni numerate corrispondono alle fasi della procedura progettuale: sezione 1 = verifica dei prerequisiti annuali; sezione 2 = Fase A (avvio e brief); sezione 3 = Fase B (lettura coordinata dei dati); sezione 4 = Fase C (sintesi in parametri guida ceramici); sezione 5 = Fase D (declinazione della gamma e prototipazione); sezione 6 = Fase E (valutazione e decisione); sezione 7 = Fase F (chiusura e trasferimento). La sezione 8 si colloca a valle della procedura progettuale e viene compilata dopo il trasferimento del prodotto a industrializzazione.</p>
+  </div>
+  <div class="fixed-note">
+    <p><b>Estensibilità.</b> Le sezioni 4, 5 e 6 prevedono due opzioni di prodotto (A e B) e i corrispondenti prototipi. Qualora un progetto richieda un numero maggiore di alternative, le relative sezioni vanno replicate mantenendo la medesima struttura e la progressione alfabetica dei codici.</p>
+  </div>
+  <div class="fixed-note">
+    <p><b>Sintesi della valutazione comparata.</b> La griglia del § 4.1 non prevede punteggio aggregato né pesi fra i criteri. La scelta dell'opzione resta un giudizio motivato del Coordinatore: i descrittori dei livelli servono a rendere espliciti e confrontabili i termini della decisione, non a determinarla.</p>
+  </div>
+
+  <section>
+    <div class="sh"><h2>1) Verifica prerequisiti (asset annuali)</h2><span class="tag">Prerequisiti</span></div>
+    <p class="hint">Ultime versioni rilasciate presenti nel SGQ. Indicare annualità coperte, nome del file e revisione.</p>
+    <div class="box" id="s1box"></div>
+    <div class="fld"><label>Note</label><textarea data-k="s1.note" rows="3"></textarea></div>
+    <div class="reg"><div class="h">Registro delle criticità · sezione 1</div>
+      <div class="d">Annotare durante la compilazione le difficoltà d'uso e le lacune rilevate.</div>
+      <textarea data-k="reg.s1"></textarea></div>
+  </section>
+
+  <section>
+    <div class="sh"><h2>2) Brief di progetto</h2><span class="tag">Fase A · avvio e brief</span></div>
+    <div class="box">
+      <div class="fld"><label>Scopo del progetto</label><textarea data-k="s2.scopo" rows="4"></textarea></div>
+      <div class="fld"><label>Destinazione d'uso prevista</label>
+        <div class="opts" id="dest"></div>
+        <div class="fld" style="margin:10px 0 0"><label style="font-weight:600">Altro, specificare</label>
+          <textarea data-k="s2.dest_altro" rows="2"></textarea></div></div>
+      <div class="fld"><label>Mercati target</label>
+        <div class="opts" id="mkt"></div>
+        <div class="fld" style="margin:10px 0 0"><label style="font-weight:600">Altro, specificare</label>
+          <textarea data-k="s2.mkt_altro" rows="2"></textarea></div></div>
+      <div class="fld"><label>Canali di destinazione</label>
+        <p class="hint">Rilevanti per la valutazione dell'ampiezza del bacino al § 4.1.</p>
+        <textarea data-k="s2.canali" rows="2"></textarea></div>
+      <div class="fld"><label>Obiettivi di posizionamento</label><textarea data-k="s2.posiz" rows="4"></textarea></div>
+      <div class="fld"><label>Attuali vincoli / capability produttive</label>
+        <p class="hint">Perimetro dell'esperienza produttiva validata, rilevante per la valutazione della confidenza nella riuscita al § 4.1.</p>
+        <textarea data-k="s2.vincoli" rows="4"></textarea></div>
+      <div class="fld" style="margin-bottom:0"><label>Approvazione brief (firma Coordinatore)</label>
+        <input type="text" data-k="s2.firma"></div>
+    </div>
+    <div class="reg"><div class="h">Registro delle criticità · sezione 2</div>
+      <div class="d">Ambiguità nel brief, informazioni non disponibili, campi mancanti.</div>
+      <textarea data-k="reg.s2"></textarea></div>
+  </section>
+
+  <section>
+    <div class="sh"><h2>3) Lettura coordinata dei dati di trend</h2><span class="tag">Fase B</span></div>
+    <h3>3.1 Evidenze da cluster &rarr; vendite</h3>
+    <p class="hint">Una riga per ciascun cluster esaminato. Traiettoria e classe di presidio sono desumibili dallo strumento di analisi degli andamenti dei cluster.</p>
+    <div id="w31"></div>
+    <button class="btn-sm addbtn" id="add31" style="margin-top:12px">+ Aggiungi cluster</button>
+    <h3>3.2 Allineamento con trend di settore</h3>
+    <div class="tw"><table id="t32"><thead><tr>
+      <th class="c-fonte">Fonte trend</th>
+      <th class="c-punti">Punti chiave rilevanti per il progetto</th>
+      <th class="c-trad">Traduzione in parametri ceramici</th>
+    </tr></thead><tbody></tbody></table></div>
+    <div class="fld" style="margin-top:20px"><label>Conclusione lettura (quali cluster/strade sono coerenti e perché)</label>
+      <textarea data-k="s3.conclusione" rows="4"></textarea></div>
+    <div class="reg"><div class="h">Registro delle criticità · sezione 3</div>
+      <div class="d">Difficoltà nella lettura dei dati, evidenze contraddittorie, informazioni non registrabili.</div>
+      <textarea data-k="reg.s3"></textarea></div>
+  </section>
+
+  <section>
+    <div class="sh"><h2>4) Scheda di Confronto delle Opzioni · Parametri guida</h2><span class="tag">Fase C</span></div>
+    <div id="opzioni"></div>
+    <button class="btn-sm addbtn" id="addOpt">+ Aggiungi opzione di prodotto</button>
+
+    <h3>4.1 Griglia di valutazione comparata delle opzioni</h3>
+    <p class="hint">Scala ordinale da 1 a 5 per ciascun criterio, secondo i descrittori riportati di seguito. Indicare motivazione e fonte del dato.</p>
+    <div class="tw"><table id="t41"><thead></thead><tbody></tbody></table></div>
+
+    <h4>Descrittori dei livelli</h4>
+    <p class="hint">I descrittori traducono in scala ordinale le grandezze del modello di selezione del portfolio. Vanno applicati come sono scritti: ogni scostamento va motivato nel campo della griglia.</p>
+    <div id="descr"></div>
+    <div class="conv">
+      <p><b>Convenzioni di calcolo.</b> Le quote dei cluster si intendono calcolate sulla media degli ultimi tre anni della finestra di analisi, sul perimetro di vendita totale. La mediana di riferimento è la mediana di tali quote fra i cluster della partizione in vigore, e va riportata nella tabella del § 3.1 affinché la valutazione resti interpretabile anche dopo un aggiornamento della base informativa. La traiettoria di un cluster si definisce <b>in crescita</b> quando il momento recente e la traiettoria di lungo periodo risultano entrambi positivi, <b>in calo</b> quando risultano entrambi negativi, <b>stabile</b> negli altri casi. Le due grandezze sono desunte dallo strumento di analisi degli andamenti dei cluster, che le calcola sulla medesima base.</p>
+    </div>
+
+    <div class="fld" style="margin-top:20px"><label>Sintesi comparata e opzione preferita, con esplicitazione dei criteri che hanno determinato la scelta</label>
+      <textarea data-k="s4.sintesi" rows="4"></textarea></div>
+    <div class="grid2">
+      <div class="fld"><label>Approvazione (firma Coordinatore)</label><input type="text" data-k="s4.firma"></div>
+      <div class="fld"><label>Data</label><input type="text" data-k="s4.firma_data" placeholder="gg / mm / aaaa"></div>
+    </div>
+    <div class="reg"><div class="h">Registro delle criticità · sezione 4</div>
+      <div class="d">Criteri difficili da valutare, descrittori inadeguati o ambigui, criteri mancanti o ridondanti.</div>
+      <textarea data-k="reg.s4"></textarea></div>
+  </section>
+
+  <section>
+    <div class="sh"><h2>5) Ideazione e prototipazione</h2><span class="tag">Fase D</span></div>
+    <h3>5.1 Piano di declinazione della collezione</h3>
+    <p class="hint">Da compilare per ciascuna opzione approvata al § 4.</p>
+    <div id="piani"></div>
+    <button class="btn-sm addbtn" id="addPiano">+ Aggiungi piano di declinazione</button>
+
+    <h3>5.2 Scheda di variante</h3>
+    <p class="hint">Ripetere per ciascuna variante prevista dal piano di declinazione. In alternativa, una scheda per ciascuna tonalità qualora i formati condividano ricetta e ciclo.</p>
+    <div id="varianti"></div>
+    <button class="btn-sm addbtn" id="addVar">+ Aggiungi scheda di variante</button>
+
+    <h3>Piano prove prototipi</h3>
+    <p class="hint">Le righe e il campo «N° prototipo» sono derivati dai codici della matrice delle varianti al § 5.1. Modificando la matrice le righe si aggiornano, riagganciate per codice: quanto già compilato non viene perduto. Righe aggiunte manualmente restano in coda.</p>
+    <div class="tw"><table id="tprove"><thead><tr>
+      <th class="c-prod">Prodotto</th><th class="c-proto">N° prototipo</th>
+      <th class="c-prove">Prove richieste</th>
+      <th class="c-acc">Criteri minimi di accettazione</th>
+      <th class="rowrm" style="width:1%"></th>
+    </tr></thead><tbody></tbody></table></div>
+    <div class="inline addbtn" style="margin-top:12px">
+      <button class="btn-sm" id="addProva">+ Aggiungi riga</button>
+      <button class="btn-sm" id="syncProve">Sincronizza dalla matrice</button>
+    </div>
+    <div class="fld" style="margin-top:18px"><label>Note tecniche</label><textarea data-k="s5.note_tec" rows="3"></textarea></div>
+    <div class="reg"><div class="h">Registro delle criticità · sezione 5</div>
+      <div class="d">Vincoli scoperti in declinazione, incompatibilità fra configurazione approvata e gamma richiesta, campi mancanti.</div>
+      <textarea data-k="reg.s5"></textarea></div>
+  </section>
+
+  <section>
+    <div class="sh"><h2>6) Valutazione prototipi e decisione</h2><span class="tag">Fase E</span></div>
+    <h3>6.1 Risultati laboratorio</h3>
+    <p class="hint">Le righe e il campo «N° prototipo» sono derivati dal piano prove del § 5. Le colonne di misura sono generate dalle prove attivate per ciascun prototipo.</p>
+    <p class="hint" id="n61"></p>
+    <div class="tw"><table id="t61"><thead></thead><tbody></tbody></table></div>
+    <div class="inline addbtn" style="margin-top:12px">
+      <button class="btn-sm" id="addLab">+ Aggiungi riga</button>
+      <button class="btn-sm" id="sync61">Sincronizza dal piano prove</button>
+    </div>
+
+    <h4>Azioni correttive e verifiche in sospeso</h4>
+    <p class="hint">Da compilare per ciascuna non conformità rilevata.</p>
+    <div id="wazi"></div>
+    <button class="btn-sm addbtn" id="addAz" style="margin-top:12px">+ Aggiungi azione</button>
+
+    <h3>6.2 Valutazione marketing / percettiva</h3>
+    <div class="tw"><table id="t62"><thead><tr>
+      <th class="c-prod">Prodotto</th><th style="width:32%">Coerenza con trend</th>
+      <th style="width:32%">Aderenza target/mercati</th><th style="width:32%">Commenti</th>
+    </tr></thead><tbody></tbody></table></div>
+
+    <h3>6.3 Decisione di progetto</h3>
+    <div class="box"><div id="decisioni"></div>
+      <div class="fld"><label>Condizioni sospensive della decisione</label>
+        <p class="hint">Verifiche il cui completamento condiziona l'efficacia di un esito favorevole.</p>
+        <textarea data-k="s6.sospensive" rows="3"></textarea></div>
+      <div class="fld" style="margin-bottom:0"><label>Motivazione decisione</label>
+        <textarea data-k="s6.motivazione" rows="4"></textarea></div>
+    </div>
+
+    <h4>Riscontro rispetto alla valutazione comparata (§ 4.1)</h4>
+    <p class="hint">Indicare per ciascun criterio se la valutazione iniziale si è rivelata corretta, sovrastimata, sottostimata, oppure non ancora verificabile in questa fase. In caso di scostamento, precisarne la natura.</p>
+    <div class="tw"><table id="trisc"><thead><tr>
+      <th class="c-crit">Criterio</th><th class="c-esr">Esito del riscontro</th>
+      <th class="c-nat">Natura dello scostamento</th><th class="c-note">Note</th>
+    </tr></thead><tbody></tbody></table></div>
+    <div class="conv" style="margin-top:14px">
+      <p><b>Riscontro differito.</b> I criteri che dipendono da dati commerciali non sono verificabili alla chiusura del ciclo prototipale e vanno registrati come non ancora verificabili. Il riscontro su tali criteri è rinviato a una verifica successiva sui dati di vendita della linea, da eseguire non prima di dodici mesi dall'immissione in gamma. L'attuazione della verifica differita richiede un presidio esterno alla funzione R&amp;S ed è subordinata alla sua definizione.</p>
+    </div>
+
+    <div class="fld" style="margin-top:20px"><label>Proposte di modifica al protocollo derivanti dal progetto</label>
+      <textarea data-k="s6.proposte" rows="5"></textarea></div>
+
+    <div class="reg"><div class="h">Registro delle criticità · sezione 6</div>
+      <div class="d">Prove non previste, criteri di accettazione inadeguati, scostamenti non registrabili nei campi disponibili.</div>
+      <textarea data-k="reg.s6"></textarea></div>
+  </section>
+
+  <section>
+    <div class="sh"><h2>7) Scheda Prodotto Previsionale (SPP)</h2><span class="tag">Fase F · una per ogni prodotto «GO»</span></div>
+    <div id="spp"></div>
+    <button class="btn-sm addbtn" id="addSpp">+ Aggiungi SPP</button>
+    <div class="reg"><div class="h">Registro delle criticità · sezione 7</div>
+      <div class="d">Informazioni richieste dall'industrializzazione che la SPP non raccoglie.</div>
+      <textarea data-k="reg.s7"></textarea></div>
+  </section>
+
+  <section>
+    <div class="sh"><h2>8) Caratterizzazione tecnologica del prodotto finito</h2><span class="tag">successiva al trasferimento a industrializzazione</span></div>
+    <div class="conv">
+      <p><b>Ambito di compilazione.</b> La presente sezione è compilata a seguito dell'industrializzazione del prodotto o di un lancio di produzione, e non nell'ambito del ciclo di prototipazione. La caratterizzazione dei prototipi resta registrata al § 6.1. La sezione consente di chiudere la tracciabilità informativa del ciclo, collegando le scelte progettuali motivate sui dati alle prestazioni conseguite dal prodotto in gamma, e alimenta con dati tecnici il riscontro differito di cui alla sezione 6.</p>
+    </div>
+    <p class="hint">Una scheda per ciascun prodotto finito, declinato per formato e colore.</p>
+    <div id="pft"></div>
+    <button class="btn-sm addbtn" id="addPft">+ Aggiungi prodotto finito</button>
+    <div class="reg"><div class="h">Registro delle criticità · sezione 8</div>
+      <div class="d">Grandezze non previste, requisiti da precisare, informazioni richieste dall'industrializzazione che la sezione non raccoglie.</div>
+      <textarea data-k="reg.s8"></textarea></div>
+  </section>
+
+  <footer>
+    <p>Modulo digitale del Template operativo, versione beta del Protocollo DT data-driven, rilasciata a seguito del collaudo della versione alpha. Elaborazione interamente locale: nessun dato lascia questo computer.</p>
+    <div class="foot-meta">
+      <p><b>Progetto START</b> · Progetto di Ricerca Industriale e Sviluppo Sperimentale cofinanziato dal Ministero delle Imprese e del Made in Italy</p>
+      <p>Accordi per l'Innovazione (D.M. 31 dicembre 2021) · Codice progetto F/310087/01-05/X56 · Maggio 2023 / Ottobre 2026</p>
+      <p>Gruppo Ceramiche Gresmalt S.p.A. · Via Statale 467, 45, 42013 Casalgrande (RE)</p>
+    </div>
+  </footer>
+</div>
+
+<div class="savebar">
+  <span class="st" id="st">Nessuna modifica salvata</span>
+  <span style="display:flex;gap:8px">
+    <button id="save2" class="btn-p">Salva JSON</button>
+    <button id="print2">Stampa compilato</button>
+    <button id="printBlank2">Stampa modulo vuoto</button>
+  </span>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+var ATT=['Forma','Dimensione','Spessore','Scivolosità R','Effetto','Colore'];
+var CRIT=['Potenziale commerciale atteso','Confidenza nella riuscita tecnica e di mercato',
+  'Diversificazione rispetto ai cluster già presidiati','Copertura dei mercati target indicati nel brief',
+  'Allineamento ai trend di settore'];
+var RISC=['Potenziale commerciale atteso','Confidenza nella riuscita','Diversificazione sui cluster',
+  'Copertura dei mercati target','Allineamento ai trend'];
+var ESITI=['confermato','sovrastimato','sottostimato','non ancora verificabile'];
+var NATURA=['non applicabile','rischio non individuato','rischio individuato, peso sottostimato'];
+var ASSET=[['storici','Trend storici di settore'],['previsionali','Trend previsionali di settore'],
+  ['correlazione','File «correlazione cluster/vendite»']];
+var FONTI=[['storici','Trend storici',true],['previsionali','Trend previsionali',true],
+  ['osservatorio','Osservatorio contemporaneo (fiere / media di settore)',false]];
+/* terzo elemento: etichetta breve per le intestazioni della tabella dei risultati */
+var PROVE=[['plan','Planarità','Planarità'],['dim','Misure dimensionali','Misure dim.'],['flex','Resistenza alla flessione (Modulo R)','Flessione (Mod. R)'],
+  ['abs','Assorbimento d’acqua','Assorb. H₂O'],['coefR','Coefficiente R','Coeff. R'],['mac','Macchie','Macchie'],['abr','Abrasione','Abrasione']];
+var MIS=[['planarita','Planarità'],['dim','Misure dimensionali'],
+  ['assorb','Assorbimento H₂O'],['carico','Carico di rottura (carico)'],
+  ['sforzo','Carico di rottura (sforzo)'],['modR','Resistenza alla flessione (Modulo R)'],
+  ['mac','Resistenza alle macchie'],['abr','Resistenza all’abrasione'],
+  ['scivR','Scivolosità R']];
+var TRAJ=['In crescita','Stabile','In calo'];
+var PRES=['Fra i primi tre','Presidiato, sopra mediana','Presidiato, sotto mediana','Marginalmente presidiato'];
+
+var DESCR=[
+ {c:'Potenziale commerciale atteso',
+  m:'Corrisponde ai flussi attesi della funzione obiettivo. Si legge sulla traiettoria del cluster di riferimento e sull\u2019ampiezza del bacino, intesa come quota dei mercati e canali dichiarati nel brief raggiungibili senza varianti dedicate.',
+  l:['Cluster di riferimento in calo e bacino parziale.',
+     'Cluster in calo con bacino prevalente, oppure cluster stabile con bacino parziale.',
+     'Cluster stabile con bacino prevalente.',
+     'Cluster stabile con bacino integrale, oppure cluster in crescita con bacino prevalente.',
+     'Cluster in crescita con bacino integrale.']},
+ {c:'Confidenza nella riuscita tecnica e di mercato',
+  m:'Corrisponde alla probabilità di successo del concept. Si conta il numero di parametri della configurazione che ricadono fuori dall\u2019esperienza produttiva validata, secondo i vincoli dichiarati al § 2.',
+  l:['Due o più parametri fuori dall\u2019esperienza produttiva validata, di cui almeno uno non realizzabile sull\u2019impianto disponibile.',
+     'Due o più parametri fuori dall\u2019esperienza validata, tutti realizzabili sull\u2019impianto esistente.',
+     'Un parametro fuori dall\u2019esperienza validata, con esito non prevedibile a priori.',
+     'Un parametro al limite dell\u2019esperienza validata, con margine noto.',
+     'Tutti i parametri interni all\u2019esperienza validata, con precedenti in gamma.']},
+ {c:'Diversificazione rispetto ai cluster già presidiati',
+  m:'Corrisponde al termine di concentrazione del rischio, con segno invertito. Si legge sulla classe di presidio del cluster e sul numero di attributi distanti dalla gamma in produzione.',
+  l:['Cluster fra i primi tre per quota, nessun attributo distante dalla gamma corrente.',
+     'Cluster presidiato con quota sopra la mediana, nessun attributo distante.',
+     'Cluster presidiato sopra la mediana con almeno un attributo distante, oppure cluster presidiato sotto la mediana.',
+     'Cluster marginalmente presidiato, con almeno due attributi distanti.',
+     'Combinazione di attributi assente dal portafoglio.'],
+  n:'Il livello 5 non è attingibile per via del cluster: la partizione è ricavata dal venduto proprio e non contiene cluster non presidiati. È raggiungibile soltanto da una configurazione la cui combinazione di attributi non trovi riscontro nel portafoglio.'},
+ {c:'Copertura dei mercati target indicati nel brief',
+  m:'Corrisponde al vincolo di copertura dei mercati strategici. Valuta la soddisfazione dei requisiti dei mercati dichiarati e la leggibilità sui canali di destinazione.',
+  l:['La configurazione non soddisfa i requisiti di almeno un mercato target.',
+     'Soddisfa i requisiti di tutti i mercati target con varianti dedicate su più di un attributo.',
+     'Soddisfa i requisiti di tutti i mercati target con una variante dedicata.',
+     'Soddisfa i requisiti senza varianti, con leggibilità piena su parte dei canali dichiarati.',
+     'Soddisfa i requisiti senza varianti, con leggibilità piena su tutti i canali dichiarati.'],
+  n:'Il criterio valuta la soddisfazione dei requisiti; il potenziale di volume dei medesimi mercati è valutato dal primo criterio. La distinzione evita che la stessa dimensione pesi due volte.'},
+ {c:'Allineamento ai trend di settore',
+  m:'Corrisponde al vincolo di soglia minima di allineamento. Si contano le fonti concordi fra storico, previsionale e osservatorio, e gli attributi allineati fra i sei dello schema di prodotto.',
+  l:['Nessuna fonte indica la direzione scelta, oppure una la indica in controtendenza.',
+     'Una sola fonte concorde, su meno di tre attributi.',
+     'Due fonti concordi, oppure tre fonti su meno della metà degli attributi.',
+     'Tre fonti concordi su almeno quattro attributi su sei, con non più di uno scostamento.',
+     'Tre fonti concordi su almeno cinque attributi, senza scostamenti.'],
+  n:'La mancata esplorazione di direzioni emergenti segnalate dalle fonti non abbassa il livello: il criterio misura la coerenza della configurazione scelta, non l\u2019esaustività della copertura dei trend.'}
+];
+
+var LET='ABCDEFGH';
+var N={opt:2,cl31:0,piani:1,var:1,prove:2,lab:2,az:0,pft:0,spp:1,colori:4,formati:3};
+var dirty=false;
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function txt(k,ph,cls){return '<input type="text" data-k="'+k+'"'+(cls?' class="'+cls+'"':'')+
+  (ph?' placeholder="'+esc(ph)+'"':'')+'>';}
+function ta(k,r){return '<textarea data-k="'+k+'" rows="'+(r||2)+'"></textarea>';}
+function radios(k,vals,cls){
+  return '<div class="opts'+(cls?' '+cls:'')+'">'+vals.map(function(v){
+    return '<label class="opt'+(cls==='vert'?' sm':'')+'"><input type="radio" name="'+k+'" data-k="'+k+
+      '" value="'+esc(v)+'"><span>'+esc(v)+'</span></label>';}).join('')+'</div>';}
+function checks(k,vals){
+  return vals.map(function(v){
+    return '<label class="opt"><input type="checkbox" data-k="'+k+'.'+v.replace(/[^A-Za-z]/g,'')+
+      '" value="'+esc(v)+'"><span>'+esc(v)+'</span></label>';}).join('');}
+function subfields(pref){
+  return '<div class="subf">'+ATT.map(function(a,i){
+    return '<div class="r"><span>'+esc(a)+'</span>'+txt(pref+'.a'+i)+'</div>';}).join('')+'</div>';}
+function scale(k){
+  return '<div class="scale">'+[1,2,3,4,5].map(function(n){
+    return '<label><input type="radio" name="'+k+'" data-k="'+k+'" value="'+n+'"><span>'+n+
+      '</span></label>';}).join('')+'</div>';}
+function prodRadio(k){
+  var o='';
+  for(var j=0;j<N.opt;j++)o+='<label class="opt sm"><input type="radio" name="'+k+'" data-k="'+k+
+    '" value="'+LET[j]+'"><span>'+LET[j]+'</span></label>';
+  return '<div class="opts">'+o+'</div>';}
+function fill(sel,html){var t=document.querySelector(sel);if(t)t.innerHTML=html;}
+
+function draw1(){
+  fill('#s1box',ASSET.map(function(a){
+    return '<div class="fld"><label>'+esc(a[1])+'</label>'+
+      '<div class="grid3" style="gap:12px"><div class="inline">'+
+        '<span class="u">da</span><input type="text" class="w-sm" data-k="s1.'+a[0]+'.da" placeholder="20__">'+
+        '<span class="u">a</span><input type="text" class="w-sm" data-k="s1.'+a[0]+'.a" placeholder="20__"></div>'+
+      '<div>'+txt('s1.'+a[0]+'.file','nome del file')+'</div>'+
+      '<div>'+txt('s1.'+a[0]+'.rev','revisione')+'</div>'+
+      '</div></div>';}).join(''));
+}
+document.getElementById('dest').innerHTML=radios('s2.dest',['Indoor','Outdoor','Entrambe','Altro']);
+document.getElementById('mkt').innerHTML=checks('s2.mkt',['Nazionale','EU','USA','Non definito','Altro']);
+
+function draw31(){
+  var w=document.getElementById('w31');
+  if(!N.cl31){w.innerHTML='<div class="empty-t">Nessun cluster inserito. Usa «Aggiungi cluster» per creare la prima riga.</div>';return;}
+  w.innerHTML='<div class="tw"><table id="t31"><thead><tr>'+
+    '<th class="c-num">N° cluster</th>'+
+    '<th class="c-sint">Sintesi combinazioni vincenti</th>'+
+    '<th class="c-tj">Traiettoria</th>'+
+    '<th class="c-pr">Classe di presidio</th>'+
+    '<th class="c-imp">Impatto sul progetto</th>'+
+    '<th class="rowrm" style="width:1%"></th></tr></thead><tbody></tbody></table></div>'+
+    '<div class="inline" style="margin-top:10px"><span class="u" style="font-size:12.5px">Mediana delle quote della partizione in vigore</span>'+
+    '<input type="text" class="w-sm" data-k="s3.mediana" placeholder="%"></div>';
+  var h='';
+  for(var i=0;i<N.cl31;i++){
+    h+='<tr><td>'+txt('s3.cl.'+i+'.n','CL__')+'</td><td>'+subfields('s3.cl.'+i)+'</td>'+
+      '<td>'+radios('s3.cl.'+i+'.tj',TRAJ,'vert')+'</td>'+
+      '<td>'+radios('s3.cl.'+i+'.pr',PRES,'vert')+'</td>'+
+      '<td>'+ta('s3.cl.'+i+'.impatto',4)+'</td>'+
+      '<td class="rowrm"><button class="btn-sm rm" data-rm31="'+i+'">&times;</button></td></tr>';
+  }
+  fill('#t31 tbody',h);
+  w.querySelectorAll('[data-rm31]').forEach(function(b){
+    b.onclick=function(){N.cl31--;var s=collect();drawAll();apply(s);mark();};});
+}
+function draw32(){
+  fill('#t32 tbody',FONTI.map(function(f){
+    var lab='<b style="font-weight:700">'+esc(f[1])+'</b>';
+    if(f[2])lab+='<div class="annui"><span class="u">da</span>'+
+      '<input type="text" data-k="s3.tr.'+f[0]+'.da" placeholder="20__">'+
+      '<span class="u">a</span><input type="text" data-k="s3.tr.'+f[0]+'.a" placeholder="20__"></div>';
+    return '<tr><td>'+lab+'</td><td>'+ta('s3.tr.'+f[0]+'.punti',6)+'</td>'+
+      '<td>'+subfields('s3.tr.'+f[0])+'</td></tr>';}).join(''));
+}
+function drawOpz(){
+  var c=document.getElementById('opzioni'),h='';
+  for(var i=0;i<N.opt;i++){
+    h+='<div class="box"><div class="box-h"><span class="t">Prodotto <span class="code">'+LET[i]+
+      '</span></span>'+(i>1?'<button class="btn-sm rm" data-rmopt="'+i+'">Rimuovi</button>':'')+'</div>'+
+      '<div class="grid2">'+
+        '<div class="fld"><label>Formato</label>'+txt('s4.opt.'+i+'.formato','es. rettangolare rettificato')+'</div>'+
+        '<div class="fld"><label>Dimensione</label>'+txt('s4.opt.'+i+'.dimensione','es. 60 × 120 cm')+'</div>'+
+        '<div class="fld"><label>Spessore (mm)</label>'+txt('s4.opt.'+i+'.spessore')+'</div>'+
+        '<div class="fld"><label>Variante outdoor (mm), se prevista</label>'+txt('s4.opt.'+i+'.spessore_out')+'</div>'+
+        '<div class="fld"><label>Classe R</label>'+txt('s4.opt.'+i+'.classeR')+'</div>'+
+        '<div class="fld"><label>Effetto superficiale</label>'+txt('s4.opt.'+i+'.effetto')+'</div>'+
+      '</div>'+
+      '<div class="fld"><label>Colori guida del concept</label>'+txt('s4.opt.'+i+'.colori')+'</div>'+
+      '<div class="fld" style="margin-bottom:0"><label>Note di coerenza con dati (cluster + trend)</label>'+
+        ta('s4.opt.'+i+'.note',3)+'</div></div>';
+  }
+  c.innerHTML=h;
+  c.querySelectorAll('[data-rmopt]').forEach(function(b){
+    b.onclick=function(){N.opt--;var s=collect();drawAll();apply(s);mark();};});
+}
+function draw41(){
+  var cols='';for(var i=0;i<N.opt;i++)cols+='<th class="c-sc">Prod. '+LET[i]+'</th>';
+  fill('#t41 thead','<tr><th class="c-crit">Criterio</th>'+cols+
+    '<th class="c-motiv">Motivazione e fonte del dato</th></tr>');
+  fill('#t41 tbody',CRIT.map(function(cr,ci){
+    var cells='';for(var i=0;i<N.opt;i++)cells+='<td>'+scale('s4.grid.'+ci+'.'+i)+'</td>';
+    return '<tr><td><span class="crit">'+esc(cr)+'</span></td>'+cells+
+      '<td>'+ta('s4.grid.'+ci+'.motiv',4)+'</td></tr>';}).join(''));
+}
+function drawDescr(){
+  var h=DESCR.map(function(d){
+    var liv=d.l.map(function(t,k){
+      return '<div class="l"><span class="n">'+(k+1)+'</span><span class="t">'+esc(t)+'</span></div>';
+    }).join('');
+    var nota=d.n?'<p class="anc" style="margin:12px 0 0"><b>Nota.</b> '+esc(d.n)+'</p>':'';
+    return '<details class="desc"><summary>'+esc(d.c)+'</summary><div class="body">'+
+      '<p class="anc">'+esc(d.m)+'</p><div class="livs">'+liv+'</div>'+nota+'</div></details>';
+  }).join('');
+  document.getElementById('descr').innerHTML=h;
+}
+
+function drawPiani(){
+  var c=document.getElementById('piani'),h='';
+  for(var i=0;i<N.piani;i++){
+    var cols='';
+    for(var j=0;j<N.formati;j++)cols+='<th>'+txt('s5.pl.'+i+'.fmt.'+j,'Formato '+(j+1))+'</th>';
+    var rows='';
+    for(var r=0;r<N.colori;r++){
+      var cells='';
+      for(var j2=0;j2<N.formati;j2++)cells+='<td>'+txt('s5.pl.'+i+'.mat.'+r+'_'+j2)+'</td>';
+      rows+='<tr><td>'+txt('s5.pl.'+i+'.col.'+r,'Colore '+(r+1))+'</td>'+cells+'</tr>';
+    }
+    h+='<div class="box"><div class="box-h"><span class="t">Piano di declinazione <span class="code">'+
+      (i+1)+'</span></span>'+(N.piani>1?'<button class="btn-sm rm" data-rmpl="'+i+'">Rimuovi</button>':'')+'</div>'+
+      '<div class="fld"><label>Opzione di prodotto a cui si riferisce</label>'+
+        prodRadio('s5.pl.'+i+'.opt')+'</div>'+
+      '<h4>Parametri comuni alla collezione</h4>'+
+      '<div class="grid4">'+
+        '<div class="fld"><label>Impasto base</label>'+txt('s5.pl.'+i+'.impasto')+'</div>'+
+        '<div class="fld"><label>Spessore (mm)</label>'+txt('s5.pl.'+i+'.spessore')+'</div>'+
+        '<div class="fld"><label>Ciclo di cottura</label>'+txt('s5.pl.'+i+'.cottura')+'</div>'+
+        '<div class="fld"><label>Effetto superficiale</label>'+txt('s5.pl.'+i+'.effetto')+'</div>'+
+      '</div>'+
+      '<h4>Matrice delle varianti</h4>'+
+      '<p class="hint">Intestazioni di riga e colonna modificabili. Indicare il codice di ciascuna variante prevista; lasciare vuote le combinazioni non a piano.</p>'+
+      '<div class="tw"><table class="matrix"><thead><tr><th>Colore / Formato</th>'+cols+
+        '</tr></thead><tbody>'+rows+'</tbody></table></div>'+
+      '<div class="inline addbtn" style="margin-top:10px">'+
+        '<button class="btn-sm" data-ac="1">+ Colore</button><button class="btn-sm" data-af="1">+ Formato</button>'+
+        '<button class="btn-sm rm" data-dc="1">&minus; Colore</button><button class="btn-sm rm" data-df="1">&minus; Formato</button>'+
+      '</div>'+
+      '<h4>Fondamento delle scelte di declinazione</h4>'+
+      '<div class="grid2">'+
+        '<div class="fld"><label>Elementi sostenuti dai dati</label>'+
+          '<p class="hint">Scelte riconducibili alle evidenze da cluster e ai trend, al livello di dettaglio che le classi consentono.</p>'+
+          ta('s5.pl.'+i+'.dati',4)+'</div>'+
+        '<div class="fld"><label>Elementi rimessi al giudizio progettuale</label>'+
+          '<p class="hint">Scelte non desumibili dai dati, in quanto interne a una classe aggregata o non coperte dagli asset disponibili.</p>'+
+          ta('s5.pl.'+i+'.giudizio',4)+'</div>'+
+      '</div>'+
+      '<div class="fld" style="margin-bottom:0"><label>Note di coordinamento</label>'+
+        '<p class="hint">Motivare la scelta dei colori come insieme coordinato e le implicazioni tecniche dei formati previsti (pressatura, planarità, rettifica, raccordo grafico fra pezzi).</p>'+
+        ta('s5.pl.'+i+'.note',4)+'</div></div>';
+  }
+  c.innerHTML=h;
+  c.querySelectorAll('[data-rmpl]').forEach(function(b){
+    b.onclick=function(){N.piani--;var s=collect();drawAll();apply(s);mark();};});
+  c.querySelectorAll('[data-ac]').forEach(function(b){b.onclick=addN('colori');});
+  c.querySelectorAll('[data-af]').forEach(function(b){b.onclick=addN('formati');});
+  c.querySelectorAll('[data-dc]').forEach(function(b){b.onclick=delN('colori',1);});
+  c.querySelectorAll('[data-df]').forEach(function(b){b.onclick=delN('formati',1);});
+}
+var VF=[['codice','Codice prototipo'],['caratt','Caratteristiche'],['colorante','Colorante da impasto'],
+  ['tampone','Tampone'],['smalto','Smalto'],['graniglie','Graniglie'],
+  ['altre','Altre applicazioni superficiali'],['curva','Curva di cottura']];
+function drawVar(){
+  var c=document.getElementById('varianti'),h='';
+  for(var i=0;i<N.var;i++){
+    h+='<div class="box"><div class="box-h"><span class="t">Variante <span class="code">'+(i+1)+
+      '</span></span>'+(N.var>1?'<button class="btn-sm rm" data-rmvar="'+i+'">Rimuovi</button>':'')+'</div>'+
+      '<div class="grid2">'+VF.map(function(f){
+        return '<div class="fld"><label>'+esc(f[1])+'</label>'+txt('s5.var.'+i+'.'+f[0])+'</div>';}).join('')+
+      '</div></div>';
+  }
+  c.innerHTML=h;
+  c.querySelectorAll('[data-rmvar]').forEach(function(b){
+    b.onclick=function(){N.var--;var s=collect();drawAll();apply(s);mark();};});
+}
+function provecks(pref){
+  return '<div class="pvlist">'+PROVE.map(function(p){
+    return '<label class="opt"><input type="checkbox" data-k="'+pref+'.pv.'+p[0]+
+      '"><span>'+esc(p[1])+'</span></label>';}).join('')+'</div>';
+}
+function drawProve(){
+  var h='';
+  for(var i=0;i<N.prove;i++){
+    h+='<tr><td>'+prodRadio('s5.prove.'+i+'.prod')+'</td>'+
+      '<td>'+txt('s5.prove.'+i+'.nproto')+'</td>'+
+      '<td>'+provecks('s5.prove.'+i)+'</td>'+
+      '<td>'+ta('s5.prove.'+i+'.criteri',5)+'</td>'+
+      '<td class="rowrm">'+(N.prove>1?'<button class="btn-sm rm" data-rmpv="'+i+'">&times;</button>':'')+
+      '</td></tr>';
+  }
+  fill('#tprove tbody',h);
+  document.querySelectorAll('[data-rmpv]').forEach(function(b){
+    b.onclick=function(){N.prove--;var s=collect();drawAll();apply(s);mark();};});
+}
+var TUTTE=false;   /* nel modulo vuoto la 6.1 espone tutte le prove previste */
+function attive(){
+  if(TUTTE)return PROVE.slice();
+  return PROVE.filter(function(p){
+    return !!document.querySelector('input[type=checkbox][data-k^="s5.prove."][data-k$=".pv.'+p[0]+'"]:checked');
+  });
+}
+function draw61(){
+  var A=attive(), nota=document.getElementById('n61');
+  if(nota)nota.innerHTML=A.length
+    ? 'Colonne generate dalle prove attivate nel piano prove: '+A.map(function(p){return p[1];}).join(', ')+'.'
+    : 'Nessuna prova attivata nel piano prove della sezione 5: la tabella riporta solo prodotto, prototipo ed esito.';
+  fill('#t61 thead','<tr><th class="c-prod">Prodotto</th><th class="c-proto">N° prototipo</th>'+
+    A.map(function(p){return '<th class="c-mis">'+esc(p[2]||p[1])+'</th>';}).join('')+
+    '<th class="c-esito">Esito tecnico</th><th class="rowrm" style="width:1%"></th></tr>');
+  var h='';
+  for(var i=0;i<N.lab;i++){
+    h+='<tr><td>'+prodRadio('s6.lab.'+i+'.prod')+'</td><td>'+txt('s6.lab.'+i+'.nproto')+'</td>'+
+      A.map(function(p){
+        if(p[0]==='dim')return '<td><div class="dblbox">'+
+          '<div class="r"><span>A</span>'+txt('s6.lab.'+i+'.m_dimA')+'</div>'+
+          '<div class="r"><span>B</span>'+txt('s6.lab.'+i+'.m_dimB')+'</div></div></td>';
+        return '<td>'+txt('s6.lab.'+i+'.m_'+p[0])+'</td>';}).join('')+
+      '<td>'+radios('s6.lab.'+i+'.esito',['OK','KO'],'vert')+'</td>'+
+      '<td class="rowrm">'+(N.lab>1?'<button class="btn-sm rm" data-rmlab="'+i+'">&times;</button>':'')+
+      '</td></tr>';
+  }
+  fill('#t61 tbody',h);
+  document.querySelectorAll('[data-rmlab]').forEach(function(b){
+    b.onclick=function(){N.lab--;var s=collect();drawAll();apply(s);mark();};});
+}
+function drawAz(){
+  var w=document.getElementById('wazi');
+  if(!N.az){w.innerHTML='<div class="empty-t">Nessuna azione registrata. Usa «Aggiungi azione» in presenza di non conformità.</div>';return;}
+  w.innerHTML='<div class="tw"><table id="taz"><thead><tr><th class="c-proto">N° prototipo</th>'+
+    '<th class="c-nc">Non conformità rilevata</th><th class="c-az">Azione correttiva / verifica in sospeso</th>'+
+    '<th class="c-st">Stato</th><th class="rowrm" style="width:1%"></th></tr></thead><tbody></tbody></table></div>';
+  var h='';
+  for(var i=0;i<N.az;i++){
+    h+='<tr><td>'+txt('s6.az.'+i+'.nproto')+'</td><td>'+ta('s6.az.'+i+'.nc',3)+'</td>'+
+      '<td>'+ta('s6.az.'+i+'.azione',3)+'</td>'+
+      '<td>'+radios('s6.az.'+i+'.stato',['aperta','chiusa'],'vert')+'</td>'+
+      '<td class="rowrm"><button class="btn-sm rm" data-rmaz="'+i+'">&times;</button></td></tr>';
+  }
+  fill('#taz tbody',h);
+  w.querySelectorAll('[data-rmaz]').forEach(function(b){
+    b.onclick=function(){N.az--;var s=collect();drawAll();apply(s);mark();};});
+}
+function draw62(){
+  var h='';
+  for(var i=0;i<N.opt;i++){
+    h+='<tr><td><b style="font-weight:800">'+LET[i]+'</b></td>'+
+      '<td>'+ta('s6.mkt.'+i+'.trend',4)+'</td><td>'+ta('s6.mkt.'+i+'.target',4)+'</td>'+
+      '<td>'+ta('s6.mkt.'+i+'.commenti',4)+'</td></tr>';
+  }
+  fill('#t62 tbody',h);
+}
+function drawDec(){
+  var h='';
+  for(var i=0;i<N.opt;i++)h+='<div class="fld"><label>Prodotto '+LET[i]+'</label>'+
+    radios('s6.dec.'+i,['GO','GO condizionato','RE-ITERATE','STOP'])+'</div>';
+  document.getElementById('decisioni').innerHTML=h;
+}
+function drawRisc(){
+  fill('#trisc tbody',RISC.map(function(r,i){
+    return '<tr><td><span class="crit">'+esc(r)+'</span></td>'+
+      '<td>'+radios('s6.risc.'+i+'.v',ESITI,'vert')+'</td>'+
+      '<td>'+radios('s6.risc.'+i+'.nat',NATURA,'vert')+'</td>'+
+      '<td>'+ta('s6.risc.'+i+'.note',4)+'</td></tr>';}).join(''));
+}
+function drawPft(){
+  var c=document.getElementById('pft');
+  if(!N.pft){c.innerHTML='<div class="empty-t">Nessun prodotto finito inserito. Usa «Aggiungi prodotto finito» per creare la prima scheda.</div>';return;}
+  var h='';
+  for(var i=0;i<N.pft;i++){
+    h+='<div class="box"><div class="box-h"><span class="t">Prodotto finito <span class="code">'+(i+1)+
+      '</span></span><button class="btn-sm rm" data-rmpft="'+i+'">Rimuovi</button></div>'+
+      '<div class="grid4">'+
+        '<div class="fld"><label>Codice / denominazione</label>'+txt('s8.pft.'+i+'.codice')+'</div>'+
+        '<div class="fld"><label>Formato</label>'+txt('s8.pft.'+i+'.formato')+'</div>'+
+        '<div class="fld"><label>Colore</label>'+txt('s8.pft.'+i+'.colore')+'</div>'+
+        '<div class="fld"><label>Data prova</label>'+txt('s8.pft.'+i+'.data','gg / mm / aaaa')+'</div>'+
+      '</div><h4>Misure tecnologiche sul prodotto finito</h4>'+
+      '<div class="tw"><table><thead><tr><th class="c-gr">Grandezza</th>'+
+        '<th class="c-val">Valore misurato</th><th class="c-met">Metodo / norma</th>'+
+        '<th class="c-req">Requisito</th><th class="c-esito">Esito</th></tr></thead><tbody>'+
+        MIS.map(function(m){
+          var val=(m[0]==='dim')
+            ? '<div class="dblbox"><div class="r"><span>A</span>'+txt('s8.pft.'+i+'.dimA.val')+'</div>'+
+              '<div class="r"><span>B</span>'+txt('s8.pft.'+i+'.dimB.val')+'</div></div>'
+            : txt('s8.pft.'+i+'.'+m[0]+'.val');
+          return '<tr><td><span class="crit">'+esc(m[1])+'</span></td><td>'+val+'</td>'+
+            '<td>'+txt('s8.pft.'+i+'.'+m[0]+'.met')+'</td>'+
+            '<td>'+txt('s8.pft.'+i+'.'+m[0]+'.req')+'</td>'+
+            '<td>'+radios('s8.pft.'+i+'.'+m[0]+'.es',['OK','KO'],'vert')+'</td></tr>';}).join('')+
+        '</tbody></table></div>'+
+      '<div class="fld" style="margin-top:16px;margin-bottom:0"><label>Note e osservazioni</label>'+
+        ta('s8.pft.'+i+'.note',3)+'</div></div>';
+  }
+  c.innerHTML=h;
+  c.querySelectorAll('[data-rmpft]').forEach(function(b){
+    b.onclick=function(){N.pft--;var s=collect();drawAll();apply(s);mark();};});
+}
+function drawSpp(){
+  var c=document.getElementById('spp'),h='';
+  for(var i=0;i<N.spp;i++){
+    h+='<div class="box"><div class="box-h"><span class="t">SPP <span class="code">'+(i+1)+
+      '</span></span>'+(N.spp>1?'<button class="btn-sm rm" data-rmspp="'+i+'">Rimuovi</button>':'')+'</div>'+
+      '<div class="grid2">'+
+        '<div class="fld"><label>Nome provvisorio linea</label>'+txt('s7.'+i+'.nome')+'</div>'+
+        '<div class="fld"><label>Cluster di riferimento</label>'+txt('s7.'+i+'.cluster')+'</div>'+
+      '</div>'+
+      '<div class="fld"><label>Mercati target</label><div class="opts">'+
+        checks('s7.'+i+'.mkt',['EU','USA','Altro'])+'</div>'+
+        '<div class="fld" style="margin:10px 0 0"><label style="font-weight:600">Altro, specificare</label>'+
+        ta('s7.'+i+'.mkt_altro',2)+'</div></div>'+
+      '<div class="fld"><label>Numero prototipo validato</label>'+txt('s7.'+i+'.nproto')+'</div>'+
+      '<h4>Parametri finali</h4><div class="grid2">'+
+        '<div class="fld"><label>Formati / Dimensioni</label>'+txt('s7.'+i+'.formati')+'</div>'+
+        '<div class="fld"><label>Spessori</label>'+txt('s7.'+i+'.spessori')+'</div>'+
+        '<div class="fld"><label>Classi R</label>'+txt('s7.'+i+'.classiR')+'</div>'+
+        '<div class="fld"><label>Effetto superficiale</label>'+txt('s7.'+i+'.effetto')+'</div>'+
+      '</div>'+
+      '<div class="fld"><label>Palette colori</label>'+txt('s7.'+i+'.palette')+'</div>'+
+      '<div class="fld"><label>Coordinati (outdoor / grip / pezzi speciali)</label>'+txt('s7.'+i+'.coordinati')+'</div>'+
+      '<div class="fld"><label>Stato del prodotto</label>'+
+        '<p class="hint">Indicare esclusivamente lo stato raggiunto. Condizioni e osservazioni vanno nel campo successivo.</p>'+
+        radios('s7.'+i+'.stato',['Ideata','Prototipata, validazione tecnica completa',
+          'Prototipata, validazione tecnica parziale','In coda a industrializzazione'],'vert')+'</div>'+
+      '<div class="fld"><label>Condizioni e note sul trasferimento</label>'+ta('s7.'+i+'.cond',3)+'</div>'+
+      '<div class="grid2">'+
+        '<div class="fld"><label>Firma Direzione R&amp;S</label>'+txt('s7.'+i+'.firma')+'</div>'+
+        '<div class="fld" style="margin-bottom:0"><label>Data</label>'+txt('s7.'+i+'.data','gg / mm / aaaa')+'</div>'+
+      '</div></div>';
+  }
+  c.innerHTML=h;
+  c.querySelectorAll('[data-rmspp]').forEach(function(b){
+    b.onclick=function(){N.spp--;var s=collect();drawAll();apply(s);mark();};});
+}
+
+/* ============ derivazione matrice -> piano prove -> 6.1 ============
+   Le righe non vengono ricostruite per posizione ma riagganciate per codice
+   prototipo: modificare la matrice non cancella quanto già compilato. */
+function codiciMatrice(s){
+  var out=[];
+  for(var i=0;i<N.piani;i++){
+    var pl=getPath(s,'s5.pl.'+i)||{}, mat=pl.mat||{}, opt=pl.opt||'';
+    for(var r=0;r<N.colori;r++)for(var j=0;j<N.formati;j++){
+      var v=String(mat[r+'_'+j]||'').trim();
+      if(!v)continue;
+      var dup=false;
+      out.forEach(function(o){if(o.code===v)dup=true;});
+      if(!dup)out.push({code:v,opt:opt});
+    }
+  }
+  return out;
+}
+/* i campi propagati automaticamente (codice e prodotto) non contano come
+   compilazione dell'operatore: una riga derivata e rimasta vuota va rimossa */
+function haDati(o,skip){
+  for(var k in o){
+    if(skip.indexOf(k)>=0)continue;
+    var v=o[k];
+    if(v&&typeof v==='object'){for(var k2 in v){if(v[k2]===true)return true;
+      if(typeof v[k2]==='string'&&v[k2].trim())return true;}}
+    else if(v===true)return true;
+    else if(typeof v==='string'&&v.trim())return true;
+  }
+  return false;
+}
+function riaggancia(cur,lista,mk){
+  var used={},out=[];
+  lista.forEach(function(c){
+    var found=null;
+    cur.forEach(function(o,i){
+      if(!used[i]&&String(o.nproto||'').trim()===c.code){found=o;used[i]=1;}
+    });
+    out.push(found||mk(c));
+  });
+  cur.forEach(function(o,i){if(!used[i]&&haDati(o,['nproto','prod']))out.push(o);});
+  return out;
+}
+function syncProve(s){
+  var codes=codiciMatrice(s);
+  if(!codes.length)return;                      /* senza codici in matrice non si tocca nulla */
+  var cur=[];for(var i=0;i<N.prove;i++)cur.push(getPath(s,'s5.prove.'+i)||{});
+  var out=riaggancia(cur,codes,function(c){return {nproto:c.code,prod:c.opt};});
+  var o={};out.forEach(function(r,i){o[i]=r;});
+  setPath(s,'s5.prove',o);
+  N.prove=Math.max(1,out.length);
+}
+function sync61(s){
+  var lista=[];
+  for(var i=0;i<N.prove;i++){
+    var p=getPath(s,'s5.prove.'+i)||{}, v=String(p.nproto||'').trim();
+    if(!v)continue;
+    var dup=false;lista.forEach(function(o){if(o.code===v)dup=true;});
+    if(!dup)lista.push({code:v,opt:p.prod||''});
+  }
+  if(!lista.length)return;
+  var cur=[];for(var j=0;j<N.lab;j++)cur.push(getPath(s,'s6.lab.'+j)||{});
+  var out=riaggancia(cur,lista,function(c){return {nproto:c.code,prod:c.opt};});
+  var o={};out.forEach(function(r,i){o[i]=r;});
+  setPath(s,'s6.lab',o);
+  N.lab=Math.max(1,out.length);
+}
+function syncAll(){
+  var s=collect();
+  syncProve(s);sync61(s);
+  drawAll();apply(s);mark();
+}
+
+function drawAll(){
+  draw1();draw31();draw32();drawOpz();draw41();drawDescr();drawPiani();drawVar();drawProve();
+  draw61();drawAz();draw62();drawDec();drawRisc();drawSpp();drawPft();bind();growAll();
+}
+function grow(t){t.style.height='auto';t.style.height=(t.scrollHeight+2)+'px';}
+function growAll(){document.querySelectorAll('textarea').forEach(grow);}
+function prepPrint(){
+  document.querySelectorAll('[data-k]').forEach(function(e){
+    if(e.type==='radio'||e.type==='checkbox')return;
+    var n=e.nextElementSibling;
+    if(!n||!n.classList||!n.classList.contains('prtxt')){
+      n=document.createElement('div');n.className='prtxt';
+      e.parentNode.insertBefore(n,e.nextSibling);
+    }
+    n.textContent=e.value||'';
+  });
+  growAll();
+}
+function setPath(o,p,v){var k=p.split('.'),c=o;
+  for(var i=0;i<k.length-1;i++){c[k[i]]=c[k[i]]||{};c=c[k[i]];}
+  c[k[k.length-1]]=v;}
+function getPath(o,p){var k=p.split('.'),c=o;
+  for(var i=0;i<k.length;i++){if(c==null||typeof c!=='object')return undefined;c=c[k[i]];}
+  return c;}
+function collect(){
+  var s={_n:JSON.parse(JSON.stringify(N)),_v:'beta'};
+  document.querySelectorAll('[data-k]').forEach(function(e){
+    var p=e.getAttribute('data-k');
+    if(e.type==='radio'){if(e.checked)setPath(s,p,e.value);}
+    else if(e.type==='checkbox'){setPath(s,p,e.checked);}
+    else setPath(s,p,e.value);});
+  return s;
+}
+function setAll(s){
+  document.querySelectorAll('[data-k]').forEach(function(e){
+    var v=getPath(s,e.getAttribute('data-k'));
+    if(e.type==='radio'){e.checked=(v===e.value);}
+    else if(e.type==='checkbox'){e.checked=(v===true);}
+    else if(v!==undefined&&v!==null){e.value=v;}});
+}
+function apply(s){setAll(s);draw61();bind();setAll(s);growAll();}
+function refresh61(){var s=collect();draw61();bind();setAll(s);growAll();}
+function mark(){dirty=true;
+  document.getElementById('st').innerHTML='<b>Modifiche non salvate</b> · usa «Salva JSON»';}
+function bind(){
+  document.querySelectorAll('[data-k]').forEach(function(e){
+    e.oninput=function(){if(e.tagName==='TEXTAREA')grow(e);mark();};
+    e.onchange=function(){
+      var k=e.getAttribute('data-k');
+      mark();
+      if(/^s5\.prove\.\d+\.pv\./.test(k)){refresh61();return;}
+      if(/^s5\.pl\.\d+\.(mat\.|opt$)/.test(k)||/^s5\.prove\.\d+\.(nproto|prod)$/.test(k)){
+        syncAll();return;
+      }
+    };});
+}
+function save(){
+  var s=collect();
+  var nome=(s.meta&&s.meta.operatore?s.meta.operatore.replace(/[^\w]+/g,'_'):'template')+'_DT_beta';
+  var blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=nome+'.json';a.click();URL.revokeObjectURL(a.href);
+  dirty=false;document.getElementById('st').textContent='Salvato '+new Date().toLocaleString('it-IT');
+}
+function loadFile(f){
+  var fr=new FileReader();
+  fr.onload=function(e){
+    try{
+      var s=JSON.parse(e.target.result);
+      if(s._n)Object.keys(N).forEach(function(k){if(typeof s._n[k]==='number')N[k]=s._n[k];});
+      drawAll();apply(s);
+      dirty=false;document.getElementById('st').textContent='Caricato: '+f.name;
+    }catch(err){alert('File non leggibile: '+err.message);}
+  };
+  fr.readAsText(f);
+}
+function addN(k){return function(){N[k]++;var s=collect();drawAll();apply(s);mark();};}
+function delN(k,min){return function(){if(N[k]<=min)return;N[k]--;var s=collect();drawAll();apply(s);mark();};}
+
+document.getElementById('save').onclick=save;
+document.getElementById('save2').onclick=save;
+document.getElementById('print').onclick=function(){prepPrint();window.print();};
+document.getElementById('print2').onclick=function(){prepPrint();window.print();};
+/* ============ stampa: due modalità ============
+   «compilato» sostituisce i controlli con i valori; «modulo vuoto» li mantiene
+   visibili come aree da compilare, elencando tutte le scelte disponibili.
+   Nel modulo vuoto le tabelle che nascono senza righe ne espongono alcune,
+   così che la struttura risulti leggibile anche in assenza di dati. */
+var VUOTO=null;
+function apriDescrittori(){document.querySelectorAll('details.desc').forEach(function(d){d.open=true;});}
+function formVuoto(){
+  var v=true;
+  document.querySelectorAll('[data-k]').forEach(function(e){
+    if(!v)return;
+    if(e.type==='radio'||e.type==='checkbox'){if(e.checked)v=false;}
+    else if(String(e.value||'').trim())v=false;
+  });
+  return v;
+}
+/* Prepara la resa a modulo vuoto: mantiene i controlli visibili, espone tutte le
+   scelte disponibili e porta a un minimo le tabelle che nascono senza righe, così
+   che ogni sezione risulti rappresentata anche in assenza di dati. */
+function preparaVuoto(){
+  if(VUOTO)return;
+  VUOTO={s:collect(),n:JSON.parse(JSON.stringify(N))};
+  N.cl31=Math.max(N.cl31,3); N.piani=Math.max(N.piani,1); N.var=Math.max(N.var,2);
+  N.prove=Math.max(N.prove,3); N.lab=Math.max(N.lab,3); N.az=Math.max(N.az,2);
+  N.pft=Math.max(N.pft,1); N.spp=Math.max(N.spp,1);
+  TUTTE=true;
+  document.body.classList.add('pb');
+  drawAll(); apply(VUOTO.s);
+  document.querySelectorAll('textarea').forEach(function(t){t.style.height='';});
+  apriDescrittori();
+}
+function ripristina(){
+  if(!VUOTO)return;
+  document.body.classList.remove('pb');
+  TUTTE=false;
+  var b=VUOTO; VUOTO=null;
+  Object.keys(b.n).forEach(function(k){N[k]=b.n[k];});
+  drawAll(); apply(b.s);
+}
+function stampaVuoto(){preparaVuoto();window.print();}
+window.addEventListener('afterprint',ripristina);
+window.addEventListener('beforeprint',function(){
+  if(VUOTO)return;                       /* resa a modulo vuoto già predisposta */
+  if(formVuoto()){preparaVuoto();return;} /* modulo non compilato: resa a modulo vuoto */
+  prepPrint();apriDescrittori();
+});
+document.getElementById('printBlank').onclick=stampaVuoto;
+document.getElementById('printBlank2').onclick=stampaVuoto;
+window.addEventListener('load',growAll);
+var rtmr;window.addEventListener('resize',function(){clearTimeout(rtmr);rtmr=setTimeout(growAll,150);});
+document.getElementById('clear').onclick=function(){
+  if(dirty&&!confirm('Ci sono modifiche non salvate. Procedere comunque?'))return;
+  N={opt:2,cl31:0,piani:1,var:1,prove:2,lab:2,az:0,pft:0,spp:1,colori:4,formati:3};
+  drawAll();
+  document.querySelectorAll('[data-k]').forEach(function(e){
+    if(e.type==='radio'||e.type==='checkbox')e.checked=false;else e.value='';});
+  growAll();dirty=false;document.getElementById('st').textContent='Nuovo modulo';
+};
+document.getElementById('load').onchange=function(e){
+  if(e.target.files&&e.target.files[0])loadFile(e.target.files[0]);};
+document.getElementById('add31').onclick=addN('cl31');
+document.getElementById('addOpt').onclick=function(){
+  if(N.opt>=LET.length)return;N.opt++;var s=collect();drawAll();apply(s);mark();};
+document.getElementById('addPiano').onclick=addN('piani');
+document.getElementById('addVar').onclick=addN('var');
+document.getElementById('addProva').onclick=addN('prove');
+document.getElementById('syncProve').onclick=syncAll;
+document.getElementById('sync61').onclick=function(){
+  var s=collect();sync61(s);drawAll();apply(s);mark();};
+document.getElementById('addLab').onclick=addN('lab');
+document.getElementById('addAz').onclick=addN('az');
+document.getElementById('addPft').onclick=addN('pft');
+document.getElementById('addSpp').onclick=addN('spp');
+window.addEventListener('beforeunload',function(e){if(dirty){e.preventDefault();e.returnValue='';}});
+
+drawAll();
+})();
+</script>
