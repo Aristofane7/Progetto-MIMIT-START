@@ -1,0 +1,24 @@
+/// Conformed dimension built from DISTINCT plant_id values in
+/// mv_intelligent_industry_state — the view/API don't expose a friendly
+/// plant_name (dim_plant isn't part of the read-only surface issue #8 is
+/// scoped to), so this dimension is id-only until that's extended.
+table DimPlant
+
+	column plant_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: plant_id
+		isKey
+
+	partition DimPlant = m
+		mode: import
+		source =
+				let
+				    FromCsvRaw = Csv.Document(File.Contents(LocalCsvFolder & "\dim_plant.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    FromCsv = Table.PromoteHeaders(FromCsvRaw, [PromoteAllScalars=true]),
+				    FromSql = Sql.Database(SqlServer, SqlDatabase, [Query="SELECT DISTINCT plant_id FROM mv_intelligent_industry_state WHERE plant_id IS NOT NULL"]),
+				    Source = if DataSourceMode = "SQL" then FromSql else FromCsv,
+				    ChangedType = Table.TransformColumnTypes(Source, {{"plant_id", type text}})
+				in
+				    ChangedType
+

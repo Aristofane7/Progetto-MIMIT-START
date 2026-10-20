@@ -32,7 +32,7 @@ class TEIInputs:
 
 class TEIEngine(CalculationEngine):
     engine_name = "TEI"
-    engine_version = "1.0.0"
+    engine_version = "1.1.0"  # ADR-018: quality-penalty formula corrected against SRC-TEI
 
     def validate_inputs(self, context: CalculationContext, inputs: TEIInputs) -> None:
         # Baseline rule (spec sec. 12.2): current and baseline runs must share the
@@ -55,21 +55,23 @@ class TEIEngine(CalculationEngine):
 
         ex_inv, quality_flags = compute_backlog(inputs.current_mto, current_mto_ex.ex_t_mj, record_key)
 
-        kappa_mts = q_thr_mts = None
+        kappa_mts = q_target_mts = None
         if inputs.current_mts.q_mts is not None:
             kappa_mts = inputs.coefficients.get("KAPPA_MTS").value
-            q_thr_mts = inputs.coefficients.get("Q_THR_MTS").value
+            q_target_mts = inputs.coefficients.get("Q_THR_MTS").value
         ex_qual_mts = compute_quality_penalty(
-            inputs.current_mts.q_mts, q_thr_mts, kappa_mts,
+            inputs.current_mts.q_mts, q_target_mts, kappa_mts,
             current_mts_ex.ex_rm_mj + current_mts_ex.ex_uw_mj + current_mts_ex.ex_e_sd_mj,
+            record_key=record_key,
         )
 
-        kappa_mto = q_thr_mto = None
+        kappa_mto = q_target_mto = None
         if inputs.current_mto.q_mto is not None:
             kappa_mto = inputs.coefficients.get("KAPPA_MTO").value
-            q_thr_mto = inputs.coefficients.get("Q_THR_MTO").value
+            q_target_mto = inputs.coefficients.get("Q_THR_MTO").value
         ex_qual_mto = compute_quality_penalty(
-            inputs.current_mto.q_mto, q_thr_mto, kappa_mto, current_mto_ex.ex_t_mj,
+            inputs.current_mto.q_mto, q_target_mto, kappa_mto, current_mto_ex.ex_t_mj,
+            record_key=record_key,
         )
 
         f_tech_mj = compute_f_tech(

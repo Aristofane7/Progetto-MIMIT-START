@@ -1,0 +1,23 @@
+cluster_id,product_count,pct_of_portfolio,dominant_shape,dominant_shape_purity,dominant_dimension,dominant_dimension_purity,dominant_thickness,dominant_thickness_purity,dominant_slip_class,dominant_slip_class_purity,dominant_effect,dominant_effect_purity,dominant_colour,dominant_colour_purity,data_quality_flag
+0,797,6.0,LISTELLO,48.3,PICCOLO,100.0,8mm,85.9,ANTISLIP,70.5,PIETRA,55.8,CHIARO,54.0,
+1,738,5.6,RETTANGOLARE,57.9,GRANDE,100.0,9mm,77.4,ANTISLIP,100.0,PIETRA,50.9,MEDIO,51.5,
+2,570,4.3,QUADRATO,48.6,PICCOLO,100.0,8mm,75.4,NPD,100.0,PIETRA,42.3,VARI,54.6,
+3,635,4.8,QUADRATO,48.3,MEDIO,100.0,9mm,100.0,ANTISLIP,100.0,PIETRA,53.7,CHIARO,100.0,
+4,418,3.2,QUADRATO,48.1,PICCOLO,88.0,7mm,100.0,NPD,79.4,DECORI,37.6,VARI,55.0,
+5,477,3.6,RETTANGOLARE,59.7,GRANDE,100.0,8mm,85.7,ANTISLIP,72.7,CEMENTO,44.2,SCURO,85.5,
+6,1077,8.1,QUADRATO,51.2,MEDIO,100.0,9mm,60.1,ANTISLIP,100.0,PIETRA,48.0,SCURO,83.8,
+7,860,6.5,LISTELLO,47.1,PICCOLO,100.0,9mm,96.9,ANTISLIP,65.7,PIETRA,68.0,SCURO,56.7,
+8,725,5.5,LISTELLO,53.8,PICCOLO,100.0,8mm,63.4,NPD,100.0,PIETRA,45.1,CHIARO,56.7,
+9,724,5.5,QUADRATO,44.1,MEDIO,99.7,9mm,50.4,NPD,79.4,CEMENTO,38.0,CHIARO,88.1,
+10,464,3.5,QUADRATO,48.7,PICCOLO,100.0,8mm,87.1,ANTISLIP,67.9,PIETRA,50.2,SCURO,57.1,
+11,538,4.1,QUADRATO,42.2,MEDIO,97.4,,,,,,,,,"SOURCE_DEFECT_LABEL_SHIFT: RP6.8 report p.13 dashboard lists Spessore=R9 (a Scivolosita R value), Scivolosita R=PIETRA (an Effetto value), Effetto=CHIARO (a Colore value) for this cluster -- values from the wrong attribute domain, indicating a column-shift rendering defect in the source table for this cluster only. Forma/Dimensione kept as plausible; Spessore/Scivolosita R/Effetto/Colore left blank pending clarification with the RP6.8 report author -- do not guess-correct these."
+12,512,3.9,LISTELLO,44.3,PICCOLO,100.0,9mm,97.7,ANTISLIP,63.5,PIETRA,68.0,SCURO,77.7,
+13,494,3.7,RETTANGOLARE,65.4,GRANDE,100.0,9mm,96.6,NPD,56.9,CEMENTO,32.2,CHIARO,48.4,"MINOR_SOURCE_DISCREPANCY: RP6.8 narrative sec. 3.3 cites 492 prodotti for this cluster; the p.13 dashboard table (used here as the structured deliverable) shows 494. Dashboard value retained."
+14,507,3.8,RETTANGOLARE,55.8,MEDIO,96.6,8mm,72.6,ANTISLIP,68.8,CEMENTO,49.1,SCURO,84.8,
+15,979,7.4,QUADRATO,50.6,MEDIO,100.0,9mm,79.3,ANTISLIP,100.0,PIETRA,48.7,SCURO,89.5,
+16,385,2.9,LISTELLO,40.0,PICCOLO,100.0,7mm,100.0,NPD,69.4,CEMENTO,30.9,CHIARO,60.8,
+17,382,2.9,QUADRATO,56.8,MEDIO,87.2,9mm,98.6,ANTISLIP,66.2,CEMENTO,48.7,MEDIO,52.9,
+18,692,5.2,QUADRATO,49.4,MEDIO,100.0,9mm,98.6,NPD,100.0,CEMENTO,38.2,CHIARO,54.2,
+19,463,3.5,RETTANGOLARE,60.7,MEDIO,100.0,8mm,100.0,ANTISLIP,100.0,PIETRA,49.5,MEDIO,53.3,
+20,243,1.8,RETTANGOLARE,47.3,MEDIO,60.1,8mm,60.1,NPD,100.0,CEMENTO,36.6,SCURO,85.6,
+21,571,4.3,RETTANGOLARE,51.1,MEDIO,99.8,8mm,83.4,NPD,63.4,CEMENTO,39.8,CHIARO,52.2,

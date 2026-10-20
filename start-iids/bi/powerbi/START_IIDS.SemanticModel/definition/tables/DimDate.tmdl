@@ -1,0 +1,64 @@
+/// Standard calendar table spanning FactShadowState's observed period range
+/// — a structural date-axis for slicers/"trend vs baseline" (sec. 38.1), not
+/// a computed sustainability metric (sec. 39 is unaffected: no EEA+/P-TSA
+/// value is derived here).
+table DimDate
+
+	column Date
+		dataType: dateTime
+		formatString: Short Date
+		summarizeBy: none
+		sourceColumn: Date
+		isKey
+
+	column Year
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: Year
+
+	column Quarter
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: Quarter
+
+	column MonthNumber
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: MonthNumber
+
+	column MonthName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: MonthName
+
+	column YearMonth
+		dataType: string
+		summarizeBy: none
+		sourceColumn: YearMonth
+
+	hierarchy 'Calendar'
+		level Year
+			column: Year
+		level Quarter
+			column: Quarter
+		level MonthName
+			column: MonthName
+
+	partition DimDate = m
+		mode: import
+		source =
+				let
+				    MinDate = Date.From(List.Min(FactShadowState[DateKey])),
+				    MaxDate = Date.From(List.Max(FactShadowState[DateKey])),
+				    DayCount = Duration.Days(MaxDate - MinDate) + 1,
+				    DateList = List.Dates(MinDate, DayCount, #duration(1, 0, 0, 0)),
+				    ToTable = Table.FromList(DateList, Splitter.SplitByNothing(), {"Date"}),
+				    AddYear = Table.AddColumn(ToTable, "Year", each Date.Year([Date]), Int64.Type),
+				    AddQuarter = Table.AddColumn(AddYear, "Quarter", each Date.QuarterOfYear([Date]), Int64.Type),
+				    AddMonthNumber = Table.AddColumn(AddQuarter, "MonthNumber", each Date.Month([Date]), Int64.Type),
+				    AddMonthName = Table.AddColumn(AddMonthNumber, "MonthName", each Date.MonthName([Date]), type text),
+				    AddYearMonth = Table.AddColumn(AddMonthName, "YearMonth", each Date.ToText([Date], "yyyy-MM"), type text),
+				    ChangedType = Table.TransformColumnTypes(AddYearMonth, {{"Date", type date}})
+				in
+				    ChangedType
+

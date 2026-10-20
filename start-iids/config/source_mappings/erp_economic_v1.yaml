@@ -1,0 +1,52 @@
+# Draft data contract for the ERP economic feed behind EcoFA-J (sec. 16,
+# src/engines/ecofa/formulas.py::EcoFAPeriodFlows/CostItem). Target field
+# names match that dataclass exactly; source field names below are
+# placeholders (`TBD_*`) — the real SAP/ERP table and column names are open
+# item P0-03 (docs/decisions/ADR-021-...), not fabricated here (spec sec. 64).
+# Point `source_field` at the real column once IT supplies it; nothing else
+# in this file, or in EcoFAPeriodFlows, needs to change.
+contract_id: ERP_ECONOMIC_V1
+source_system: ERP
+entity: economic_flow_period
+owner: finance_it
+
+keys:
+  - TBD_cost_center_code
+  - TBD_period_start
+
+timestamp:
+  field: TBD_period_start
+  timezone: Europe/Rome
+
+fields:
+  TBD_cost_center_code:
+    target: accounting_term_id
+    type: string
+    required: true
+
+  TBD_amount_eur:
+    target: amount_eur
+    type: decimal
+    unit: EUR
+    required: true
+
+  TBD_value_added_eur:
+    target: value_added_eur
+    type: decimal
+    unit: EUR
+
+  TBD_fixed_assets_eur:
+    target: fixed_assets_eur
+    type: decimal
+    unit: EUR
+
+quality:
+  reject_if_missing:
+    - TBD_cost_center_code
+    - TBD_amount_eur
+    - TBD_period_start
+
+deduplication:
+  key:
+    - TBD_cost_center_code
+    - TBD_period_start

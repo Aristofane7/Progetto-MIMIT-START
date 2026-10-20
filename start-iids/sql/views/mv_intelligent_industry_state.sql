@@ -18,6 +18,21 @@
 --     referencing the product's current cluster/version (best-effort linkage —
 --     sec. 23's bridge_design_process_requirement is the authoritative link once
 --     a given lot is produced from an explicit design option in later stages).
+--
+-- process_id/process_name/process_family (ADR-016) are a passthrough addition
+-- beyond sec. 26.2's "campi minimi" (a floor, not a ceiling): the Factory page
+-- drill-down Plant→Line→Lot→Process required by sec. 38.1 has no field to
+-- drill into without them. Same first-process-of-the-lot join as line_id.
+--
+-- channel_id/channel_type (ADR-022) are the same kind of passthrough addition:
+-- not in sec. 26.2's field list, added because the distribution channel
+-- (B2B/B2C) is a monitoring point named directly in the Piano di Sviluppo
+-- (OR7.5's B2C-CR/B2B-CR) with no field to surface it without this join.
+--
+-- scenario (ADR-024) is the lot's own real CURRENT/HISTORICAL flag
+-- (sec. 46, fact_production_lot's existing column) — surfaced so a viewer
+-- can toggle historical replay vs current state without a fabricated
+-- what-if/disruption model (which this domain does not have).
 
 CREATE VIEW mv_intelligent_industry_state AS
 SELECT
@@ -25,7 +40,11 @@ SELECT
     COALESCE(lot.end_ts, lot.start_ts)              AS period_end,
     lot.plant_id                                    AS plant_id,
     lp.line_id                                      AS line_id,
+    lp.process_id                                   AS process_id,
+    proc.process_name                               AS process_name,
+    proc.process_family                             AS process_family,
     lot.lot_id                                      AS lot_id,
+    lot.scenario                                    AS scenario,
     lot.product_id                                  AS product_id,
     prod.cluster_id                                 AS cluster_id,
     prod.cluster_version                            AS cluster_version,
@@ -45,6 +64,8 @@ SELECT
     ptsa.tii                                        AS tii,
 
     sales.sales_m2                                  AS sales_m2,
+    sales.channel_id                                AS channel_id,
+    chan.channel_type                               AS channel_type,
     cperf.trend_class                               AS cluster_trend,
     ctrend.alignment_score                          AS trend_alignment,
 
@@ -61,6 +82,8 @@ SELECT
 FROM fact_production_lot lot
 LEFT JOIN fact_lot_process lp
     ON lp.lot_id = lot.lot_id AND lp.sequence_no = 1
+LEFT JOIN dim_process proc
+    ON proc.process_id = lp.process_id
 LEFT JOIN dim_product prod
     ON prod.product_id = lot.product_id
 LEFT JOIN fact_eea_state eea
@@ -75,6 +98,8 @@ LEFT JOIN fact_product_sales sales
     ON sales.product_id = lot.product_id
    AND lot.start_ts >= sales.period_start
    AND lot.start_ts <  sales.period_end
+LEFT JOIN dim_distribution_channel chan
+    ON chan.channel_id = sales.channel_id
 LEFT JOIN fact_cluster_performance cperf
     ON cperf.cluster_id = prod.cluster_id
    AND cperf.cluster_version = prod.cluster_version

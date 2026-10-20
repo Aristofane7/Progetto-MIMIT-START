@@ -110,7 +110,11 @@ def compute_ex_ref_mj(
     Ex_el = E_el_kWh * EL_EX (EL_EX = 3.6 MJ/kWh, same physical constant as
     `kwh_to_mj` — sourced from the `Coefficienti` sheet as an APPROVABLE
     coefficient rather than hardcoded here). Ex_fuel = V_gas_Nm3 * GAS_EX
-    (chemical exergy of natural gas, MJ/Nm3).
+    (chemical exergy of natural gas, MJ/Nm3). Confirmed verbatim as Eq. (18) in
+    "RP7.3 Report di Assessment termodinamico della fabbrica.pdf" sec. 2.3
+    (ADR-019) — fuel conversion efficiency is deliberately kept inside Psi,
+    not this denominator ("tenendo l'efficienza di conversione all'interno di
+    Ψ e non nel denominatore Ex_ref").
     """
     if e_el_kwh < 0 or v_gas_nm3 < 0:
         raise EngineError(
@@ -152,12 +156,17 @@ def compute_phi(sa_w_gj: float, ex_ref_gj: float, record_key: str) -> float:
 def compute_psi_efficiency(psi_reported: float) -> float:
     """Psi = Ex_useful / Ex_ref.
 
-    ADR-012 open item: no sheet in the available corpus defines `Ex_useful` or a
-    coefficient to derive it from production output. This function is a
-    documented pass-through of a directly reported Psi value (sourced from the
-    real RP7.3 calculation log, not fabricated) — it does not compute Psi from
-    scratch. Do not add an `Ex_useful` derivation here without a confirmed
-    source and a project-owner-approved coefficient (Appendix L/M).
+    ADR-012's open item is resolved by ADR-019: "RP7.3 Report di Assessment
+    termodinamico della fabbrica.pdf" sec. 2.3 confirms Ex_useful is a
+    directly-tracked exergy quantity in the beta methodology, not decomposed
+    via a production coefficient — that decomposition is explicit *future*
+    work ("consolidamento della libreria dei coefficienti su dati primari ed
+    EPD", sec. 4.5), not a gap in this implementation. This function therefore
+    stays a documented pass-through of a directly reported Psi value (sourced
+    from the real RP7.3 calculation log; cross-checked against the report's
+    own Ex_useful column in `tests/regression/test_rp73_calculation_log.py`)
+    — it does not, and per the source's own methodology should not, compute
+    Psi from an invented coefficient (spec sec. 64 / Appendix L/M).
     """
     return psi_reported
 

@@ -1,0 +1,56 @@
+# Draft data contract for the HR feed behind SFA-J (sec. 17,
+# src/engines/sfa/formulas.py::SFAPeriodFlows/StakeholderValue). Target field
+# names match that dataclass exactly; source field names below are
+# placeholders (`TBD_*`) — the real HR system's table/column names are open
+# item P0-03 (docs/decisions/ADR-021-...), not fabricated here (spec sec. 64).
+contract_id: HR_SOCIAL_V1
+source_system: HR
+entity: social_flow_period
+owner: hr_it
+
+keys:
+  - TBD_period_start
+  - TBD_stakeholder_code
+
+timestamp:
+  field: TBD_period_start
+  timezone: Europe/Rome
+
+fields:
+  TBD_stakeholder_code:
+    target: stakeholder_code
+    type: string
+    required: true
+
+  TBD_stakeholder_value_eur:
+    target: value_eur
+    type: decimal
+    unit: EUR
+
+  TBD_hours_lost:
+    target: hours_lost
+    type: decimal
+    unit: h
+    min: 0
+
+  TBD_hours_training:
+    target: hours_training
+    type: decimal
+    unit: h
+    min: 0
+
+  TBD_em_co2_kg:
+    target: em_co2_kg
+    type: decimal
+    unit: kg
+    min: 0
+
+quality:
+  reject_if_missing:
+    - TBD_stakeholder_code
+    - TBD_period_start
+
+deduplication:
+  key:
+    - TBD_stakeholder_code
+    - TBD_period_start

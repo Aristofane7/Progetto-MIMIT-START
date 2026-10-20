@@ -13,14 +13,64 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 ## At a glance
 
 - **27 / 30** v1 acceptance criteria (spec sec. 57) — **DONE**
-- **2 / 30** — **PARTIAL** (E2C live connector, full golden-regression approval)
-- **1 / 30** — **NOT STARTED** (Power BI semantic model — a BI-tool artifact
-  outside this Python/SQL repository)
-- **178 tests passing** (1 skipped, documented — see ADR-011), 95% coverage on
-  `src/`, CI green on `main`
+- **3 / 30** — **PARTIAL** (E2C live connector, full golden-regression approval,
+  BI drill-down — semantic model shipped, report pages need GUI authoring)
+- **274 tests passing** (0 skipped — the last skip, P-TSA z-score, is
+  resolved by ADR-020), 95% coverage on `src/`, CI green on `main`
+- Issue #8's Power BI GUI-authoring blocker now has a working alternative:
+  a single self-contained HTML viewer (`bi/html_viewer/`,
+  `scripts/build_html_viewer.py`, ADR-023), the same pattern the sibling
+  project VOLT uses — buildable and testable headlessly, no BI license
+  needed. The Power BI semantic model (`bi/powerbi/`, ADR-016) is unchanged
+  and stays the documented path once a licensed environment + real data are
+  available. Also adds a distribution-channel dimension (B2B/B2C,
+  ADR-022) with a concentration-risk metric, a monitoring point requested
+  directly rather than from the spec. The viewer (ADR-024) now carries the
+  real START logo/palette, a glossary with hover tooltips for every metric
+  (no bare acronyms), a "Guida all'uso" tab, and a CURRENT/HISTORICAL +
+  period-comparison "scenario" view grounded in real fields — not a
+  fabricated disruption model like the sibling project VOLT's
+- Issue #3 (P0-03): the real MES/SCADA/ERP/HR/LIMS field/table names remain a
+  genuine external blocker (checked directly against RP6.6/RP6.7/RP7.1/RP7.2,
+  ADR-021) — but the Edge collector (sec. 34.1), source-agnostic Cloud
+  raw/staging landing (sec. 34.2, ADR-004), and 4 new draft ERP/HR/SCADA/LIMS
+  data contracts are now built and tested
+- Stage 9 self-check (ADR-017): `python3 -m scripts.stage9_validation_checklist`
+  reports **12 PASS / 5 PARTIAL / 4 BLOCKED** out of 21 checklist items (spec
+  sec. 65) — a live, re-runnable number, not a hand-maintained assertion
+- The real SRC-TEI/EFA/EcoFA/SFA manuals (repo-root PDFs) were found and read
+  (ADR-018): EFA/EcoFA/SFA formulas confirmed exact; TEI-J's quality-penalty
+  formula was wrong and is now fixed against the real manual text
+- The RP7.3 narrative report (repo-root PDF) was found and read (ADR-019):
+  `Psi`/`Ex_useful` confirmed as intentionally a directly-reported input in
+  the beta methodology, closing that ADR-012 open item
 - Real RP7.3 aggregate EEA+/TSI model (ADR-012) **validated against 66 real,
   non-fabricated data points**; its coefficient/weight sets are **APPROVED**
   by the project owner (ADR-013, 2026-09-01)
+- The 22 real RP6.8 product clusters are loaded (ADR-015); the 13,251-product
+  export with cluster assignment (issue #7) remains an external blocker, not
+  a code gap — see `data/reference/README.md`
+- **D020 (Viano) partial production year 2025** (ceased production July 2025,
+  reconversion to a logistics hub) is reconciled with a homologous
+  same-window baseline (ADR-025, option A): per-year production, a
+  `months_active` activity window, a `TEMPORAL_MISMATCH` duration guard, and
+  real measured period data loaded — the golden log is now **beta-1.3**
+  (beta-1.1 archived as a regression fixture, `tests/fixtures/rp73/`)
+- The HTML viewer's Fabbrica tab now also shows this real RP7.3 plant/year
+  data (D020/D060/D240, 2022-2025) in its own card, kept separate from the
+  synthetic per-lot rows (ADR-026); its Guida tab lists every `RP*`/`Attività*`
+  relazione actually deposited at the repository root, discovered by filename
+  rather than hand-maintained
+- 4 more RP deliverable branches consolidated (RP 7.6, RP 7.9 draft, RP 8.6
+  rebuild, Attività 7.10 — ADR-027), each brought in by file rather than a
+  full merge to avoid resurrecting deleted files or colliding with this
+  repository's own root files; `Attivita_7.10/` isolates that branch's own
+  scratch project the same way `RP8.6/` already isolated its own
+- A new "Simulazione" tab (ADR-028) lets the user run a what-if sandbox:
+  slider deltas on real baseline numbers, recomputed live by 5 already-real,
+  already-documented formulas (SA, TSI_norm, Φ, TSI_abs, TSI_rel) — never the
+  heavier per-lot engines, and never a VOLT-style pre-authored disruption
+  catalogue (ADR-024's "no fabricated shock model" still holds)
 - Nothing in `src/` writes to the physical system — enforced structurally and
   by a CI guard (ADR-001)
 
@@ -29,52 +79,61 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
 | Stage | Scope | Status |
 |---|---|---|
 | 0 — Foundation | repo layout, CI, feature flags, unit library | **DONE** |
-| 1 — Master data | plant/line/process/equipment/product/cluster DDL | **DONE** (schema + loaders); real 13.251-product / 22-cluster CSV import is a data-loading exercise for whoever owns the RP6.8 export, not a code gap |
+| 1 — Master data | plant/line/process/equipment/product/cluster DDL | **PARTIAL** — schema + loaders done; the 22 real RP6.8 clusters are now loaded (`data/reference/rp68_cluster_master.csv`, ADR-015); the 13.251-product export with cluster assignment (RP6.8 sec. 3.7) is an external blocker — not in this repository, not reconstructable from the report, needs whoever holds the raw RP6.8 deliverables |
 | 2 — Lot bridge | production lot / lot-process / product mapping | **DONE** (schema); real MES lot codes need contract mapping (P0-04) |
-| 3 — Process observation | E2C/MES ingestion, canonical units | **PARTIAL** — data contract mechanism done (`src/ingestion/contracts.py`), one example contract (`MES_PRODUCTION_V1`); no live Edge/MES/SCADA connector is implemented (needs IT source mappings, P0-03) |
-| 4 — EEA engines | TEI → EFA → EcoFA → SFA → EEA aggregation | **DONE** (formulas + engines + tests) + an aggregate plant/year path (`src/engines/eea/aggregate.py`, ADR-012) validated against 66 real data points from `data/reference/RP7.3_calculation_log.xlsx`. Coefficients (`COEFF_RP73_PROVISIONAL_2026`) and AHP weights (`EEA_AHP_RP73_1`) are `APPROVED` as of 2026-09-01 (ADR-013) — P0-02 **resolved for the aggregate model**; the granular per-lot coefficients used by the TEI/EFA/EcoFA/SFA engines directly remain unapproved test-only values (ADR-011) |
+| 3 — Process observation | E2C/MES ingestion, canonical units | **PARTIAL** — data contract mechanism done (`src/ingestion/contracts.py`), plus a generic Edge collector (`src/ingestion/edge/collector.py`, sec. 34.1) and a source-agnostic Cloud raw/staging landing schema + writer (`src/ingestion/edge/cloud_writer.py`, migration `0011`, sec. 34.2, ADR-021); 5 draft contracts total (`MES_PRODUCTION_V1` + new `ERP_ECONOMIC_V1`/`HR_SOCIAL_V1`/`SCADA_PROCESS_OBSERVATION_V1`/`LIMS_QUALITY_V1`), all source fields `TBD_*` pending real IT field names; no live connection to a real plant system is implemented (needs IT source mappings, P0-03 — confirmed a genuine external blocker, ADR-021) |
+| 4 — EEA engines | TEI → EFA → EcoFA → SFA → EEA aggregation | **DONE** (formulas + engines + tests) + an aggregate plant/year path (`src/engines/eea/aggregate.py`, ADR-012) validated against 66 real data points from `data/reference/RP7.3_calculation_log.xlsx`. Coefficients (`COEFF_RP73_PROVISIONAL_2026`) and AHP weights (`EEA_AHP_RP73_1`) are `APPROVED` as of 2026-09-01 (ADR-013) — P0-02 **resolved for the aggregate model**. The 4 real SRC-TEI/EFA/EcoFA/SFA manuals (repo root PDFs) were found and read (ADR-018): EFA/EcoFA/SFA formulas already matched exactly; TEI-J's quality-penalty formula was wrong (absolute-difference vs the manual's ratio shortfall) and is now fixed (`engine_version` 1.1.0). Granular coefficient *values* (`B_TILE`, `B_SDM`, `KAPPA_MTS`, etc.) remain `DRAFT`/test-only — the real coefficient library ("Tabella 2") every manual points to is not part of this corpus, an external blocker like issue #7's product export, not a code gap |
 | 5 — Product intelligence | sales, cluster performance, trend | **DONE** (schema + CQS + trend classification + SCD2 catalog) |
-| 6 — P-TSA | SCR/PsI/OCR/z-score/AHP/P-TSI/TII | **DONE** (engine + tests); z-score golden regression blocked on RP7.4 dataset (ADR-011 item 5) |
+| 6 — P-TSA | SCR/PsI/OCR/z-score/AHP/P-TSI/TII | **DONE** (engine + tests); z-score golden regression now real, validated against the RP7.4 report's own Tabelle 3-7 (ADR-020, issue #6) |
 | 7 — Product Design workflow | project/option/prototype/test/decision | **DONE** (schema + state machine + decision enum) |
-| 8 — Integrated mart | IIDS view, read-only API | **DONE** (`mv_intelligent_industry_state`, FastAPI read-only endpoints) |
-| 9 — Validation | regression, audit, performance, UAT | **PARTIAL** — unit/integration/regression test suite in place; performance/UAT against real infrastructure is out of this repository's scope |
+| 8 — Integrated mart | IIDS view, read-only API | **DONE** (`mv_intelligent_industry_state`, FastAPI read-only endpoints, now with a `channel_id`/`channel_type` passthrough, ADR-022); Power BI semantic model **PARTIAL** — TMDL model + measures + CSV/SQL data-source switch shipped (`bi/powerbi/`, ADR-016); the 3 report pages (sec. 38.1-38.3) are a GUI-authoring step against the shipped model + `docs/powerbi/report_pages_spec.md`. **A working alternative is `DONE`**: a self-contained HTML viewer (`bi/html_viewer/`, `scripts/build_html_viewer.py`, ADR-023) covers Factory/Product/Channel/Integrated/Building-placeholder/Quality in one always-buildable file, VOLT-style |
+| 9 — Validation | regression, audit, performance, UAT | **PARTIAL** — unit/integration/regression suite in place; audit persistence (`audit_data_quality`/`audit_lineage`) and blocker-rule detection now proven with real inserts, not just schema (ADR-017); `scripts/stage9_validation_checklist.py` reports live status against issue #9's 21-item checklist (12 PASS/5 PARTIAL/4 BLOCKED); performance/UAT against real infrastructure remain out of this repository's scope by construction |
 
 ## Acceptance criteria (spec sec. 57) — status
 
-1. Physical data via E2C or equivalent fixture — **PARTIAL** (contract mechanism ready, no live connector)
+1. Physical data via E2C or equivalent fixture — **PARTIAL** (contract mechanism, Edge collector, and Cloud raw/staging landing all ready and tested, ADR-021; no live connector — P0-03 real field names remain a confirmed external blocker)
 2. Data associated with plant — DONE
 3. Data associated with line/process — DONE
 4. Lot associated with product — DONE
 5. Product associated with cluster — DONE
-6. Historical state reconstructable — DONE (historical-replay repository queries, sec. 46)
-7-10. TEI/EFA/EcoFA/SFA operational — DONE
+6. Historical state reconstructable — DONE (historical-replay repository queries, sec. 46; proven across multiple time points, not just one, in `test_factory_shadow_historical_replay_across_two_periods`, ADR-017)
+7-10. TEI/EFA/EcoFA/SFA operational — DONE; formulas cross-checked against the real SRC-TEI/EFA/EcoFA/SFA manuals (ADR-018) — EFA/EcoFA/SFA matched exactly, TEI-J's quality-penalty formula was corrected
 11. EEA aggregates four contributions — DONE
-12. TSI_norm computable with coherent baseline — DONE, and the fuller real RP7.3 `TSI_abs`/`TSI_rel`/`Phi`/`Psi`/`SA_w` variant (ADR-012) reproduces 66 real logged values (`tests/regression/test_rp73_calculation_log.py`)
+12. TSI_norm computable with coherent baseline — DONE, and the fuller real RP7.3 `TSI_abs`/`TSI_rel`/`Phi`/`Psi`/`SA_w` variant (ADR-012) reproduces 66+9 real logged values (`tests/regression/test_rp73_calculation_log.py`); `Psi`/`Ex_useful` confirmed by design, not a stopgap (ADR-019)
 13. Sales associable to product — DONE
 14. Cluster performance available — DONE
 15. Trend linkable to cluster — DONE
 16. P-TSA computes SCR/PsI/OCR — DONE
-17. P-TSI z computed — DONE
-18. P-TSI scoring/AHP computed — DONE
+17. P-TSI z computed — DONE, validated against the real RP7.4 report data (ADR-020)
+18. P-TSI scoring/AHP computed — DONE, validated against the real RP7.4 report data (ADR-020)
 19. TII computed on the appropriate (P_TSI_5) variant — DONE
 20. Design project traceable end-to-end — DONE (schema + workflow validator)
 21. Prototype test linked — DONE (schema: `fact_quality_test.prototype_id`)
 22. Design decision auditable — DONE
 23. IIDS view available — DONE
-24. BI drill-down functioning — **NOT STARTED** (Power BI semantic model is a BI-tool artifact, sec. 38, out of this Python/SQL repository's scope; the read-only API + view provide the data it would consume). Development against real data waits on issues #3/#7; a temporary, clearly-tagged synthetic dataset (`scripts/generate_synthetic_demo_data.py`, ADR-014) unblocks model/page development in the meantime — see [issue #8](https://github.com/Aristofane7/Progetto-MIMIT-START/issues/8)
+24. BI drill-down functioning — **PARTIAL**: the Power BI semantic model (`bi/powerbi/`, ADR-016) is real and openable — `FactShadowState` + 6 conformed dimensions, display-aggregation-only measures, a `DataSourceMode` parameter switching between the ADR-014 synthetic export and a live SQL connection with no model rework. The 3 report pages/drill-down visuals themselves (sec. 38.1-38.4) are specified field-by-field in `docs/powerbi/report_pages_spec.md` but not yet built — that's a Power BI Desktop GUI step this repository can't execute or validate headlessly. **A working, tested alternative now exists**: `python3 -m scripts.build_html_viewer` (ADR-023, ADR-024) produces a single self-contained HTML file covering the same Factory/Product/Integrated pages plus a distribution-channel view, a full metric glossary with tooltips, a CURRENT/HISTORICAL + period-comparison scenario view, and a user guide tab, with no BI license needed — the same visual pattern the sibling project VOLT uses. Full real-data demonstration in either form still waits on issues #3/#7 — see [issue #8](https://github.com/Aristofane7/Progetto-MIMIT-START/issues/8)
 25. No automatic actuation — DONE (structural: no write routes exist; CI greps for forbidden patterns)
 26. Coefficient/version tracked — DONE (`dim_coefficient_set`, `dim_weight_set`)
 27. calc_run reproducible — DONE (`audit_calc_run`, `make_calc_run_id`)
-28. Data quality visible — DONE (`audit_data_quality`, blocker queries)
+28. Data quality visible — DONE (`audit_data_quality`, blocker queries; `src/core/quality/persistence.py` now actually writes findings, and the blocker queries are proven to detect real violations rather than just parse as SQL, ADR-017)
 29. P0 unit conversion validated — DONE (`test_units_energy.py`)
-30. Golden regression tests approved — **PARTIAL**: CQS (sec. 19.5), the P-TSA AHP-formula self-consistency check, and — the strongest evidence so far — 66 real, non-fabricated RP7.3 EEA+/TSI data points (`f_env`/`f_econ`/`f_soc`/`f_tech`/`SA_raw`/`Ex_ref`/`TSI_abs`/`TSI_rel`, ADR-012) all pass against coefficient/weight sets now formally `APPROVED` (ADR-013, 2026-09-01); the P-TSA z-score targets remain blocked on a real fixture (see ADR-011), and the granular per-lot TEI/EFA/EcoFA/SFA coefficients are still unapproved test-only values
+30. Golden regression tests approved — **PARTIAL**: CQS (sec. 19.5); 66+9 real, non-fabricated RP7.3 EEA+/TSI data points (`f_env`/`f_econ`/`f_soc`/`f_tech`/`SA_raw`/`Ex_ref`/`TSI_abs`/`TSI_rel`/`Ex_useful`, ADR-012/ADR-019) all pass against coefficient/weight sets formally `APPROVED` (ADR-013, 2026-09-01); the P-TSA z-score AND scoring/AHP targets now both pass against the real RP7.4 report data (ADR-020, issue #6) — the only remaining gap is that the granular per-lot TEI/EFA/EcoFA/SFA coefficient *values* (formulas confirmed, ADR-018) are still unapproved test-only placeholders pending the real Tabella 2 library
 
 ## What was deliberately NOT built (FUTURE / out of scope, per spec)
 
 - ARIMA forecasting, logistic success model, portfolio optimizer (sec. 36, ADR-009)
 - Any actuation / Digital Twin closed loop (sec. 3, ADR-001)
-- Live Edge/MES/SCADA/ERP/HR/LIMS connectors (require IT-provided field mappings, P0-03)
-- Power BI semantic model artifact itself (sec. 38 — BI-tool-side work)
+- Live Edge/MES/SCADA/ERP/HR/LIMS connectors (require IT-provided field mappings, P0-03 — confirmed a genuine external blocker after reading RP6.6/RP6.7/RP7.1/RP7.2 directly, ADR-021); the source-agnostic Edge/Cloud infrastructure they will plug into is already built
+- The 3 Power BI report pages' actual visual layout (sec. 38.1-38.3) —
+  a GUI-authoring step in Power BI Desktop against the semantic model in
+  `bi/powerbi/` (ADR-016) and the spec in `docs/powerbi/report_pages_spec.md`;
+  not something this repository can produce or validate headlessly. The
+  self-contained HTML viewer (`bi/html_viewer/`, ADR-023) covers the same
+  pages without that GUI step, so this gap now has a working alternative,
+  not just a documented one
+- Real building/envelope data in the HTML viewer's "Edificio" tab — that is
+  OR3's domain (UNISS), a different partner in the Piano di Sviluppo; the
+  tab is a structural placeholder listing OR3's own tasks, not fabricated
 - Re-clustering pipeline running on a schedule (sec. 19.6 — cluster versions are imported on request)
 
 ## Next steps for whoever continues this work
@@ -84,17 +143,60 @@ plant's MES/SCADA/ERP/HR/LIMS systems, which requires IT-provided source mapping
    series is later consolidated with different values, that must land under a
    new `coefficient_set_id`/`weight_set_id` (sec. 11.3 point 4), never as an
    in-place edit of the approved set.
-2. Resolve the `Psi`/`Ex_useful` open item (ADR-012) with the project owner —
-   currently a reported, not derived, input; unaffected by ADR-013.
+2. ~~Resolve the `Psi`/`Ex_useful` open item (ADR-012)~~ — **done, ADR-019**:
+   the primary RP7.3 report (repo root PDF, not examined before) confirms
+   `Ex_useful`'s coefficient-based derivation is deliberately deferred to a
+   future "release" version of the methodology, not missing from this beta —
+   `Psi` stays a directly reported input by design. No coefficient invented,
+   no project-owner sign-off needed (nothing new was approved).
 3. Get IT to supply real MES/SCADA/ERP/HR/LIMS field names and complete
-   `audit_source_mapping` + per-source YAML contracts (P0-03).
-4. Resolve the five ADR-011 open items (TEI-J quality penalty, MTO powder
-   pricing, `B_TILE`, cluster-trend thresholds, P-TSA z-score fixture) with the
-   actual SRC-TEI/EFA/EcoFA/SFA/RP74 manual text and an owner sign-off — these
-   are separate from, and not covered by, the ADR-013 approval.
-5. Build the Power BI semantic model against `mv_intelligent_industry_state` /
-   the read-only API (sec. 38). Can start now against the synthetic dataset
-   (`scripts/generate_synthetic_demo_data.py`, ADR-014) — swap to real data
-   once #3/#7 land, no model rework expected since both read the same view.
+   `audit_source_mapping` + per-source YAML contracts (P0-03) — confirmed
+   genuinely blocked, not hidden in this corpus (ADR-021, checked directly
+   against RP6.6/RP6.7/RP7.1/RP7.2). The Edge collector, Cloud raw/staging
+   landing, and 4 draft ERP/HR/SCADA/LIMS contracts (`TBD_*` source fields)
+   are ready to receive the real field names with no schema or engine-code
+   change once IT provides them.
+3b. ~~Load the 22 real RP6.8 clusters~~ — **done, ADR-015**. Obtain the real
+    13,251-product cluster-assignment export (RP6.8 sec. 3.7, not in this
+    repository) and run `python3 -m scripts.import_rp68_product_master_data
+    --products-csv <file>` — the importer is ready and FK-validated against
+    the real cluster set, only the input file is missing (issue #7).
+4. ~~Resolve ADR-011 items 1-3 (TEI-J quality penalty, MTO powder pricing,
+   `B_TILE`) against the actual SRC-TEI manual text~~ — **done, ADR-018**: the
+   4 real manuals were found at the repo root; TEI-J's formula is fixed,
+   EFA/EcoFA/SFA confirmed correct. Still open: get the project owner's
+   sign-off on actual coefficient *values* once the real "Tabella 2" library
+   (referenced by all 4 manuals, not part of this corpus) is available —
+   confirming a formula is not approving a value (sec. 11.3). ADR-011 item 4
+   (cluster-trend thresholds) remains genuinely open — no manual answers a
+   business-policy question like that. Item 5 (P-TSA z-score/RP7.4 dataset)
+   is separately resolved — see next point.
+4b. ~~Obtain the RP7.4 dataset for the P-TSA z-score golden regression
+    (ADR-011 item 5)~~ — **done, ADR-020**: the RP7.4 report (repo root PDF)
+    contains the full raw SCR/PsI/OCR matrix and real per-dimension scores;
+    `test_zscore_p_tsi_matches_rp74_published_values` is un-skipped and
+    passing (issue #6).
+5. ~~Build the Power BI semantic model against `mv_intelligent_industry_state`~~
+   — **done, ADR-016**: `bi/powerbi/START_IIDS.SemanticModel/` (TMDL), built
+   and testable today against the synthetic dataset via
+   `scripts/export_mv_intelligent_industry_state.py`. Remaining: open it in
+   Power BI Desktop and build the 3 report pages per
+   `docs/powerbi/report_pages_spec.md` (sec. 38.1-38.4) — a GUI step: not
+   executable from this repository. Swap `DataSourceMode`/`SqlServer`/
+   `SqlDatabase` to real data once #3/#7 land, no model rework needed.
 6. Run the Stage 9 checklist (spec sec. 65) against a staging environment with
-   real data before declaring v1 production-ready.
+   real data before declaring v1 production-ready. `python3 -m
+   scripts.stage9_validation_checklist` (ADR-017) tracks live status of what
+   this repository alone can verify (10/21 PASS today) — re-run it as #3-#7
+   land; it will not, and cannot, turn UAT/performance items green, since
+   those need a real deployment and real users.
+7. Get the project owner's explicit sign-off on `config/baselines/rp73_baseline_2022.yaml`
+   (currently `DRAFT`) — a gap ADR-017 found: the RP7.3 aggregate model has used
+   this baseline since ADR-012, but it was never a governed artifact the way
+   the coefficient/weight sets are (ADR-013).
+8. ~~Build a working alternative to the Power BI GUI-authoring step for
+   issue #8~~ — **done, ADR-023**: `python3 -m scripts.build_html_viewer`
+   (self-contained HTML, VOLT pattern). Remaining: real per-channel sales
+   volumes for the new "Canale distributivo" tab (ADR-022, same class of
+   external blocker as P0-03/P0-04) and real building/envelope data for the
+   "Edificio" tab once OR3/UNISS shares it.

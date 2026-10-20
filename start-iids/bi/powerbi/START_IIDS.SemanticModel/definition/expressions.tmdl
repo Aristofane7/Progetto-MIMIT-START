@@ -1,0 +1,29 @@
+/// Data-source switch (ADR-016). "Local" reads the CSVs produced by
+/// scripts/export_mv_intelligent_industry_state.py (ADR-014 synthetic data,
+/// or a real export once issues #3/#7 land). "SQL" reads
+/// mv_intelligent_industry_state directly from a live SQL Server / Azure SQL
+/// instance. Swapping this parameter (and Sql*  below) is the only change
+/// needed to move the whole model from synthetic to real data — no table or
+/// measure changes required.
+expression DataSourceMode = "Local" meta [IsParameterQuery=true, List={"Local","SQL"}, DefaultValue="Local", IsParameterQueryRequired=true]
+	lineageTag: c1a1e001-0000-4000-8000-000000000001
+
+	annotation PBI_ResultType = Text
+
+/// Folder produced by:  python3 -m scripts.export_mv_intelligent_industry_state --out-dir <this path>
+expression LocalCsvFolder = "C:\Users\<you>\Progetto-MIMIT-START\start-iids\data\synthetic\powerbi" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: c1a1e001-0000-4000-8000-000000000002
+
+	annotation PBI_ResultType = Text
+
+/// SQL Server / Azure SQL host exposing mv_intelligent_industry_state. Empty by default (only read when DataSourceMode = "SQL").
+expression SqlServer = "" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: c1a1e001-0000-4000-8000-000000000003
+
+	annotation PBI_ResultType = Text
+
+expression SqlDatabase = "" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: c1a1e001-0000-4000-8000-000000000004
+
+	annotation PBI_ResultType = Text
+

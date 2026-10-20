@@ -1,0 +1,53 @@
+# Draft data contract for granular SCADA/sensor telemetry feeding
+# fact_process_observation (sql/migrations/0003_..., sec. 10.9). Target field
+# names match that table's columns exactly; source field names below are
+# placeholders (`TBD_*`) — the real SCADA tag/point naming convention is open
+# item P0-03 (docs/decisions/ADR-021-...), not fabricated here (spec sec. 64).
+# Distinct from MES_PRODUCTION_V1 (sec. 27's worked example, lot-grain): this
+# contract is for sub-lot, per-equipment sensor readings (sec. 10.9).
+contract_id: SCADA_PROCESS_OBSERVATION_V1
+source_system: SCADA
+entity: process_observation
+owner: production_it
+
+keys:
+  - TBD_equipment_tag
+  - TBD_variable_tag
+  - TBD_reading_ts
+
+timestamp:
+  field: TBD_reading_ts
+  timezone: Europe/Rome
+
+fields:
+  TBD_equipment_tag:
+    target: equipment_id
+    type: string
+    required: true
+
+  TBD_variable_tag:
+    target: variable_code
+    type: string
+    required: true
+
+  TBD_value:
+    target: value_num
+    type: decimal
+    required: true
+
+  TBD_unit:
+    target: original_unit
+    type: string
+
+quality:
+  reject_if_missing:
+    - TBD_equipment_tag
+    - TBD_variable_tag
+    - TBD_reading_ts
+    - TBD_value
+
+deduplication:
+  key:
+    - TBD_equipment_tag
+    - TBD_variable_tag
+    - TBD_reading_ts

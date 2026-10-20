@@ -10,7 +10,13 @@ from src.core.units.energy import kwh_to_mj
 from src.engines.base import CalculationContext
 from src.engines.errors import EngineError, ErrorCategory
 from src.engines.tei.engine import TEIEngine, TEIInputs
-from src.engines.tei.formulas import MTOFlow, MTSFlow, compute_backlog, compute_mts_exergy
+from src.engines.tei.formulas import (
+    MTOFlow,
+    MTSFlow,
+    compute_backlog,
+    compute_mts_exergy,
+    compute_quality_penalty,
+)
 
 
 def _coeff(code, value, domain="TEI", confidence="A"):
@@ -104,6 +110,45 @@ def test_unit_conversion_electricity_matches_reference():
     mts = MTSFlow(m_rm_kg=0, m_uw_kg=0, m_sdm_kg=0, e_sd_kwh=100, t_prod_h=8)
     ex = compute_mts_exergy(mts, _coefficient_set(), record_key="LOT-001")
     assert ex.ex_e_sd_mj == kwh_to_mj(100) == 360.0
+
+
+def test_quality_penalty_matches_src_tei_manual_ratio_formula():
+    """ADR-018: Manuale TEI-J sec. 4.4/5.4 — Ex_qual = kappa * max(0, 1 - q/q_target)
+    * Ex_exposed. This is a *ratio* shortfall, not the absolute-difference
+    shortfall (`q_thr - q`) this module used before the manual was found (the
+    "old" ARCH placeholder never had a numeric test to preserve, since no
+    existing fixture ever set q_mts/q_mto)."""
+    # q at 90% of target, target=1.0, kappa=0.2 -> shortfall = 0.1
+    assert compute_quality_penalty(0.9, 1.0, 0.2, exposed_exergy_mj=1000.0) == pytest.approx(20.0)
+
+
+def test_quality_penalty_is_zero_when_q_meets_or_exceeds_target():
+    assert compute_quality_penalty(1.0, 1.0, 0.2, exposed_exergy_mj=1000.0) == 0.0
+    assert compute_quality_penalty(1.2, 1.0, 0.2, exposed_exergy_mj=1000.0) == 0.0
+
+
+def test_quality_penalty_zero_when_any_input_missing():
+    assert compute_quality_penalty(None, 1.0, 0.2, exposed_exergy_mj=1000.0) == 0.0
+    assert compute_quality_penalty(0.9, None, 0.2, exposed_exergy_mj=1000.0) == 0.0
+    assert compute_quality_penalty(0.9, 1.0, None, exposed_exergy_mj=1000.0) == 0.0
+
+
+def test_quality_penalty_rejects_non_positive_target():
+    with pytest.raises(EngineError) as exc:
+        compute_quality_penalty(0.9, 0.0, 0.2, exposed_exergy_mj=1000.0, record_key="LOT-001")
+    assert exc.value.category == ErrorCategory.PHYSICAL_RANGE_ERROR
+
+
+def test_engine_applies_quality_penalty_to_f_tech():
+    engine = TEIEngine()
+    ctx = _context()
+    with_quality = _nominal_inputs(
+        current_mts=MTSFlow(m_rm_kg=1000, m_uw_kg=50, m_sdm_kg=900, e_sd_kwh=200, t_prod_h=8, q_mts=0.8),
+    )
+    baseline = engine.calculate(ctx, _nominal_inputs())
+    penalized = engine.calculate(ctx, with_quality)
+    assert penalized.values["ex_qual_mts_mj"] > 0
+    assert penalized.values["f_tech_mj"] < baseline.values["f_tech_mj"]
 
 
 def test_baseline_mismatch_rejected_before_calculation():

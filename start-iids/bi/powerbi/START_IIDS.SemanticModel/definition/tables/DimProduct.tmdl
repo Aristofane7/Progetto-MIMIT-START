@@ -1,0 +1,34 @@
+/// Conformed dimension built from DISTINCT product_id (+ its current
+/// cluster) in mv_intelligent_industry_state. product_id is globally unique
+/// (dim_product's real PK). No friendly product_name/attributes here — those
+/// aren't in the exposed read surface either (see DimPlant's note).
+table DimProduct
+
+	column product_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: product_id
+		isKey
+
+	column cluster_id
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: cluster_id
+
+	column cluster_version
+		dataType: string
+		summarizeBy: none
+		sourceColumn: cluster_version
+
+	partition DimProduct = m
+		mode: import
+		source =
+				let
+				    FromCsvRaw = Csv.Document(File.Contents(LocalCsvFolder & "\dim_product.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    FromCsv = Table.PromoteHeaders(FromCsvRaw, [PromoteAllScalars=true]),
+				    FromSql = Sql.Database(SqlServer, SqlDatabase, [Query="SELECT DISTINCT product_id, cluster_id, cluster_version FROM mv_intelligent_industry_state WHERE product_id IS NOT NULL"]),
+				    Source = if DataSourceMode = "SQL" then FromSql else FromCsv,
+				    ChangedType = Table.TransformColumnTypes(Source, {{"product_id", type text}, {"cluster_id", Int64.Type}, {"cluster_version", type text}})
+				in
+				    ChangedType
+

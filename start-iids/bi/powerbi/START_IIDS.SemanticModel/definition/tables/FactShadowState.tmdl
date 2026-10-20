@@ -1,0 +1,300 @@
+/// One row per production lot, from mv_intelligent_industry_state (sec. 26.2)
+/// — the only source this model reads for calculated results (ADR-006: BI is
+/// not a calculation engine). Every measure below is a plain display
+/// aggregation (SUM/AVERAGE/MAX) over already-computed columns — sec. 39
+/// forbids recomputing EEA+/P-TSA in DAX, and none of these do.
+table FactShadowState
+
+	column period_start
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: period_start
+		formatString: General Date
+
+	column period_end
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: period_end
+		formatString: General Date
+
+	column plant_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: plant_id
+
+	column line_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: line_id
+
+	column process_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: process_id
+
+	column process_name
+		dataType: string
+		summarizeBy: none
+		sourceColumn: process_name
+
+	column process_family
+		dataType: string
+		summarizeBy: none
+		sourceColumn: process_family
+
+	column lot_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: lot_id
+
+	column product_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: product_id
+
+	column cluster_id
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: cluster_id
+
+	column cluster_version
+		dataType: string
+		summarizeBy: none
+		sourceColumn: cluster_version
+
+	/// Relationship key to DimCluster: cluster_id alone is only unique within
+	/// one cluster_version (dim_product_cluster's real PK is the pair, sec.
+	/// 19.6 SCD2). Today's real (0-21) / synthetic (9001+) ranges happen not
+	/// to collide, but that is an accident of the current data, not a
+	/// guarantee — concatenate both fields so the relationship stays correct
+	/// if a future cluster_version ever reuses an id.
+	column ClusterKey = FactShadowState[cluster_id] & "|" & FactShadowState[cluster_version]
+		dataType: string
+		summarizeBy: none
+		isHidden
+
+	/// Date-only truncation of period_start, for the relationship to DimDate
+	/// (a DimDate.Date column must match on data type — dateTime vs date
+	/// otherwise mismatch). Truncation only, no business calculation.
+	column DateKey = DATE(YEAR(FactShadowState[period_start]), MONTH(FactShadowState[period_start]), DAY(FactShadowState[period_start]))
+		dataType: dateTime
+		formatString: Short Date
+		summarizeBy: none
+		isHidden
+
+	column f_env_gj
+		dataType: double
+		summarizeBy: none
+		sourceColumn: f_env_gj
+		formatString: #,##0.00
+
+	column f_econ_gj
+		dataType: double
+		summarizeBy: none
+		sourceColumn: f_econ_gj
+		formatString: #,##0.00
+
+	column f_soc_gj
+		dataType: double
+		summarizeBy: none
+		sourceColumn: f_soc_gj
+		formatString: #,##0.00
+
+	column f_tech_gj
+		dataType: double
+		summarizeBy: none
+		sourceColumn: f_tech_gj
+		formatString: #,##0.00
+
+	column sa_gj
+		dataType: double
+		summarizeBy: none
+		sourceColumn: sa_gj
+		formatString: #,##0.00
+
+	column tsi_norm
+		dataType: double
+		summarizeBy: none
+		sourceColumn: tsi_norm
+		formatString: 0.000
+
+	column ioai
+		dataType: double
+		summarizeBy: none
+		sourceColumn: ioai
+		formatString: 0.000
+
+	column opi
+		dataType: double
+		summarizeBy: none
+		sourceColumn: opi
+		formatString: 0.000
+
+	column tqi
+		dataType: double
+		summarizeBy: none
+		sourceColumn: tqi
+		formatString: 0.000
+
+	column p_tsi_z
+		dataType: double
+		summarizeBy: none
+		sourceColumn: p_tsi_z
+		formatString: 0.000
+
+	column p_tsi_5
+		dataType: double
+		summarizeBy: none
+		sourceColumn: p_tsi_5
+		formatString: 0.00
+
+	column tii
+		dataType: double
+		summarizeBy: none
+		sourceColumn: tii
+		formatString: 0.000
+
+	column sales_m2
+		dataType: double
+		summarizeBy: none
+		sourceColumn: sales_m2
+		formatString: #,##0
+
+	column cluster_trend
+		dataType: string
+		summarizeBy: none
+		sourceColumn: cluster_trend
+
+	column trend_alignment
+		dataType: double
+		summarizeBy: none
+		sourceColumn: trend_alignment
+		formatString: 0.000
+
+	column design_project_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: design_project_id
+
+	column design_option_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: design_option_id
+
+	column design_decision
+		dataType: string
+		summarizeBy: none
+		sourceColumn: design_decision
+
+	column data_quality_score
+		dataType: double
+		summarizeBy: none
+		sourceColumn: data_quality_score
+		formatString: 0.00
+
+	column coefficient_set_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: coefficient_set_id
+
+	column weight_set_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: weight_set_id
+
+	column baseline_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: baseline_id
+
+	column calc_run_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: calc_run_id
+
+	/// --- Factory page (sec. 38.1) ---
+	measure 'Lot Count' = COUNTROWS(FactShadowState)
+		formatString: #,##0
+
+	measure 'SA (avg GJ)' = AVERAGE(FactShadowState[sa_gj])
+		formatString: #,##0.00
+
+	measure 'TSI norm (avg)' = AVERAGE(FactShadowState[tsi_norm])
+		formatString: 0.000
+		annotation description = "TSI_norm is already baseline-relative by construction (sec. 12) — this is the 'trend vs baseline' figure sec. 38.1 asks for, not a separate baseline lookup (dim_baseline values aren't in the exposed read surface)."
+
+	measure 'f_env (avg GJ)' = AVERAGE(FactShadowState[f_env_gj])
+		formatString: #,##0.00
+
+	measure 'f_econ (avg GJ)' = AVERAGE(FactShadowState[f_econ_gj])
+		formatString: #,##0.00
+
+	measure 'f_soc (avg GJ)' = AVERAGE(FactShadowState[f_soc_gj])
+		formatString: #,##0.00
+
+	measure 'f_tech (avg GJ)' = AVERAGE(FactShadowState[f_tech_gj])
+		formatString: #,##0.00
+
+	/// --- Product page (sec. 38.2) ---
+	measure 'P-TSI (avg, 1-5)' = AVERAGE(FactShadowState[p_tsi_5])
+		formatString: 0.00
+
+	measure 'IOAI (avg)' = AVERAGE(FactShadowState[ioai])
+		formatString: 0.000
+
+	measure 'OPI (avg)' = AVERAGE(FactShadowState[opi])
+		formatString: 0.000
+
+	measure 'TQI (avg)' = AVERAGE(FactShadowState[tqi])
+		formatString: 0.000
+
+	measure 'TII (avg)' = AVERAGE(FactShadowState[tii])
+		formatString: 0.000
+
+	measure 'Sales (sum m2)' = SUM(FactShadowState[sales_m2])
+		formatString: #,##0
+
+	/// --- Cross-cutting (sec. 31.3 freshness, sec. 29 data quality) ---
+	measure 'Data Quality Score (avg)' = AVERAGE(FactShadowState[data_quality_score])
+		formatString: 0.00
+
+	measure 'Freshness — EEA' = CALCULATE(MAX(FactShadowState[period_end]), NOT ISBLANK(FactShadowState[tsi_norm]))
+		formatString: General Date
+		annotation description = "Per-domain freshness_ts (sec. 31.3) for the EEA+ domain."
+
+	measure 'Freshness — PTSA' = CALCULATE(MAX(FactShadowState[period_end]), NOT ISBLANK(FactShadowState[p_tsi_5]))
+		formatString: General Date
+		annotation description = "Per-domain freshness_ts (sec. 31.3) for the P-TSA domain."
+
+	measure 'Freshness — Sales' = CALCULATE(MAX(FactShadowState[period_end]), NOT ISBLANK(FactShadowState[sales_m2]))
+		formatString: General Date
+		annotation description = "Per-domain freshness_ts (sec. 31.3) for the sales/cluster-performance domain."
+
+	partition FactShadowState = m
+		mode: import
+		source =
+				let
+				    CsvPath = LocalCsvFolder & "\fact_shadow_state.csv",
+				    FromCsvRaw = Csv.Document(File.Contents(CsvPath), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    FromCsv = Table.PromoteHeaders(FromCsvRaw, [PromoteAllScalars=true]),
+				    FromSql = Sql.Database(SqlServer, SqlDatabase, [Query="SELECT * FROM mv_intelligent_industry_state"]),
+				    Source = if DataSourceMode = "SQL" then FromSql else FromCsv,
+				    ChangedType = Table.TransformColumnTypes(Source, {
+				        {"period_start", type datetime}, {"period_end", type datetime},
+				        {"plant_id", type text}, {"line_id", type text},
+				        {"process_id", type text}, {"process_name", type text}, {"process_family", type text},
+				        {"lot_id", type text}, {"product_id", type text},
+				        {"cluster_id", Int64.Type}, {"cluster_version", type text},
+				        {"f_env_gj", type number}, {"f_econ_gj", type number}, {"f_soc_gj", type number}, {"f_tech_gj", type number},
+				        {"sa_gj", type number}, {"tsi_norm", type number},
+				        {"ioai", type number}, {"opi", type number}, {"tqi", type number},
+				        {"p_tsi_z", type number}, {"p_tsi_5", type number}, {"tii", type number},
+				        {"sales_m2", type number}, {"cluster_trend", type text}, {"trend_alignment", type number},
+				        {"design_project_id", type text}, {"design_option_id", type text}, {"design_decision", type text},
+				        {"data_quality_score", type number},
+				        {"coefficient_set_id", type text}, {"weight_set_id", type text}, {"baseline_id", type text},
+				        {"calc_run_id", type text}
+				    })
+				in
+				    ChangedType
+

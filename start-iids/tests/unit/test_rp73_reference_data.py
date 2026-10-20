@@ -33,7 +33,39 @@ def test_load_weight_set_from_yaml_is_approved():
 def test_load_rp73_reference_data_has_three_plants():
     data = load_rp73_reference_data(DATA_DIR / "RP7.3_data_collection_20232025.xlsx")
     assert set(data.plants) == {"D020", "D060", "D240"}
-    assert data.plants["D060"].production_m2 == 6400000
+    assert data.plants["D060"].description == "Scandiano — ibrido MTS+MTO"
+    # ADR-025: production is now per-year
+    assert data.production_m2("D060", 2023) == 6400000
+
+
+def test_production_is_per_year_and_d020_2025_is_partial():
+    # ADR-025: D020 ceased in July 2025 -> 2025 production is the partial-period value,
+    # earlier years stay at the full annual figure.
+    data = load_rp73_reference_data(DATA_DIR / "RP7.3_data_collection_20232025.xlsx")
+    assert data.production_m2("D020", 2023) == 3800000
+    # real measured Jan-July 2025 period production (ADR-025, delivered 2026-10-19)
+    assert data.production_m2("D020", 2025) == 2317845
+    assert data.production_m2("D020", 2025) < data.production_m2("D020", 2024)
+
+
+def test_activity_period_marks_d020_2025_partial():
+    data = load_rp73_reference_data(DATA_DIR / "RP7.3_data_collection_20232025.xlsx")
+    assert data.months_active("D020", 2025) == 7          # Jan -> July cessation
+    assert data.months_active("D060", 2025) == 12
+    assert data.months_active("D240", 2024) == 12
+
+
+def test_homologous_baseline_override_for_d020_2025():
+    # ADR-025 option A: D020/2025's module baseline is the SAME Jan-July window of 2022.
+    data = load_rp73_reference_data(DATA_DIR / "RP7.3_data_collection_20232025.xlsx")
+    assert ("D020", 2025) in data.baseline_override
+    ov = data.baseline_override[("D020", 2025)]
+    assert ov.ref_year == 2022
+    assert ov.months_active == 7
+    assert data.baseline_months("D020", 2025) == 7
+    assert "RI_MJ" in ov.terms
+    # D060/D240 keep the default annual-2022 baseline (no override)
+    assert ("D060", 2025) not in data.baseline_override
 
 
 def test_baseline_year_present_for_every_plant():

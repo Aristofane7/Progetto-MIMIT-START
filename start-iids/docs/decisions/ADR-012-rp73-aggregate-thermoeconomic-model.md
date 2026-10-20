@@ -1,6 +1,6 @@
 # ADR-012 — Real RP7.3 aggregate model: Ex_ref, SA_w, Phi, Psi, TSI_abs, TSI_rel
 
-**Status:** DOC (verified numerically against the project's own real data files), with one flagged open item
+**Status:** DOC (verified numerically against the project's own real data files); the one flagged open item (Psi/Ex_useful) is resolved by ADR-019
 
 ## Context
 
@@ -67,20 +67,20 @@ Phi/Psi inputs are not available — it is not deleted, since sec. 18.2 is still
 literally in the spec — but the aggregate/plant-year pipeline (`src/run_all.py`)
 uses the fuller, verified `TSI_abs`/`TSI_rel` path as primary.
 
-## Open item — Psi / Ex_useful (tracked alongside ADR-011)
+## Open item — Psi / Ex_useful — RESOLVED by ADR-019
 
-`Psi = Ex_useful / Ex_ref` is logged directly in `RP7.3_calculation_log.xlsx`
-(e.g. `R009=0.154`), but **no sheet in the available corpus defines
-`Ex_useful`** or a coefficient to derive it from `produzione_m2` (`Unita`
-sheet). Reverse-engineering a coefficient from `Psi * Ex_ref = Ex_useful` and
-correlating it against `produzione_m2` would be fabricating an unapproved
-coefficient to force a match — forbidden by spec sec. 64. Per this project's own
-governance (Appendix L/M), `Psi` is therefore treated as a **directly reported
-input** (sourced from the calculation log itself, which is legitimate SRC-RP73
-data, not invented) until the `Ex_useful` derivation is confirmed with the
-project owner. `compute_psi_efficiency` in `src/engines/eea/formulas.py` is a
-thin pass-through with this caveat documented in its docstring; nothing computes
-a `Psi` value from scratch in this codebase.
+~~`Psi = Ex_useful / Ex_ref` is logged directly in `RP7.3_calculation_log.xlsx`
+(e.g. `R009=0.154`), but no sheet in the available corpus defines `Ex_useful`
+or a coefficient to derive it from `produzione_m2`.~~ The repo-root PDF
+`RP7.3 Report di Assessment termodinamico della fabbrica.pdf` (not examined
+when this ADR was written) settles this: its sec. 2.3 states the fuel
+conversion efficiency is deliberately kept inside Psi rather than decomposed
+via a coefficient in the beta methodology, and its sec. 4.5 names that
+decomposition as explicit future work for a later "release" version. `Psi`
+therefore stays a **directly reported input** — not because the derivation is
+unconfirmed, but because the primary source itself confirms there is no
+further decomposition at this stage. See ADR-019 for the full resolution and
+the added cross-source consistency test.
 
 ## Decision
 

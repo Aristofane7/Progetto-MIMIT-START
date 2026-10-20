@@ -1,0 +1,24 @@
+relationship FactShadowState_DimPlant
+	fromColumn: FactShadowState.plant_id
+	toColumn: DimPlant.plant_id
+
+relationship FactShadowState_DimLine
+	fromColumn: FactShadowState.line_id
+	toColumn: DimLine.line_id
+
+relationship FactShadowState_DimProcess
+	fromColumn: FactShadowState.process_id
+	toColumn: DimProcess.process_id
+
+relationship FactShadowState_DimProduct
+	fromColumn: FactShadowState.product_id
+	toColumn: DimProduct.product_id
+
+relationship FactShadowState_DimCluster
+	fromColumn: FactShadowState.ClusterKey
+	toColumn: DimCluster.ClusterKey
+
+relationship FactShadowState_DimDate
+	fromColumn: FactShadowState.DateKey
+	toColumn: DimDate.Date
+
