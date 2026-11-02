@@ -205,9 +205,10 @@ class All20(Builder):
                   "gli eventuali miglioramenti ambientali, ivi comprese le condizioni di lavoro, e i risparmi "
                   "energetici."):
             self.bullet(b)
-        self.insert("….")
+        self.text_block("**GRUPPO CERAMICHE GRESMALT S.P.A.**")
+        self.text_block(g["EFF1"])
         self.instr("Illustrare le eventuali ricadute in altri ambiti o settori dei risultati del progetto.")
-        self.insert("….")
+        self.text_block(g["EFF2"])
 
         # ---------------------------------------------------------------- 7. DOCUMENTAZIONE
         self.section("7.\tDOCUMENTAZIONE")
@@ -223,7 +224,8 @@ class All20(Builder):
 
         # ---------------------------------------------------------------- 8. VALUTAZIONE
         self.section("8.\tVALUTAZIONE CRITICA DEI RISULTATI DEL PROGETTO")
-        self.insert("….")
+        self.text_block("**GRUPPO CERAMICHE GRESMALT S.P.A.**")
+        self.text_block(g["VAL"])
 
         for t, bold in (("Casalgrande (RE), __/__/____", False), ("Il responsabile del progetto", False),
                         ("Davide Settembre Blundo", True), ("", False),
