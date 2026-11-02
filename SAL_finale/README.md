@@ -20,3 +20,11 @@ build_all16.py genera START_ALL16_SAL_finale_Gresmalt.docx (+ PDF di anteprima)
 ```
 
 Rigenerazione: `python SAL_finale/build_all16.py`
+
+# Allegato 20 — Relazione finale di progetto, parte Gresmalt
+
+Modello: `Progetto_MIMIT-VOLT/reports/relazioni_SAL3/VOLT_ALL20_Relazione_finale_Gresmalt_OR7-OR9.docx`.
+Base: modello ufficiale All. 20 (`fonti/API-2022_ALL20_modello.docx`) compilato con i dati delle
+relazioni di SAL. §3 Obiettivi e §4 Attività (riassunto cumulativo di tutte le 26 attività
+Gresmalt, 6.1–8.6) da `md/all20/`; OR 1–5, §5 costi, §6 effetti e §8 valutazione critica a
+segnaposto, come nel modello VOLT. Rigenerazione: `python SAL_finale/build_all20.py`.
