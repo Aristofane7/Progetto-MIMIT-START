@@ -42,9 +42,9 @@ ROOT = os.path.dirname(BASE)
 TPL = os.path.join(ROOT, "RPX.Y Titolo_Relazione_Parziale_data.docx")
 FIG = os.path.join(BASE, "docs", "figures")
 OUTDOCX = os.path.join(BASE, "docs", "RP8.5_Piano_Stakeholder_Engagement.docx")
-ROOTDOCX = os.path.join(ROOT, "RP 8.5 Piano di Stakeholder Engagement_31-10-24.docx")
+ROOTDOCX = os.path.join(ROOT, "RP 8.5 Piano di Stakeholder Engagement_30-04-24.docx")
 
-DATA_REV = "31.10.24"
+DATA_REV = "30.04.24"
 VERSIONE = "RV.1"
 
 DGREEN_HEX = "024C41"
@@ -92,7 +92,7 @@ def fig_metodo(path):
     ax.axis("off")
     fasi = [
         ("1", "Identificazione", "livelli della scheda 8.5:\ninterni → associazioni →\nterritori → clienti"),
-        ("2", "Mappatura", "registro degli\nstakeholder\n(SAL 1, Fig. 8.4.1)"),
+        ("2", "Mappatura", "registro degli\nstakeholder\n(istituzionali,\nassociativi, interni)"),
         ("3", "Rilevanza", "Influenza × Interesse\nIR ∈ [0,1]\nmatrice di rilevanza"),
         ("4", "Materialità", "temi del Piano ×\ninteressi dei gruppi\n(problema n. 5)"),
         ("5", "Piano operativo", "livelli, canali,\nfrequenze, responsabili\ne monitoraggio"),
@@ -551,10 +551,8 @@ def build():
               "gruppo di progetto (problema progettuale n. 6), che il Piano prevede di ottenere "
               "proprio attraverso il coinvolgimento delle autorità territoriali previsto dal Piano di "
               "Stakeholder Engagement.")
-    para(doc, "Al primo Stato di Avanzamento Lavori (30/04/2024) l'attività aveva completato la mappatura "
-              "degli stakeholder istituzionali e associativi, mentre l'analisi della materialità era in "
-              "corso. Scopo della presente relazione, che chiude l'attività al diciottesimo mese di "
-              "progetto, è: (i) consolidare la mappatura secondo i livelli indicati dal Piano di "
+    para(doc, "La presente relazione chiude l'attività al termine del primo periodo di rendicontazione "
+              "(30/04/2024). Suo scopo è: (i) consolidare la mappatura secondo i livelli indicati dal Piano di "
               "Sviluppo; (ii) misurare l'Indicatore di rilevanza per ciascuno stakeholder e costruire "
               "la Matrice di rilevanza; (iii) completare l'analisi di materialità dei temi; (iv) "
               "definire il Piano operativo di Stakeholder Engagement e il relativo sistema di "
@@ -580,7 +578,7 @@ def build():
               "partner, associazioni di categoria e ordini professionali, territori (comuni e regioni "
               "che ospitano le sedi operative del progetto), clienti e utenti finali, a cui si "
               "aggiungono le istituzioni nazionali dell'Accordo per l'Innovazione. Il punto di partenza "
-              "è la mappatura istituzionale presentata nella Relazione tecnica del primo SAL, costruita "
+              "è la mappatura istituzionale degli stakeholder, costruita "
               "a partire dalle sedi di svolgimento del progetto dei cinque soggetti beneficiari e dalla "
               "rappresentanza di settore. Gli stakeholder sono stati quindi raggruppati in otto gruppi "
               "omogenei per ruolo, che costituiscono l'unità di analisi della materialità e del piano "
@@ -644,7 +642,7 @@ def build():
     # ================================================================= 3. RISULTATI
     h1(doc, "3.RISULTATI")
     h2(doc, "3.1 Mappatura degli stakeholder")
-    para(doc, "La mappatura presentata al primo SAL (Figura 2) individua "
+    para(doc, "La mappatura istituzionale (Figura 2) individua "
               f"{sint['n_sal1']} stakeholder istituzionali e associativi: il Ministero delle Imprese e "
               "del Made in Italy e il Fondo per la Crescita Sostenibile; le quattro amministrazioni "
               "regionali e provinciali dei territori del partenariato (Emilia-Romagna, Provincia "
@@ -653,8 +651,7 @@ def build():
               "ceramico (Confindustria Ceramica e Acimac) e gli ordini professionali di architetti e "
               "ingegneri, destinatari dei risultati sull'involucro edilizio a matrice ceramica.")
     figure(doc, "fig_se2_mappatura_SAL1.png", 165)
-    cap_figure(doc, "Figura 2: Mappatura degli stakeholder istituzionali e associativi (Relazione tecnica "
-                    "SAL 1, Figura 8.4.1).")
+    cap_figure(doc, "Figura 2: Mappatura degli stakeholder istituzionali e associativi.")
     para(doc, "In coerenza con il percorso indicato dalla scheda di attività, la mappatura è stata "
               "completata con il livello interno (direzione e team di progetto di Gresmalt, team di "
               "SACMI, gruppi di ricerca delle università partner, personale degli stabilimenti "
