@@ -1,0 +1,13 @@
+codice;tema;rilevanza_stakeholder_1_5;rilevanza_progetto_1_5;classe;riferimenti_piano
+T01;Efficienza energetica ed emissioni;3,72;5;Prioritario;"Finalità §4; OR 5; KPI EEA+ (6.5, 7.3)"
+T02;Uso efficiente di materie prime e risorse naturali;3,17;4;Prioritario;"Finalità §4; KPI EFA+ (6.2); OR 2"
+T03;Occupazione, competenze e condizioni di lavoro;3,56;4;Prioritario;"KPI SFA+ (6.3); occupazione (8.6)"
+T04;Etica e trasparenza dell'Intelligenza Artificiale;2,02;4;Rilevante;Linee guida etiche OR 1 (risultato intermedio)
+T05;Sicurezza dei dati e cybersecurity;2,30;3;Da monitorare;"Finalità §4; architettura E2C (6.6)"
+T06;Competitività e trasformazione digitale;3,69;5;Prioritario;"Obiettivo finale §5; OR 1, 4, 6, 7"
+T07;Qualità e sostenibilità del prodotto;2,69;5;Rilevante;"KPI P-TSI (7.4), qualità (7.5); OR 2"
+T08;Design e personalizzazione del prodotto;2,41;4;Rilevante;"Finalità §4; KPI 6.9, 7.7"
+T09;Comfort abitativo e prestazioni dell'involucro;1,89;4;Rilevante;"Obiettivo specifico 7 (§5); OR 3"
+T10;Ricadute economiche sui territori;3,09;4;Prioritario;"Contributo innovativo OR 8; KPI 8.6"
+T11;Trasferimento tecnologico e replicabilità;3,40;3;Rilevante;Attività 8.4 e 8.5
+T12;Nuovi modelli di business guidati dall'IA;2,20;4;Rilevante;KPI AI-BM (7.10)

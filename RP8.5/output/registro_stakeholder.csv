@@ -1,0 +1,28 @@
+id;stakeholder;gruppo;livello;ambito;influenza;interesse;IR;quadrante;mappatura_SAL1;motivazione
+S01;Ministero delle Imprese e del Made in Italy (MIMIT);Istituzioni nazionali dell'Accordo;Istituzionale;Nazionale;5;4;0,80;Gestire attivamente;si;"Amministrazione concedente; verifica SAL e risultato intermedio; interesse di policy sulla transizione digitale e sulla replicabilità."
+S02;Fondo per la Crescita Sostenibile (FCS);Istituzioni nazionali dell'Accordo;Istituzionale;Nazionale;4;2;0,32;Mantenere soddisfatti;si;"Fonte delle risorse dell'Accordo; interesse limitato alla corretta destinazione dei fondi."
+S03;Regione Emilia-Romagna;Regioni e Provincia autonoma;Territoriale;Emilia-Romagna;4;5;0,80;Gestire attivamente;si;"Politiche industriali e statistiche regionali (dati I-O per 8.6); territorio del distretto ceramico e delle sedi Gresmalt e SACMI."
+S04;Provincia Autonoma di Bolzano;Regioni e Provincia autonoma;Territoriale;Alto Adige;4;3;0,48;Mantenere soddisfatti;si;"Statistiche provinciali per l'analisi I-O (8.6); sede della Libera Università di Bolzano."
+S05;Regione Sardegna;Regioni e Provincia autonoma;Territoriale;Sardegna;4;3;0,48;Mantenere soddisfatti;si;"Statistiche regionali per l'analisi I-O (8.6); sede dell'Università di Sassari."
+S06;Regione Calabria;Regioni e Provincia autonoma;Territoriale;Calabria;4;3;0,48;Mantenere soddisfatti;si;"Statistiche regionali per l'analisi I-O (8.6); sede dell'Università della Calabria."
+S07;Comune di Sassuolo (MO);Comuni sedi operative Gresmalt;Territoriale;Emilia-Romagna;3;5;0,60;Mantenere informati;si;"Sede direzionale e unità produttiva; effetti occupazionali e ambientali diretti."
+S08;Comune di Fiorano Modenese (MO);Comuni sedi operative Gresmalt;Territoriale;Emilia-Romagna;3;5;0,60;Mantenere informati;si;"Unità produttiva e logistica; effetti occupazionali e ambientali diretti."
+S09;Comune di Scandiano (RE);Comuni sedi operative Gresmalt;Territoriale;Emilia-Romagna;3;5;0,60;Mantenere informati;si;"Unità produttiva (Iano); effetti occupazionali e ambientali diretti."
+S10;Comune di Viano (RE);Comuni sedi operative Gresmalt;Territoriale;Emilia-Romagna;3;5;0,60;Mantenere informati;si;"Unità produttiva; effetti occupazionali e ambientali diretti."
+S11;Comune di Casalgrande (RE);Comuni sedi operative Gresmalt;Territoriale;Emilia-Romagna;3;5;0,60;Mantenere informati;si;"Unità produttiva; effetti occupazionali e ambientali diretti."
+S12;Comune di Imola (BO);Comuni sedi dei partner;Territoriale;Emilia-Romagna;2;4;0,32;Mantenere informati;si;"Sede SACMI; ricadute sulla filiera dei costruttori di macchine per ceramica."
+S13;Comune di Bolzano;Comuni sedi dei partner;Territoriale;Alto Adige;2;3;0,24;Monitorare;si;Sede della Libera Università di Bolzano.
+S14;Comune di Brunico-Bruneck (BZ);Comuni sedi dei partner;Territoriale;Alto Adige;2;3;0,24;Monitorare;si;Sede di attività della Libera Università di Bolzano.
+S15;Comune di Alghero (SS);Comuni sedi dei partner;Territoriale;Sardegna;2;3;0,24;Monitorare;si;Sede di attività dell'Università di Sassari (Architectural Design 4.0+).
+S16;Comune di Sassari;Comuni sedi dei partner;Territoriale;Sardegna;2;3;0,24;Monitorare;si;Sede dell'Università di Sassari.
+S17;Comune di Rende (CS);Comuni sedi dei partner;Territoriale;Calabria;2;3;0,24;Monitorare;si;Sede dell'Università della Calabria.
+S18;Confindustria Ceramica;Associazioni di categoria;Associativo;Nazionale (distretto ceramico);4;4;0,64;Gestire attivamente;si;"Rappresentanza del settore e dati statistici di comparto; principale canale di replicabilità dei risultati verso i produttori ceramici."
+S19;Acimac;Associazioni di categoria;Associativo;Nazionale;3;4;0,48;Mantenere informati;si;"Costruttori di macchine e attrezzature per ceramica; canale di trasferimento verso la filiera tecnologica."
+S20;Ordine degli Architetti P.P.C.;Ordini professionali;Associativo;Sardegna;3;4;0,48;Mantenere informati;si;Progettisti: adozione dell'involucro a matrice ceramica e dell'Architectural Design 4.0+.
+S21;Ordine degli Ingegneri;Ordini professionali;Associativo;Sardegna;3;4;0,48;Mantenere informati;si;Progettisti e tecnici: adozione delle soluzioni costruttive e di monitoraggio.
+S22;Gresmalt — Direzione e team di progetto (CdG);Stakeholder interni ai partner;Interno;Partenariato;5;5;1,00;Gestire attivamente;no;Capofila: governance del progetto, decisioni di investimento, attuazione OR 6-8.
+S23;SACMI — Team di progetto;Stakeholder interni ai partner;Interno;Partenariato;4;5;0,80;Gestire attivamente;no;Partner industriale: OR 4-5 e interfaccia tecnologica con gli impianti.
+S24;Università partner — Gruppi di ricerca (UNIBZ, UNICAL, UNISS);Stakeholder interni ai partner;Interno;Partenariato;4;4;0,64;Gestire attivamente;no;"Responsabili scientifici degli OR 1-3; produzione di conoscenza e pubblicazioni."
+S25;Personale degli stabilimenti Gresmalt;Stakeholder interni ai partner;Interno;Emilia-Romagna;3;5;0,60;Mantenere informati;no;"Utenti finali dei sistemi collaudati in OR 7; effetti su competenze e condizioni di lavoro."
+S26;Clienti B2B (distributori, rivenditori, grandi progetti);Clienti e utenti finali;Mercato;Italia ed estero;3;4;0,48;Mantenere informati;no;"Domanda di prodotti sostenibili e personalizzati; destinatari delle nuove collezioni."
+S27;Utenti finali e occupanti degli edifici;Clienti e utenti finali;Mercato;Italia ed estero;1;3;0,12;Monitorare;no;Beneficiari del comfort indoor e della qualità del prodotto posato.
